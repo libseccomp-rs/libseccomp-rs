@@ -1,0 +1,80 @@
+name: build-test
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+    types: [opend, reopened, synchronize]
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Prepare for building libseccomp 2.5.1
+        run: |
+          wget https://github.com/seccomp/libseccomp/releases/download/v2.5.1/libseccomp-2.5.1.tar.gz
+          tar xvf libseccomp-2.5.1.tar.gz
+          sudo apt install gperf
+      - name: Build and install libseccomp
+        working-directory: ./libseccomp-2.5.1
+        run: |
+          ./configure
+          make
+          sudo make install
+      - name: Build crate
+        run: make debug
+
+  fmt:
+    name: Format Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Prepare for rustfmt
+        run: rustup component add rustfmt
+      - name: Run rustfmt
+        run: make fmt
+
+  clippy:
+    name: Clippy Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Prepare for building libseccomp 2.5.1
+        run: |
+          wget https://github.com/seccomp/libseccomp/releases/download/v2.5.1/libseccomp-2.5.1.tar.gz
+          tar xvf libseccomp-2.5.1.tar.gz
+          sudo apt install gperf
+      - name: Build and install libseccomp
+        working-directory: ./libseccomp-2.5.1
+        run: |
+          ./configure
+          make
+          sudo make install
+      - name: Prepare for clippy
+        run: rustup component add clippy
+      - name: run clippy
+        run: make clippy
+
+  test:
+    name: Unit Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Prepare for building libseccomp 2.5.1
+        run: |
+          wget https://github.com/seccomp/libseccomp/releases/download/v2.5.1/libseccomp-2.5.1.tar.gz
+          tar xvf libseccomp-2.5.1.tar.gz
+          sudo apt install gperf
+      - name: Build and install libseccomp
+        working-directory: ./libseccomp-2.5.1
+        run: |
+          ./configure
+          make
+          sudo make install
+      - name: Run test
+        run: make test
