@@ -1,4 +1,9 @@
-# libseccomp-rs [![build-test](https://github.com/ManaSugi/libseccomp-rs/actions/workflows/build-test.yaml/badge.svg)](https://github.com/ManaSugi/libseccomp-rs/actions/workflows/build-test.yaml)
+# libseccomp-rs
+
+[![build-test](https://github.com/ManaSugi/libseccomp-rs/actions/workflows/build-test.yaml/badge.svg)](https://github.com/ManaSugi/libseccomp-rs/actions/workflows/build-test.yaml)
+[![Latest release on crates.io](http://meritbadge.herokuapp.com/libseccomp)](https://crates.io/crates/libseccomp)
+[![Documentation on docs.rs](https://docs.rs/libseccomp/badge.svg)](https://docs.rs/libseccomp)
+
 Native Rust crate for libseccomp library
 
 This is a set of projects (high-level bindings, low-level bindings and tool for generating low-level bindings automatically) that enables developers 
