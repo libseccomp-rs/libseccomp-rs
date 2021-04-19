@@ -52,6 +52,15 @@ use libseccomp_sys::*;
 use std::ffi::{CStr, CString};
 use std::ptr::NonNull;
 
+/// ScmpVersion represents the version information of
+/// the currently loaded libseccomp library
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ScmpVersion {
+    pub major: u32,
+    pub minor: u32,
+    pub micro: u32,
+}
+
 /// ScmpFilterArttr represents filter attributes
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ScmpFilterAttr {
@@ -581,6 +590,27 @@ impl Drop for ScmpFilterContext {
     }
 }
 
+/// get_library_version returns the version information
+/// of the currently loaded libseccomp library.
+///
+/// Returns a version information, or an error if the function could not get the version.
+pub fn get_library_version() -> Result<ScmpVersion> {
+    let ret = unsafe { seccomp_version().as_ref() };
+    match ret {
+        Some(v) => {
+            let scmp_ver = ScmpVersion {
+                major: v.major,
+                minor: v.minor,
+                micro: v.micro,
+            };
+            Ok(scmp_ver)
+        }
+        None => Err(SeccompError::new(Common(
+            "Could not get seccomp version".to_string(),
+        ))),
+    }
+}
+
 /// get_api returns the API level supported by the system.
 ///
 /// Returns a positive int containing the API level, or 0 with an error if the
@@ -699,6 +729,15 @@ mod tests {
         assert_eq!(
             ScmpArch::from_str("SCMP_ARCH_X86_64").unwrap().to_native(),
             ScmpArch::X8664.to_native()
+        );
+    }
+
+    #[test]
+    fn test_get_library_version() {
+        let ret = get_library_version().unwrap();
+        println!(
+            "test_get_library_version: {}.{}.{}",
+            ret.major, ret.minor, ret.micro
         );
     }
 
