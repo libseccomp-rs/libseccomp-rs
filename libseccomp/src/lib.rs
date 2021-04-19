@@ -657,7 +657,7 @@ pub fn get_syscall_name_from_arch(arch: ScmpArch, syscall_num: i32) -> Result<St
     let ret = unsafe { seccomp_syscall_resolve_num_arch(arch.to_native(), syscall_num) };
     if ret.is_null() {
         return Err(SeccompError::new(Common(
-            "Cloud not resolve syscall name".to_string(),
+            "Could not resolve syscall name".to_string(),
         )));
     }
 
@@ -690,7 +690,7 @@ pub fn get_syscall_from_name(name: &str, arch: Option<ScmpArch>) -> Result<i32> 
 
     if syscall == __NR_SCMP_ERROR {
         return Err(SeccompError::new(Common(
-            "Cloud not resolve syscall name".to_string(),
+            "Could not resolve syscall name".to_string(),
         )));
     }
 
