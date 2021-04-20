@@ -1,6 +1,6 @@
 [package]
 name = "libseccomp"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Manabu Sugimoto <Manabu.Sugimoto@sony.com>"]
 license = "MIT OR Apache-2.0"
 description = "Native Rust crate for libseccomp library"
@@ -14,7 +14,7 @@ readme = "../README.md"
 [dependencies]
 libc = "0.2"
 nix = "0.17.0"
-libseccomp-sys = { version = "0.1.0", path = "../libseccomp-sys" }
+libseccomp-sys = { version = "0.1.1", path = "../libseccomp-sys" }
 
 [build-dependencies]
 pkg-config = "0.3.19"
