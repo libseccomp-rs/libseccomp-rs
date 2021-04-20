@@ -1,5 +1,8 @@
 # libseccomp-sys
 
+[![Latest release on crates.io](http://meritbadge.herokuapp.com/libseccomp-sys)](https://crates.io/crates/libseccomp-sys)
+[![Documentation on docs.rs](https://docs.rs/libseccomp-sys/badge.svg)](https://docs.rs/libseccomp-sys)
+
 Low-level bindings for the libseccomp library
 
 This crate contains the raw FFI bindings to the [libseccomp](https://github.com/seccomp/libseccomp)
