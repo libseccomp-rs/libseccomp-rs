@@ -50,6 +50,8 @@ use error::ErrorKind::*;
 use error::{Result, SeccompError};
 use libseccomp_sys::*;
 use std::ffi::{CStr, CString};
+use std::fs::File;
+use std::os::unix::io::AsRawFd;
 use std::ptr::NonNull;
 
 /// ScmpVersion represents the version information of
@@ -549,6 +551,34 @@ impl ScmpFilterContext {
         }
 
         self.set_filter_attr(ScmpFilterAttr::CtlNnp, value)?;
+
+        Ok(())
+    }
+
+    /// export_pfc outputs PFC-formatted, human-readable dump of a filter context's
+    /// rules to a file.
+    ///
+    /// Accepts file to write to (must be open for writing).
+    /// Returns an error if writing to the file fails.
+    pub fn export_pfc(&self, fd: File) -> Result<()> {
+        let ret = unsafe { seccomp_export_pfc(self.ctx.as_ptr(), fd.as_raw_fd()) };
+        if ret < 0 {
+            return Err(SeccompError::new(Errno(ret)));
+        }
+
+        Ok(())
+    }
+
+    /// export_bpf outputs Berkeley Packet Filter-formatted, kernel-readable dump of a
+    /// filter context's rules to a file.
+    ///
+    /// Accepts file to write to (must be open for writing).
+    /// Returns an error if writing to the file fails.
+    pub fn export_bpf(&self, fd: File) -> Result<()> {
+        let ret = unsafe { seccomp_export_bpf(self.ctx.as_ptr(), fd.as_raw_fd()) };
+        if ret < 0 {
+            return Err(SeccompError::new(Errno(ret)));
+        }
 
         Ok(())
     }
