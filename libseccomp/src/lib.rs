@@ -65,6 +65,7 @@ pub struct ScmpVersion {
 
 /// ScmpFilterArttr represents filter attributes
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum ScmpFilterAttr {
     /// The default filter action as specified in the call to seccomp reset.
     ActDefault,
@@ -131,6 +132,7 @@ impl std::str::FromStr for ScmpFilterAttr {
 
 /// ScmpCompareOp represents a comparison operator which can be used in a filter rule
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum ScmpCompareOp {
     /// not equal
     NotEqual,
@@ -214,6 +216,7 @@ impl From<ScmpArgCompare> for scmp_arg_cmp {
 
 /// ScmpAction represents an action to be taken on a filter rule match in libseccomp
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum ScmpAction {
     /// Kill the process
     KillProcess,
@@ -273,6 +276,7 @@ impl ScmpAction {
 /// ScmpArch represents a CPU architecture. Seccomp can restrict syscalls on a
 /// per-architecture basis.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum ScmpArch {
     /// The native architecture token
     Native,
