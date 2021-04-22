@@ -25,7 +25,7 @@ pub struct SeccompError {
 impl fmt::Display for SeccompError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match &self.kind {
-            ErrorKind::Errno(e) => match *e {
+            ErrorKind::Errno(e) => match -(*e) {
                 libc::EDOM => "Architecture specific failure".to_string(),
                 libc::EACCES => {
                     "Setting the attribute with the given value is not allowed".to_string()
