@@ -34,7 +34,7 @@ let syscall = get_syscall_from_name("getuid", Some(ScmpArch::ArchX86)).unwrap();
 // add_rule adds a single rule for an unconditional or conditional action on a syscall.
 ctx.add_rule(ScmpAction::ActErrno(111), syscall, None).unwrap();
 
-// load loads a filter context into the kernel. 
+// load loads the filter context into the kernel.
 ctx.load().unwrap();
 
 // The getuid fails by the seccomp rule.
@@ -62,6 +62,28 @@ $ cd libseccomp-2.5.1
 $ ./configure
 $ make
 $ sudo make install
+```
+
+For more details, see the [libseccomp library repository](https://github.com/seccomp/libseccomp).
+
+## Setup
+If you use the libseccomp crate with dynamically linked the [libseccomp library](https://github.com/seccomp/libseccomp),
+you do not need additinoal settings about environment variables.
+
+However, if you want to use the crate with statically linked the library,
+you have to set the `LIBSECCOMP_LINK_TYPE` and `LIBSECCOMP_LIB_PATH` environment variable
+like below.
+
+```sh
+$ export LIBSECCOMP_LINK_TYPE=static
+$ export LIBSECCOMP_LIB_PATH="the path of libseccomp.a"
+```
+
+Now, add the following to your `Cargo.toml` to start building the crate.
+
+```
+[dependencies]
+libseccomp = "0.1.1"
 ```
 
 ## How to contribute
