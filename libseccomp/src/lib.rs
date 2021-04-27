@@ -376,6 +376,32 @@ impl std::str::FromStr for ScmpArch {
     }
 }
 
+fn arch_from_native(arch: u32) -> Result<ScmpArch> {
+    match arch {
+        SCMP_ARCH_NATIVE => Ok(ScmpArch::Native),
+        SCMP_ARCH_X86 => Ok(ScmpArch::X86),
+        SCMP_ARCH_X86_64 => Ok(ScmpArch::X8664),
+        SCMP_ARCH_X32 => Ok(ScmpArch::X32),
+        SCMP_ARCH_ARM => Ok(ScmpArch::Arm),
+        SCMP_ARCH_AARCH64 => Ok(ScmpArch::Aarch64),
+        SCMP_ARCH_MIPS => Ok(ScmpArch::Mips),
+        SCMP_ARCH_MIPS64 => Ok(ScmpArch::Mips64),
+        SCMP_ARCH_MIPS64N32 => Ok(ScmpArch::Mips64N32),
+        SCMP_ARCH_MIPSEL => Ok(ScmpArch::Mipsel),
+        SCMP_ARCH_MIPSEL64 => Ok(ScmpArch::Mipsel64),
+        SCMP_ARCH_MIPSEL64N32 => Ok(ScmpArch::Mipsel64N32),
+        SCMP_ARCH_PPC => Ok(ScmpArch::Ppc),
+        SCMP_ARCH_PPC64 => Ok(ScmpArch::Ppc64),
+        SCMP_ARCH_PPC64LE => Ok(ScmpArch::Ppc64Le),
+        SCMP_ARCH_S390 => Ok(ScmpArch::S390),
+        SCMP_ARCH_S390X => Ok(ScmpArch::S390X),
+        SCMP_ARCH_PARISC => Ok(ScmpArch::Parisc),
+        SCMP_ARCH_PARISC64 => Ok(ScmpArch::Parisc64),
+        SCMP_ARCH_RISCV64 => Ok(ScmpArch::Riscv64),
+        _ => Err(SeccompError::new(ParseError)),
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct ScmpData {
     nr: i32,
@@ -407,6 +433,27 @@ impl ScmpFilterContext {
         Ok(ScmpFilterContext {
             ctx: NonNull::new(ctx).unwrap(),
         })
+    }
+
+    /// merge merges two filters.
+    /// In order to merge two seccomp filters, both filters must have the same
+    /// attribute values and no overlapping architectures.
+    /// If successful, the src seccomp filter is released and all internal memory
+    /// associated with the filter is freed.
+    ///
+    /// Accepts a seccomp filter in src that will be merged into the filter this is
+    /// called on.
+    /// Returns an error if merging the filters failed.
+    pub fn merge(&mut self, src: Self) -> Result<()> {
+        let ret = unsafe { seccomp_merge(self.ctx.as_ptr(), src.ctx.as_ptr()) };
+        if ret != 0 {
+            return Err(SeccompError::new(Errno(ret)));
+        }
+
+        // The src filter is already released.
+        std::mem::forget(src);
+
+        Ok(())
     }
 
     /// is_arch_present checks if an architecture is present in a filter.
@@ -645,6 +692,21 @@ pub fn get_library_version() -> Result<ScmpVersion> {
     }
 }
 
+/// get_native_arch returns ScmpArch representing the native kernel architecture.
+///
+/// Returns a native architecture, or an error if the function could not get
+/// the native architecture.
+pub fn get_native_arch() -> Result<ScmpArch> {
+    let ret = unsafe { seccomp_arch_native() };
+
+    match arch_from_native(ret) {
+        Ok(v) => Ok(v),
+        Err(_) => Err(SeccompError::new(Common(
+            "Could not get native architecture".to_string(),
+        ))),
+    }
+}
+
 /// get_api returns the API level supported by the system.
 ///
 /// Returns a positive int containing the API level, or 0 with an error if the
@@ -776,6 +838,12 @@ mod tests {
     }
 
     #[test]
+    fn test_get_native_arch() {
+        let ret = get_native_arch().unwrap();
+        println!("test_get_native_arch: native arch is {:?}", ret);
+    }
+
+    #[test]
     fn test_get_api() {
         let ret = get_api().unwrap();
         println!("test_get_api: Got API level of {}", ret);
@@ -837,6 +905,30 @@ mod tests {
         ctx.remove_arch(ScmpArch::X86).unwrap();
         let ret = ctx.is_arch_present(ScmpArch::X86).unwrap();
         assert_eq!(ret, false);
+    }
+
+    #[test]
+    fn test_merge_filters() {
+        let mut ctx1 = ScmpFilterContext::new_filter(ScmpAction::Allow).unwrap();
+        let mut ctx2 = ScmpFilterContext::new_filter(ScmpAction::Allow).unwrap();
+        let native_arch = get_native_arch().unwrap();
+        let mut prospective_arch = ScmpArch::Aarch64;
+
+        if native_arch == ScmpArch::Aarch64 {
+            prospective_arch = ScmpArch::X8664;
+        }
+
+        ctx2.add_arch(prospective_arch).unwrap();
+
+        // In order to merge two filters, both filters must have no
+        // overlapping architectures.
+        // Therefore, need to remove the native arch.
+        ctx2.remove_arch(native_arch).unwrap();
+
+        ctx1.merge(ctx2).unwrap();
+
+        let ret = ctx1.is_arch_present(prospective_arch).unwrap();
+        assert_eq!(ret, true);
     }
 
     #[test]
