@@ -20,22 +20,22 @@ to use the libseccomp API in Rust easily.
 use libseccomp::*;
 
 // new_filter creates and returns a new filter context.
-let mut ctx = ScmpFilterContext::new_filter(ScmpAction::ActAllow).unwrap();
+let mut filter = ScmpFilterContext::new_filter(ScmpAction::Allow).unwrap();
 
 // add_arch adds an architecture to the filter.
-ctx.add_arch(ScmpArch::ArchX86).unwrap();
+filter.add_arch(ScmpArch::Native).unwrap();
 
 // get_syscall_from_name returns the number of a syscall by name for a given
 // architectures's ABI.
 // If arch argument is None, the function returns the number of a syscall
 // on the kernel's native architecture.
-let syscall = get_syscall_from_name("getuid", Some(ScmpArch::ArchX86)).unwrap();
+let syscall = get_syscall_from_name("getuid", None).unwrap();
 
 // add_rule adds a single rule for an unconditional or conditional action on a syscall.
-ctx.add_rule(ScmpAction::ActErrno(111), syscall, None).unwrap();
+filter.add_rule(ScmpAction::Errno(111), syscall, None).unwrap();
 
 // load loads the filter context into the kernel.
-ctx.load().unwrap();
+filter.load().unwrap();
 
 // The getuid fails by the seccomp rule.
 assert_eq!(unsafe { libc::getuid() } as i32, -111);

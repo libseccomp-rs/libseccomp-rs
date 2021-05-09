@@ -13,13 +13,13 @@
 //! use libseccomp::*;
 //!
 //! fn main() -> Result<(), Box<dyn std::error::Error>> {
-//!     let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
-//!     ctx.add_arch(ScmpArch::X86)?;
+//!     let mut filter = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+//!     filter.add_arch(ScmpArch::Native)?;
 //!
 //!     let syscall = get_syscall_from_name("getuid", None)?;
 //!
-//!     ctx.add_rule(ScmpAction::Errno(1), syscall, None)?;
-//!     ctx.load()?;
+//!     filter.add_rule(ScmpAction::Errno(1), syscall, None)?;
+//!     filter.load()?;
 //!
 //!     Ok(())
 //! }
@@ -30,14 +30,14 @@
 //! use libseccomp::*;
 //!
 //! fn main() -> Result<(), Box<dyn std::error::Error>> {
-//!     let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
-//!     ctx.add_arch(ScmpArch::X86)?;
+//!     let mut filter = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+//!     filter.add_arch(ScmpArch::X8664)?;
 //!
-//!     let syscall = get_syscall_from_name("dup2", None)?;
+//!     let syscall = get_syscall_from_name("dup2", Some(ScmpArch::X8664))?;
 //!
 //!     let cmp = ScmpArgCompare::new(0, ScmpCompareOp::Equal, 1, None);
-//!     ctx.add_rule(ScmpAction::Errno(libc::EPERM as u32), syscall, Some(&[cmp]))?;
-//!     ctx.load()?;
+//!     filter.add_rule(ScmpAction::Errno(libc::EPERM as u32), syscall, Some(&[cmp]))?;
+//!     filter.load()?;
 //!
 //!     Ok(())
 //! }
