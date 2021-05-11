@@ -29,7 +29,7 @@ filter.add_arch(ScmpArch::Native).unwrap();
 // architectures's ABI.
 // If arch argument is None, the function returns the number of a syscall
 // on the kernel's native architecture.
-let syscall = get_syscall_from_name("getuid", None).unwrap();
+let syscall = get_syscall_from_name("dup2", None).unwrap();
 
 // add_rule adds a single rule for an unconditional or conditional action on a syscall.
 filter.add_rule(ScmpAction::Errno(111), syscall, None).unwrap();
@@ -37,8 +37,9 @@ filter.add_rule(ScmpAction::Errno(111), syscall, None).unwrap();
 // load loads the filter context into the kernel.
 filter.load().unwrap();
 
-// The getuid fails by the seccomp rule.
-assert_eq!(unsafe { libc::getuid() } as i32, -111);
+// The dup2 fails by the seccomp rule.
+assert_eq!(unsafe { libc::dup2(1, 2) } as i32, -libc::EPERM);
+assert_eq!(std::io::Error::last_os_error().raw_os_error().unwrap(), 111);
 ```
 
 ## Requirements
