@@ -803,7 +803,18 @@ pub fn get_syscall_from_name(name: &str, arch: Option<ScmpArch>) -> Result<i32> 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::io::Error;
     use std::str::FromStr;
+
+    macro_rules! syscall_assert {
+        ($e1: expr, $e2: expr) => {
+            let mut errno: i32 = 0;
+            if $e1 < 0 {
+                errno = -Error::last_os_error().raw_os_error().unwrap()
+            }
+            assert_eq!(errno, $e2);
+        };
+    }
 
     #[test]
     fn test_parse() {
@@ -941,31 +952,42 @@ mod tests {
     #[test]
     fn test_rule_add_load() {
         let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow).unwrap();
-        ctx.add_arch(ScmpArch::X86).unwrap();
+        ctx.add_arch(ScmpArch::Native).unwrap();
 
-        let syscall = get_syscall_from_name("getuid", None).unwrap();
+        let syscall = get_syscall_from_name("dup2", None).unwrap();
 
         ctx.add_rule(ScmpAction::Errno(111), syscall, None).unwrap();
         ctx.load().unwrap();
 
-        assert_eq!(unsafe { libc::getuid() } as i32, -111);
+        syscall_assert!(unsafe { libc::dup2(0, 1) }, -111);
     }
 
     #[test]
     fn test_rule_add_array_load() {
+        let mut cmps: Vec<ScmpArgCompare> = Vec::new();
         let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow).unwrap();
-        ctx.add_arch(ScmpArch::X86).unwrap();
+        ctx.add_arch(ScmpArch::Native).unwrap();
 
-        let syscall = get_syscall_from_name("dup2", None).unwrap();
+        let syscall = get_syscall_from_name("process_vm_readv", None).unwrap();
 
-        let cmp = ScmpArgCompare::new(0, ScmpCompareOp::Equal, 1, None);
+        let cmp1 = ScmpArgCompare::new(0, ScmpCompareOp::Equal, 10, None);
+        let cmp2 = ScmpArgCompare::new(2, ScmpCompareOp::Equal, 20, None);
 
-        ctx.add_rule(ScmpAction::Errno(libc::EPERM as u32), syscall, Some(&[cmp]))
+        cmps.push(cmp1);
+        cmps.push(cmp2);
+
+        ctx.add_rule(ScmpAction::Errno(111), syscall, Some(&cmps))
             .unwrap();
 
         ctx.load().unwrap();
 
-        assert_eq!(unsafe { libc::dup2(1, 2) } as i32, -libc::EPERM);
-        assert_eq!(unsafe { libc::dup2(0, 1) } as i32, 1);
+        syscall_assert!(
+            unsafe { libc::process_vm_readv(10, std::ptr::null(), 0, std::ptr::null(), 0, 0) },
+            0
+        );
+        syscall_assert!(
+            unsafe { libc::process_vm_readv(10, std::ptr::null(), 20, std::ptr::null(), 0, 0) },
+            -111
+        );
     }
 }
