@@ -530,9 +530,16 @@ impl ScmpFilterContext {
         let ret: i32;
 
         match comparators {
-            Some(cmp) => {
-                let arg_cmp: Vec<scmp_arg_cmp> =
-                    cmp.iter().map(|comp| comp.clone().into()).collect::<_>();
+            Some(cmps) => {
+                let mut arg_cmp: Vec<scmp_arg_cmp> = Vec::new();
+                for cmp in cmps {
+                    arg_cmp.push(scmp_arg_cmp {
+                        arg: cmp.arg,
+                        op: cmp.op.to_native(),
+                        datum_a: cmp.datum_a,
+                        datum_b: cmp.datum_b,
+                    });
+                }
 
                 ret = unsafe {
                     seccomp_rule_add_array(
@@ -540,7 +547,7 @@ impl ScmpFilterContext {
                         action.to_native(),
                         syscall,
                         arg_cmp.len() as u32,
-                        arg_cmp.as_slice().as_ptr(),
+                        arg_cmp.as_ptr(),
                     )
                 };
             }
