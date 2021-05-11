@@ -1,0 +1,3 @@
+[submodule "libseccomp-sys/third-party/libseccomp"]
+	path = libseccomp-sys/third-party/libseccomp
+	url = https://github.com/seccomp/libseccomp.git
