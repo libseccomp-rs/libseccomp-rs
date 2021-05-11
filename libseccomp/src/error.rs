@@ -34,7 +34,7 @@ impl fmt::Display for SeccompError {
                 libc::EINVAL => "Invalid input".to_string(),
                 libc::ENOMEM => "The library was unable to allocate enough memory".to_string(),
                 libc::ECANCELED => {
-                    "There was a system failure beyound the control of the library".to_string()
+                    "There was a system failure beyond the control of the library".to_string()
                 }
                 libc::EFAULT => "Internal libseccomp failure".to_string(),
                 libc::ESRCH => "Unable to load the filter due to thread issues".to_string(),
