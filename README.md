@@ -84,7 +84,7 @@ Now, add the following to your `Cargo.toml` to start building the crate.
 
 ```
 [dependencies]
-libseccomp = "0.1.2"
+libseccomp = "0.1.3"
 ```
 
 ## How to contribute
