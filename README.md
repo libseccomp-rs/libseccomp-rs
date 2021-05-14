@@ -69,7 +69,7 @@ For more details, see the [libseccomp library repository](https://github.com/sec
 
 ## Setup
 If you use the libseccomp crate with dynamically linked the [libseccomp library](https://github.com/seccomp/libseccomp),
-you do not need additinoal settings about environment variables.
+you do not need additional settings about environment variables.
 
 However, if you want to use the crate with statically linked the library,
 you have to set the `LIBSECCOMP_LINK_TYPE` and `LIBSECCOMP_LIB_PATH` environment variable
@@ -87,12 +87,20 @@ Now, add the following to your `Cargo.toml` to start building the crate.
 libseccomp = "0.1.3"
 ```
 
+## Testing the crate
+A number of tests are provided in the Makefile, if you want to run the standard
+regression tests, you can execute the following command.
+
+``` sh
+$ make test
+```
+
 ## How to contribute
 Anyone is welcome to join and contribute code, documentation and use cases.
 
 - Change or add something
 - Make sure you're using the latest Rust version
-- Run rustfmt to guarantee code style conformance
+- Run `rustfmt` to guarantee code style conformance
 
 ``` sh
 $ rustup component add rustfmt
