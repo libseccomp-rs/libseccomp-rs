@@ -96,7 +96,7 @@ pub enum ScmpFilterAttr {
 }
 
 impl ScmpFilterAttr {
-    pub fn to_native(&self) -> scmp_filter_attr {
+    pub fn to_native(self) -> scmp_filter_attr {
         match self {
             Self::ActDefault => scmp_filter_attr::SCMP_FLTATR_ACT_DEFAULT,
             Self::ActBadArch => scmp_filter_attr::SCMP_FLTATR_ACT_BADARCH,
@@ -151,7 +151,7 @@ pub enum ScmpCompareOp {
 }
 
 impl ScmpCompareOp {
-    pub fn to_native(&self) -> scmp_compare {
+    pub fn to_native(self) -> scmp_compare {
         match self {
             Self::NotEqual => scmp_compare::SCMP_CMP_NE,
             Self::Less => scmp_compare::SCMP_CMP_LT,
@@ -237,14 +237,14 @@ pub enum ScmpAction {
 }
 
 impl ScmpAction {
-    pub fn to_native(&self) -> u32 {
+    pub fn to_native(self) -> u32 {
         match self {
             Self::KillProcess => SCMP_ACT_KILL_PROCESS,
             Self::KillThread => SCMP_ACT_KILL_THREAD,
             Self::Trap => SCMP_ACT_TRAP,
             Self::Notify => SCMP_ACT_NOTIFY,
-            Self::Errno(x) => SCMP_ACT_ERRNO(*x),
-            Self::Trace(x) => SCMP_ACT_TRACE(*x),
+            Self::Errno(x) => SCMP_ACT_ERRNO(x),
+            Self::Trace(x) => SCMP_ACT_TRACE(x),
             Self::Log => SCMP_ACT_LOG,
             Self::Allow => SCMP_ACT_ALLOW,
         }
@@ -321,7 +321,7 @@ pub enum ScmpArch {
 }
 
 impl ScmpArch {
-    pub fn to_native(&self) -> u32 {
+    pub fn to_native(self) -> u32 {
         match self {
             Self::Native => SCMP_ARCH_NATIVE,
             Self::X86 => SCMP_ARCH_X86,
@@ -918,11 +918,11 @@ mod tests {
         let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow).unwrap();
         ctx.add_arch(ScmpArch::X86).unwrap();
         let ret = ctx.is_arch_present(ScmpArch::X86).unwrap();
-        assert_eq!(ret, true);
+        assert!(ret);
 
         ctx.remove_arch(ScmpArch::X86).unwrap();
         let ret = ctx.is_arch_present(ScmpArch::X86).unwrap();
-        assert_eq!(ret, false);
+        assert!(!ret);
     }
 
     #[test]
@@ -946,7 +946,7 @@ mod tests {
         ctx1.merge(ctx2).unwrap();
 
         let ret = ctx1.is_arch_present(prospective_arch).unwrap();
-        assert_eq!(ret, true);
+        assert!(ret);
     }
 
     #[test]
