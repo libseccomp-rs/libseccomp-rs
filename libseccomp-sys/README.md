@@ -1,6 +1,6 @@
 # libseccomp-sys
 
-[![Latest release on crates.io](http://meritbadge.herokuapp.com/libseccomp-sys)](https://crates.io/crates/libseccomp-sys)
+[![Latest release on crates.io](https://img.shields.io/crates/v/libseccomp-sys.svg)](https://crates.io/crates/libseccomp-sys)
 [![Documentation on docs.rs](https://docs.rs/libseccomp-sys/badge.svg)](https://docs.rs/libseccomp-sys)
 
 Low-level bindings for the libseccomp library

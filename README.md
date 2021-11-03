@@ -1,7 +1,7 @@
 # libseccomp-rs
 
 [![build-test](https://github.com/ManaSugi/libseccomp-rs/actions/workflows/build-test.yaml/badge.svg)](https://github.com/ManaSugi/libseccomp-rs/actions/workflows/build-test.yaml)
-[![Latest release on crates.io](http://meritbadge.herokuapp.com/libseccomp)](https://crates.io/crates/libseccomp)
+[![Latest release on crates.io](https://img.shields.io/crates/v/libseccomp.svg)](https://crates.io/crates/libseccomp)
 [![Documentation on docs.rs](https://docs.rs/libseccomp/badge.svg)](https://docs.rs/libseccomp)
 
 Native Rust crate for libseccomp library
