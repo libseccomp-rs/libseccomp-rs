@@ -759,9 +759,10 @@ pub fn set_api(level: u32) -> Result<()> {
 pub fn get_syscall_name_from_arch(arch: ScmpArch, syscall_num: i32) -> Result<String> {
     let ret = unsafe { seccomp_syscall_resolve_num_arch(arch.to_native(), syscall_num) };
     if ret.is_null() {
-        return Err(SeccompError::new(Common(
-            "Could not resolve syscall name".to_string(),
-        )));
+        return Err(SeccompError::new(Common(format!(
+            "Could not resolve syscall number {}",
+            syscall_num
+        ))));
     }
 
     let name_c: &CStr = unsafe { CStr::from_ptr(ret) };
@@ -792,9 +793,10 @@ pub fn get_syscall_from_name(name: &str, arch: Option<ScmpArch>) -> Result<i32> 
     }
 
     if syscall == __NR_SCMP_ERROR {
-        return Err(SeccompError::new(Common(
-            "Could not resolve syscall name".to_string(),
-        )));
+        return Err(SeccompError::new(Common(format!(
+            "Could not resolve syscall name {}",
+            name
+        ))));
     }
 
     Ok(syscall)
