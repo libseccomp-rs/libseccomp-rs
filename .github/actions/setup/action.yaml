@@ -1,0 +1,15 @@
+name: Setup upstream libseccomp
+description: "Install gperf and libseccomp"
+runs:
+  using: "composite"
+  steps:
+  - run: sudo apt-get install gperf
+    shell: bash
+  - run: |
+      curl -sSLO https://github.com/seccomp/libseccomp/releases/download/v2.5.1/libseccomp-2.5.1.tar.gz
+      tar xvf libseccomp-2.5.1.tar.gz
+      pushd libseccomp-2.5.1
+      ./configure
+      make
+      sudo make install
+    shell: bash
