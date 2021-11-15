@@ -827,6 +827,10 @@ mod tests {
             ScmpFilterAttr::CtlLog.to_native()
         );
         assert_eq!(
+            ScmpCompareOp::from_str("SCMP_CMP_NE").unwrap().to_native(),
+            ScmpCompareOp::NotEqual.to_native()
+        );
+        assert_eq!(
             ScmpCompareOp::from_str("SCMP_CMP_LE").unwrap().to_native(),
             ScmpCompareOp::LessOrEqual.to_native()
         );
