@@ -898,6 +898,7 @@ mod tests {
             ScmpCompareOp::from_str("SCMP_CMP_GT").unwrap().to_native(),
             ScmpCompareOp::Greater.to_native()
         );
+        assert!(ScmpCompareOp::from_str("INVALID_FLAG").is_err());
         assert_eq!(
             ScmpAction::from_str("SCMP_ACT_KILL_PROCESS", None)
                 .unwrap()
