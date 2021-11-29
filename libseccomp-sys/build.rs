@@ -6,6 +6,9 @@
 use std::env;
 
 fn main() {
+    println!("cargo:rerun-if-env-changed=LIBSECCOMP_LIB_PATH");
+    println!("cargo:rerun-if-env-changed=LIBSECCOMP_LINK_TYPE");
+
     if let Ok(path) = env::var("LIBSECCOMP_LIB_PATH") {
         println!("cargo:rustc-link-search=native={}", path);
     }
