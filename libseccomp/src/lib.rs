@@ -926,6 +926,12 @@ mod tests {
             ScmpAction::Trace(10).to_native()
         );
         assert_eq!(
+            ScmpAction::from_str("SCMP_ACT_LOG", None)
+                .unwrap()
+                .to_native(),
+            ScmpAction::Log.to_native()
+        );
+        assert_eq!(
             ScmpArch::from_str("SCMP_ARCH_X86_64").unwrap().to_native(),
             ScmpArch::X8664.to_native()
         );
