@@ -874,6 +874,7 @@ mod tests {
                 .to_native(),
             ScmpFilterAttr::ApiSysRawRc.to_native()
         );
+        assert!(ScmpFilterAttr::from_str("SCMP_INVALID_FLAG").is_err());
         assert_eq!(
             ScmpCompareOp::from_str("SCMP_CMP_NE").unwrap().to_native(),
             ScmpCompareOp::NotEqual.to_native()
