@@ -831,9 +831,32 @@ mod tests {
             ScmpCompareOp::NotEqual.to_native()
         );
         assert_eq!(
+            ScmpCompareOp::from_str("SCMP_CMP_LT").unwrap().to_native(),
+            ScmpCompareOp::Less.to_native()
+        );
+        assert_eq!(
             ScmpCompareOp::from_str("SCMP_CMP_LE").unwrap().to_native(),
             ScmpCompareOp::LessOrEqual.to_native()
         );
+        assert_eq!(
+            ScmpCompareOp::from_str("SCMP_CMP_EQ").unwrap().to_native(),
+            ScmpCompareOp::Equal.to_native()
+        );
+        assert_eq!(
+            ScmpCompareOp::from_str("SCMP_CMP_GE").unwrap().to_native(),
+            ScmpCompareOp::GreaterEqual.to_native()
+        );
+        assert_eq!(
+            ScmpCompareOp::from_str("SCMP_CMP_GT").unwrap().to_native(),
+            ScmpCompareOp::Greater.to_native()
+        );
+        assert_eq!(
+            ScmpCompareOp::from_str("SCMP_CMP_MASKED_EQ")
+                .unwrap()
+                .to_native(),
+            ScmpCompareOp::MaskedEqual.to_native()
+        );
+        assert!(ScmpCompareOp::from_str("SCMP_INVALID_FLAG").is_err());
         assert_eq!(
             ScmpAction::from_str("SCMP_ACT_KILL_PROCESS", None)
                 .unwrap()
