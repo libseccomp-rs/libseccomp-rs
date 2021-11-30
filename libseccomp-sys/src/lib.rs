@@ -13,12 +13,12 @@
 /// because the bindgen cannot expand the macros correctly.
 ///
 /// Return the specified error code
-pub fn SCMP_ACT_ERRNO(x: u32) -> u32 {
-    0x00050000 | ((x) & 0x0000ffff)
+pub fn SCMP_ACT_ERRNO(x: u16) -> u32 {
+    0x00050000_u32 | u32::from(x)
 }
 /// Notify a tracing process with the specified value
-pub fn SCMP_ACT_TRACE(x: u32) -> u32 {
-    0x7ff00000 | ((x) & 0x0000ffff)
+pub fn SCMP_ACT_TRACE(x: u16) -> u32 {
+    0x7ff00000_u32 | u32::from(x)
 }
 
 include!("./libseccomp_bindings.rs");
