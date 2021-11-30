@@ -214,6 +214,17 @@ impl From<ScmpArgCompare> for scmp_arg_cmp {
     }
 }
 
+impl From<&ScmpArgCompare> for scmp_arg_cmp {
+    fn from(v: &ScmpArgCompare) -> scmp_arg_cmp {
+        scmp_arg_cmp {
+            arg: v.arg,
+            op: v.op.to_native(),
+            datum_a: v.datum_a,
+            datum_b: v.datum_b,
+        }
+    }
+}
+
 /// ScmpAction represents an action to be taken on a filter rule match in libseccomp
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[non_exhaustive]
@@ -531,15 +542,7 @@ impl ScmpFilterContext {
 
         match comparators {
             Some(cmps) => {
-                let mut arg_cmp: Vec<scmp_arg_cmp> = Vec::new();
-                for cmp in cmps {
-                    arg_cmp.push(scmp_arg_cmp {
-                        arg: cmp.arg,
-                        op: cmp.op.to_native(),
-                        datum_a: cmp.datum_a,
-                        datum_b: cmp.datum_b,
-                    });
-                }
+                let arg_cmp: Vec<scmp_arg_cmp> = cmps.iter().map(From::from).collect();
 
                 ret = unsafe {
                     seccomp_rule_add_array(
