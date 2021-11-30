@@ -1079,4 +1079,42 @@ mod tests {
             -111
         );
     }
+
+    #[test]
+    fn test_scmp_arg_cmp_from_scmpargcompare() {
+        // scmp_arg_cmp does not implement PartialEq, that's why we destruct
+        // the struct and assert_eq the individual fields.
+
+        let scmp_arg_cmp {
+            arg,
+            op,
+            datum_a,
+            datum_b,
+        } = <scmp_arg_cmp as From<ScmpArgCompare>>::from(ScmpArgCompare {
+            arg: 0,
+            op: ScmpCompareOp::Equal,
+            datum_a: 1,
+            datum_b: 0,
+        });
+        assert_eq!(arg, 0);
+        assert_eq!(op, scmp_compare::SCMP_CMP_EQ);
+        assert_eq!(datum_a, 1);
+        assert_eq!(datum_b, 0);
+
+        let scmp_arg_cmp {
+            arg,
+            op,
+            datum_a,
+            datum_b,
+        } = <scmp_arg_cmp as From<&ScmpArgCompare>>::from(&ScmpArgCompare {
+            arg: 0,
+            op: ScmpCompareOp::Equal,
+            datum_a: 1,
+            datum_b: 0,
+        });
+        assert_eq!(arg, 0);
+        assert_eq!(op, scmp_compare::SCMP_CMP_EQ);
+        assert_eq!(datum_a, 1);
+        assert_eq!(datum_b, 0);
+    }
 }
