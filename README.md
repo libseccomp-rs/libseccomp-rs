@@ -78,7 +78,7 @@ like below.
 
 ```sh
 $ export LIBSECCOMP_LINK_TYPE=static
-$ export LIBSECCOMP_LIB_PATH="the path of libseccomp.a"
+$ export LIBSECCOMP_LIB_PATH="the path of the directory containing libseccomp.a (e.g. /usr/lib)"
 ```
 
 Now, add the following to your `Cargo.toml` to start building the crate.
