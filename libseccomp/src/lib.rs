@@ -821,11 +821,60 @@ mod tests {
     #[test]
     fn test_parse() {
         assert_eq!(
+            ScmpFilterAttr::from_str("SCMP_FLTATR_ACT_DEFAULT")
+                .unwrap()
+                .to_native(),
+            ScmpFilterAttr::ActDefault.to_native()
+        );
+        assert_eq!(
+            ScmpFilterAttr::from_str("SCMP_FLTATR_ACT_BADARCH")
+                .unwrap()
+                .to_native(),
+            ScmpFilterAttr::ActBadArch.to_native()
+        );
+        assert_eq!(
+            ScmpFilterAttr::from_str("SCMP_FLTATR_CTL_NNP")
+                .unwrap()
+                .to_native(),
+            ScmpFilterAttr::CtlNnp.to_native()
+        );
+        assert_eq!(
+            ScmpFilterAttr::from_str("SCMP_FLTATR_CTL_TSYNC")
+                .unwrap()
+                .to_native(),
+            ScmpFilterAttr::CtlTsync.to_native()
+        );
+        assert_eq!(
+            ScmpFilterAttr::from_str("SCMP_FLTATR_API_TSKIP")
+                .unwrap()
+                .to_native(),
+            ScmpFilterAttr::ApiTskip.to_native()
+        );
+        assert_eq!(
             ScmpFilterAttr::from_str("SCMP_FLTATR_CTL_LOG")
                 .unwrap()
                 .to_native(),
             ScmpFilterAttr::CtlLog.to_native()
         );
+        assert_eq!(
+            ScmpFilterAttr::from_str("SCMP_FLTATR_CTL_SSB")
+                .unwrap()
+                .to_native(),
+            ScmpFilterAttr::CtlSsb.to_native()
+        );
+        assert_eq!(
+            ScmpFilterAttr::from_str("SCMP_FLTATR_CTL_OPTIMIZE")
+                .unwrap()
+                .to_native(),
+            ScmpFilterAttr::CtlOptimize.to_native()
+        );
+        assert_eq!(
+            ScmpFilterAttr::from_str("SCMP_FLTATR_API_SYSRAWRC")
+                .unwrap()
+                .to_native(),
+            ScmpFilterAttr::ApiSysRawRc.to_native()
+        );
+        assert!(ScmpFilterAttr::from_str("SCMP_INVALID_FLAG").is_err());
         assert_eq!(
             ScmpCompareOp::from_str("SCMP_CMP_NE").unwrap().to_native(),
             ScmpCompareOp::NotEqual.to_native()
