@@ -49,6 +49,7 @@ pub mod notify;
 use error::ErrorKind::*;
 use error::{Result, SeccompError};
 use libseccomp_sys::*;
+use std::convert::TryInto;
 use std::ffi::{CStr, CString};
 use std::fs::File;
 use std::os::unix::io::AsRawFd;
@@ -543,13 +544,20 @@ impl ScmpFilterContext {
         match comparators {
             Some(cmps) => {
                 let arg_cmp: Vec<scmp_arg_cmp> = cmps.iter().map(From::from).collect();
+                let arg_cmp_len: u32 =
+                    arg_cmp
+                        .len()
+                        .try_into()
+                        .map_err(|e: std::num::TryFromIntError| {
+                            SeccompError::new(Common(e.to_string()))
+                        })?;
 
                 ret = unsafe {
                     seccomp_rule_add_array(
                         self.ctx.as_ptr(),
                         action.to_native(),
                         syscall,
-                        arg_cmp.len() as u32,
+                        arg_cmp_len,
                         arg_cmp.as_ptr(),
                     )
                 };
