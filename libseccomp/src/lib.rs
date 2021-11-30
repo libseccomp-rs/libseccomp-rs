@@ -36,7 +36,7 @@
 //!     let syscall = get_syscall_from_name("dup2", Some(ScmpArch::X8664))?;
 //!
 //!     let cmp = ScmpArgCompare::new(0, ScmpCompareOp::Equal, 1, None);
-//!     filter.add_rule(ScmpAction::Errno(libc::EPERM as u32), syscall, Some(&[cmp]))?;
+//!     filter.add_rule(ScmpAction::Errno(libc::EPERM), syscall, Some(&[cmp]))?;
 //!     filter.load()?;
 //!
 //!     Ok(())
@@ -49,6 +49,7 @@ pub mod notify;
 use error::ErrorKind::*;
 use error::{Result, SeccompError};
 use libseccomp_sys::*;
+use std::convert::TryInto;
 use std::ffi::{CStr, CString};
 use std::fs::File;
 use std::os::unix::io::AsRawFd;
@@ -227,9 +228,10 @@ pub enum ScmpAction {
     /// Notifies userspace
     Notify,
     /// Return the specified error code
-    Errno(u32),
+    /// NOTE: You can only use integers from 0 to `u16::MAX`.
+    Errno(i32),
     /// Notify a tracing process with the specified value
-    Trace(u32),
+    Trace(u16),
     /// Allow the syscall to be executed after the action has been logged
     Log,
     /// Allow the syscall to be executed
@@ -243,7 +245,7 @@ impl ScmpAction {
             Self::KillThread => SCMP_ACT_KILL_THREAD,
             Self::Trap => SCMP_ACT_TRAP,
             Self::Notify => SCMP_ACT_NOTIFY,
-            Self::Errno(x) => SCMP_ACT_ERRNO(x),
+            Self::Errno(x) => SCMP_ACT_ERRNO(x as u16),
             Self::Trace(x) => SCMP_ACT_TRACE(x),
             Self::Log => SCMP_ACT_LOG,
             Self::Allow => SCMP_ACT_ALLOW,
@@ -251,19 +253,21 @@ impl ScmpAction {
     }
 
     /// Convert string seccomp action to ScmpAction
-    pub fn from_str(action: &str, errno: Option<u32>) -> Result<Self> {
+    pub fn from_str(action: &str, val: Option<i32>) -> Result<Self> {
         match action {
             "SCMP_ACT_KILL_PROCESS" => Ok(Self::KillProcess),
             "SCMP_ACT_KILL_THREAD" => Ok(Self::KillThread),
             "SCMP_ACT_KILL" => Ok(Self::KillThread),
             "SCMP_ACT_TRAP" => Ok(Self::Trap),
             "SCMP_ACT_NOTIFY" => Ok(Self::Notify),
-            "SCMP_ACT_ERRNO" => match errno {
+            "SCMP_ACT_ERRNO" => match val {
                 Some(v) => Ok(Self::Errno(v)),
                 None => Err(SeccompError::new(ParseError)),
             },
-            "SCMP_ACT_TRACE" => match errno {
-                Some(v) => Ok(Self::Trace(v)),
+            "SCMP_ACT_TRACE" => match val {
+                Some(v) => Ok(Self::Trace(v.try_into().map_err(
+                    |e: std::num::TryFromIntError| SeccompError::new(Common(e.to_string())),
+                )?)),
                 None => Err(SeccompError::new(ParseError)),
             },
             "SCMP_ACT_LOG" => Ok(Self::Log),
@@ -917,6 +921,12 @@ mod tests {
                 .unwrap()
                 .to_native(),
             ScmpAction::Errno(10).to_native()
+        );
+        assert_eq!(
+            ScmpAction::from_str("SCMP_ACT_TRACE", Some(10))
+                .unwrap()
+                .to_native(),
+            ScmpAction::Trace(10).to_native()
         );
         assert_eq!(
             ScmpArch::from_str("SCMP_ARCH_X86_64").unwrap().to_native(),
