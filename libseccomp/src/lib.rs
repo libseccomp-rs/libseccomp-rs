@@ -426,7 +426,7 @@ pub struct ScmpData {
 }
 
 /// ScmpFilterContext represents a filter context in libseccomp.
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct ScmpFilterContext {
     ctx: NonNull<libc::c_void>,
 }
