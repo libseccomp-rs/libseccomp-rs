@@ -606,15 +606,7 @@ impl ScmpFilterContext {
     /// Filters with No New Privileges set to 0 can only be loaded if the process
     /// has the CAP_SYS_ADMIN capability.
     pub fn set_no_new_privs_bit(&self, state: bool) -> Result<()> {
-        let mut value = 0;
-
-        if state {
-            value = 1;
-        }
-
-        self.set_filter_attr(ScmpFilterAttr::CtlNnp, value)?;
-
-        Ok(())
+        self.set_filter_attr(ScmpFilterAttr::CtlNnp, state.into())
     }
 
     /// export_pfc outputs PFC-formatted, human-readable dump of a filter context's
