@@ -381,6 +381,44 @@ impl ScmpArch {
             Self::Riscv64 => SCMP_ARCH_RISCV64,
         }
     }
+
+    fn from_sys(arch: u32) -> Result<Self> {
+        match arch {
+            SCMP_ARCH_NATIVE => Ok(Self::Native),
+            SCMP_ARCH_X86 => Ok(Self::X86),
+            SCMP_ARCH_X86_64 => Ok(Self::X8664),
+            SCMP_ARCH_X32 => Ok(Self::X32),
+            SCMP_ARCH_ARM => Ok(Self::Arm),
+            SCMP_ARCH_AARCH64 => Ok(Self::Aarch64),
+            SCMP_ARCH_MIPS => Ok(Self::Mips),
+            SCMP_ARCH_MIPS64 => Ok(Self::Mips64),
+            SCMP_ARCH_MIPS64N32 => Ok(Self::Mips64N32),
+            SCMP_ARCH_MIPSEL => Ok(Self::Mipsel),
+            SCMP_ARCH_MIPSEL64 => Ok(Self::Mipsel64),
+            SCMP_ARCH_MIPSEL64N32 => Ok(Self::Mipsel64N32),
+            SCMP_ARCH_PPC => Ok(Self::Ppc),
+            SCMP_ARCH_PPC64 => Ok(Self::Ppc64),
+            SCMP_ARCH_PPC64LE => Ok(Self::Ppc64Le),
+            SCMP_ARCH_S390 => Ok(Self::S390),
+            SCMP_ARCH_S390X => Ok(Self::S390X),
+            SCMP_ARCH_PARISC => Ok(Self::Parisc),
+            SCMP_ARCH_PARISC64 => Ok(Self::Parisc64),
+            SCMP_ARCH_RISCV64 => Ok(Self::Riscv64),
+            _ => Err(SeccompError::new(ParseError)),
+        }
+    }
+
+    /// Returns the system's native architecture.
+    pub fn native() -> Result<Self> {
+        let ret = unsafe { seccomp_arch_native() };
+
+        match Self::from_sys(ret) {
+            Ok(v) => Ok(v),
+            Err(_) => Err(SeccompError::new(Common(
+                "Could not get native architecture".to_string(),
+            ))),
+        }
+    }
 }
 
 impl std::str::FromStr for ScmpArch {
@@ -409,32 +447,6 @@ impl std::str::FromStr for ScmpArch {
             "SCMP_ARCH_RISCV64" => Ok(Self::Riscv64),
             _ => Err(SeccompError::new(ParseError)),
         }
-    }
-}
-
-fn arch_from_native(arch: u32) -> Result<ScmpArch> {
-    match arch {
-        SCMP_ARCH_NATIVE => Ok(ScmpArch::Native),
-        SCMP_ARCH_X86 => Ok(ScmpArch::X86),
-        SCMP_ARCH_X86_64 => Ok(ScmpArch::X8664),
-        SCMP_ARCH_X32 => Ok(ScmpArch::X32),
-        SCMP_ARCH_ARM => Ok(ScmpArch::Arm),
-        SCMP_ARCH_AARCH64 => Ok(ScmpArch::Aarch64),
-        SCMP_ARCH_MIPS => Ok(ScmpArch::Mips),
-        SCMP_ARCH_MIPS64 => Ok(ScmpArch::Mips64),
-        SCMP_ARCH_MIPS64N32 => Ok(ScmpArch::Mips64N32),
-        SCMP_ARCH_MIPSEL => Ok(ScmpArch::Mipsel),
-        SCMP_ARCH_MIPSEL64 => Ok(ScmpArch::Mipsel64),
-        SCMP_ARCH_MIPSEL64N32 => Ok(ScmpArch::Mipsel64N32),
-        SCMP_ARCH_PPC => Ok(ScmpArch::Ppc),
-        SCMP_ARCH_PPC64 => Ok(ScmpArch::Ppc64),
-        SCMP_ARCH_PPC64LE => Ok(ScmpArch::Ppc64Le),
-        SCMP_ARCH_S390 => Ok(ScmpArch::S390),
-        SCMP_ARCH_S390X => Ok(ScmpArch::S390X),
-        SCMP_ARCH_PARISC => Ok(ScmpArch::Parisc),
-        SCMP_ARCH_PARISC64 => Ok(ScmpArch::Parisc64),
-        SCMP_ARCH_RISCV64 => Ok(ScmpArch::Riscv64),
-        _ => Err(SeccompError::new(ParseError)),
     }
 }
 
@@ -706,19 +718,10 @@ pub fn get_library_version() -> Result<ScmpVersion> {
     ScmpVersion::current()
 }
 
-/// get_native_arch returns ScmpArch representing the native kernel architecture.
-///
-/// Returns a native architecture, or an error if the function could not get
-/// the native architecture.
+/// Deprecated alias for [`ScmpArch::native()`].
+#[deprecated(since = "0.2.0", note = "Use ScmpArch::native()")]
 pub fn get_native_arch() -> Result<ScmpArch> {
-    let ret = unsafe { seccomp_arch_native() };
-
-    match arch_from_native(ret) {
-        Ok(v) => Ok(v),
-        Err(_) => Err(SeccompError::new(Common(
-            "Could not get native architecture".to_string(),
-        ))),
-    }
+    ScmpArch::native()
 }
 
 /// get_api returns the API level supported by the system.
@@ -951,7 +954,7 @@ mod tests {
 
     #[test]
     fn test_get_native_arch() {
-        let ret = get_native_arch().unwrap();
+        let ret = ScmpArch::native().unwrap();
         println!("test_get_native_arch: native arch is {:?}", ret);
     }
 
@@ -1032,7 +1035,7 @@ mod tests {
     fn test_merge_filters() {
         let mut ctx1 = ScmpFilterContext::new_filter(ScmpAction::Allow).unwrap();
         let mut ctx2 = ScmpFilterContext::new_filter(ScmpAction::Allow).unwrap();
-        let native_arch = get_native_arch().unwrap();
+        let native_arch = ScmpArch::native().unwrap();
         let mut prospective_arch = ScmpArch::Aarch64;
 
         if native_arch == ScmpArch::Aarch64 {
