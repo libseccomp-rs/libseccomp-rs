@@ -194,12 +194,18 @@ pub struct ScmpArgCompare {
 }
 
 impl ScmpArgCompare {
-    pub fn new(arg: u32, op: ScmpCompareOp, datum_a: u64, datum_b: Option<u64>) -> Self {
+    pub const fn new(arg: u32, op: ScmpCompareOp, datum_a: u64, datum_b: Option<u64>) -> Self {
+        let datum_b = if let Some(datum_b) = datum_b {
+            datum_b
+        } else {
+            0
+        };
+
         Self {
             arg,
             op,
             datum_a,
-            datum_b: datum_b.unwrap_or(0_u64),
+            datum_b,
         }
     }
 }
