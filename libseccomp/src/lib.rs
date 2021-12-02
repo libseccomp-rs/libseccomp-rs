@@ -300,9 +300,7 @@ impl ScmpAction {
                 None => Err(SeccompError::new(ParseError)),
             },
             "SCMP_ACT_TRACE" => match val {
-                Some(v) => Ok(Self::Trace(v.try_into().map_err(
-                    |e: std::num::TryFromIntError| SeccompError::new(Common(e.to_string())),
-                )?)),
+                Some(v) => Ok(Self::Trace(v.try_into()?)),
                 None => Err(SeccompError::new(ParseError)),
             },
             "SCMP_ACT_LOG" => Ok(Self::Log),
@@ -570,13 +568,7 @@ impl ScmpFilterContext {
         match comparators {
             Some(cmps) => {
                 let arg_cmp: Vec<scmp_arg_cmp> = cmps.iter().map(From::from).collect();
-                let arg_cmp_len: u32 =
-                    arg_cmp
-                        .len()
-                        .try_into()
-                        .map_err(|e: std::num::TryFromIntError| {
-                            SeccompError::new(Common(e.to_string()))
-                        })?;
+                let arg_cmp_len: u32 = arg_cmp.len().try_into()?;
 
                 ret = unsafe {
                     seccomp_rule_add_array(
@@ -778,10 +770,7 @@ pub fn get_syscall_name_from_arch(arch: ScmpArch, syscall_num: i32) -> Result<St
         ))));
     }
 
-    let name = unsafe { CStr::from_ptr(ret) }
-        .to_str()
-        .map_err(|e: std::str::Utf8Error| SeccompError::with_source(Common(e.to_string()), e))?
-        .to_string();
+    let name = unsafe { CStr::from_ptr(ret) }.to_str()?.to_string();
     unsafe { libc::free(ret as *mut libc::c_void) };
 
     Ok(name)
@@ -795,8 +784,7 @@ pub fn get_syscall_name_from_arch(arch: ScmpArch, syscall_num: i32) -> Result<St
 /// Returns the number of the syscall, or an error if an invalid architecture is
 /// passed or a syscall with that name was not found.
 pub fn get_syscall_from_name(name: &str, arch: Option<ScmpArch>) -> Result<i32> {
-    let name_c = CString::new(name)
-        .map_err(|e: std::ffi::NulError| SeccompError::with_source(Common(e.to_string()), e))?;
+    let name_c = CString::new(name)?;
     let syscall: i32;
 
     match arch {
