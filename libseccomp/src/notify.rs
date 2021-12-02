@@ -23,10 +23,18 @@ impl ScmpNotification {
             return Err(SeccompError::new(Errno(ret)));
         }
 
-        Ok(Self {
-            req: NonNull::new(req_ptr).unwrap(),
-            resp: NonNull::new(resp_ptr).unwrap(),
-        })
+        let req = NonNull::new(req_ptr).ok_or_else(|| {
+            SeccompError::new(Common(
+                "Could not allocate notification request".to_string(),
+            ))
+        })?;
+        let resp = NonNull::new(resp_ptr).ok_or_else(|| {
+            SeccompError::new(Common(
+                "Could not allocate notification response".to_string(),
+            ))
+        })?;
+
+        Ok(Self { req, resp })
     }
 
     pub fn receive(&self, fd: i32) -> Result<()> {
