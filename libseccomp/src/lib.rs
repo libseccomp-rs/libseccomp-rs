@@ -630,6 +630,9 @@ impl ScmpFilterContext {
         if ret < 0 {
             return Err(SeccompError::new(Errno(ret)));
         }
+        // TODO: use implicit From::from
+        fd.sync_all()
+            .map_err(|e| SeccompError::with_source(Common(e.to_string()), e))?;
 
         Ok(())
     }
@@ -644,6 +647,9 @@ impl ScmpFilterContext {
         if ret < 0 {
             return Err(SeccompError::new(Errno(ret)));
         }
+        // TODO: use implicit From::from
+        fd.sync_all()
+            .map_err(|e| SeccompError::with_source(Common(e.to_string()), e))?;
 
         Ok(())
     }
