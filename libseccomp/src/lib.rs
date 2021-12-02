@@ -63,6 +63,22 @@ pub struct ScmpVersion {
     pub minor: u32,
     pub micro: u32,
 }
+impl ScmpVersion {
+    /// Returns the version of the currently loaded libseccomp library.
+    pub fn current() -> Result<Self> {
+        if let Some(version) = unsafe { seccomp_version().as_ref() } {
+            Ok(Self {
+                major: version.major,
+                minor: version.minor,
+                micro: version.micro,
+            })
+        } else {
+            Err(SeccompError::new(Common(
+                "Could not get seccomp version".to_string(),
+            )))
+        }
+    }
+}
 
 /// ScmpFilterArttr represents filter attributes
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -685,25 +701,10 @@ impl Drop for ScmpFilterContext {
     }
 }
 
-/// get_library_version returns the version information
-/// of the currently loaded libseccomp library.
-///
-/// Returns a version information, or an error if the function could not get the version.
+/// Deprecated alias for [`ScmpVersion::current()`].
+#[deprecated(since = "0.2.0", note = "Use ScmpVersion::current().")]
 pub fn get_library_version() -> Result<ScmpVersion> {
-    let ret = unsafe { seccomp_version().as_ref() };
-    match ret {
-        Some(v) => {
-            let scmp_ver = ScmpVersion {
-                major: v.major,
-                minor: v.minor,
-                micro: v.micro,
-            };
-            Ok(scmp_ver)
-        }
-        None => Err(SeccompError::new(Common(
-            "Could not get seccomp version".to_string(),
-        ))),
-    }
+    ScmpVersion::current()
 }
 
 /// get_native_arch returns ScmpArch representing the native kernel architecture.
@@ -943,7 +944,7 @@ mod tests {
 
     #[test]
     fn test_get_library_version() {
-        let ret = get_library_version().unwrap();
+        let ret = ScmpVersion::current().unwrap();
         println!(
             "test_get_library_version: {}.{}.{}",
             ret.major, ret.minor, ret.micro
