@@ -64,6 +64,27 @@ impl Error for SeccompError {
     }
 }
 
+/* Does not work without specialization (RFC 1210) or negative trait bounds
+impl<T: Error> From<T> for SeccompError {
+    fn from(err: T) -> Self {
+        Self::with_source(ErrorKind::Common(err.to_string()), err)
+    }
+}
+*/
+
+macro_rules! impl_seccomperror_from {
+    ($errty:ty) => {
+        impl From<$errty> for SeccompError {
+            fn from(err: $errty) -> Self {
+                Self::with_source(ErrorKind::Common(err.to_string()), err)
+            }
+        }
+    };
+}
+impl_seccomperror_from!(std::ffi::NulError);
+impl_seccomperror_from!(std::num::TryFromIntError);
+impl_seccomperror_from!(std::str::Utf8Error);
+
 impl SeccompError {
     pub(crate) fn new(kind: ErrorKind) -> Self {
         match kind {
@@ -80,7 +101,6 @@ impl SeccompError {
         }
     }
 
-    #[allow(dead_code)]
     pub(crate) fn with_source<E>(kind: ErrorKind, source: E) -> Self
     where
         E: 'static + Send + Sync + Error,
