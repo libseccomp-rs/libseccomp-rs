@@ -423,14 +423,6 @@ fn arch_from_native(arch: u32) -> Result<ScmpArch> {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct ScmpData {
-    nr: i32,
-    arch: ScmpArch,
-    instruction_pointer: u64,
-    args: [u64; 6],
-}
-
 /// ScmpFilterContext represents a filter context in libseccomp.
 #[derive(Debug)]
 pub struct ScmpFilterContext {
