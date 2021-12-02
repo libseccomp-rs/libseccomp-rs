@@ -444,16 +444,11 @@ impl ScmpFilterContext {
     /// Returns a reference to a valid filter context, or an error if the
     /// filter context could not be created or an invalid default action was given.
     pub fn new_filter(default_action: ScmpAction) -> Result<ScmpFilterContext> {
-        let ctx = unsafe { seccomp_init(default_action.to_native()) };
-        if ctx.is_null() {
-            return Err(SeccompError::new(Common(
-                "new filter failure due to NULL".to_string(),
-            )));
-        }
+        let ctx_ptr = unsafe { seccomp_init(default_action.to_native()) };
+        let ctx = NonNull::new(ctx_ptr)
+            .ok_or_else(|| SeccompError::new(Common("Could not create new filter".to_string())))?;
 
-        Ok(ScmpFilterContext {
-            ctx: NonNull::new(ctx).unwrap(),
-        })
+        Ok(ScmpFilterContext { ctx })
     }
 
     /// merge merges two filters.
@@ -778,7 +773,10 @@ pub fn get_syscall_name_from_arch(arch: ScmpArch, syscall_num: i32) -> Result<St
     }
 
     let name_c: &CStr = unsafe { CStr::from_ptr(ret) };
-    let name = name_c.to_str().unwrap().to_string();
+    let name = name_c
+        .to_str()
+        .map_err(|e: std::str::Utf8Error| SeccompError::with_source(Common(e.to_string()), e))?
+        .to_string();
 
     Ok(name)
 }
@@ -791,7 +789,8 @@ pub fn get_syscall_name_from_arch(arch: ScmpArch, syscall_num: i32) -> Result<St
 /// Returns the number of the syscall, or an error if an invalid architecture is
 /// passed or a syscall with that name was not found.
 pub fn get_syscall_from_name(name: &str, arch: Option<ScmpArch>) -> Result<i32> {
-    let name_c = CString::new(name).unwrap();
+    let name_c = CString::new(name)
+        .map_err(|e: std::ffi::NulError| SeccompError::with_source(Common(e.to_string()), e))?;
     let syscall: i32;
 
     match arch {
