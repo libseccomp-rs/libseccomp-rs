@@ -610,6 +610,15 @@ impl ScmpFilterContext {
         Ok(attribute)
     }
 
+    /// get_no_new_privs_bit returns the current state the No New Privileges bit will be set
+    /// to on the filter being loaded, or an error if an issue was encountered
+    /// retrieving the value.
+    pub fn get_no_new_privs_bit(&self) -> Result<bool> {
+        let ret = self.get_filter_attr(ScmpFilterAttr::CtlNnp)?;
+
+        Ok(ret != 0)
+    }
+
     /// set_filter_attr sets a raw filter attribute
     pub fn set_filter_attr(&mut self, attr: ScmpFilterAttr, value: u32) -> Result<()> {
         let ret = unsafe { seccomp_attr_set(self.ctx.as_ptr(), attr.to_native(), value) };
@@ -962,6 +971,15 @@ mod tests {
 
         let api = get_api().unwrap();
         assert_eq!(expected_api, api);
+    }
+
+    #[test]
+    fn test_filter_attributes() {
+        let mut ctx = ScmpFilterContext::new_filter(ScmpAction::KillThread).unwrap();
+
+        ctx.set_no_new_privs_bit(false).unwrap();
+        let ret = ctx.get_no_new_privs_bit().unwrap();
+        assert!(!ret);
     }
 
     #[test]
