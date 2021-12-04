@@ -611,7 +611,7 @@ impl ScmpFilterContext {
     }
 
     /// set_filter_attr sets a raw filter attribute
-    pub fn set_filter_attr(&self, attr: ScmpFilterAttr, value: u32) -> Result<()> {
+    pub fn set_filter_attr(&mut self, attr: ScmpFilterAttr, value: u32) -> Result<()> {
         let ret = unsafe { seccomp_attr_set(self.ctx.as_ptr(), attr.to_native(), value) };
         if ret < 0 {
             return Err(SeccompError::new(Errno(ret)));
@@ -624,7 +624,7 @@ impl ScmpFilterContext {
     /// applied on filter load, or an error if an issue was encountered setting the value.
     /// Filters with No New Privileges set to 0 can only be loaded if the process
     /// has the CAP_SYS_ADMIN capability.
-    pub fn set_no_new_privs_bit(&self, state: bool) -> Result<()> {
+    pub fn set_no_new_privs_bit(&mut self, state: bool) -> Result<()> {
         self.set_filter_attr(ScmpFilterAttr::CtlNnp, state.into())
     }
 
