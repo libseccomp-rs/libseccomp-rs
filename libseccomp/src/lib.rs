@@ -112,7 +112,7 @@ pub enum ScmpFilterAttr {
 }
 
 impl ScmpFilterAttr {
-    pub fn to_native(self) -> scmp_filter_attr {
+    fn to_sys(self) -> scmp_filter_attr {
         match self {
             Self::ActDefault => scmp_filter_attr::SCMP_FLTATR_ACT_DEFAULT,
             Self::ActBadArch => scmp_filter_attr::SCMP_FLTATR_ACT_BADARCH,
@@ -167,7 +167,7 @@ pub enum ScmpCompareOp {
 }
 
 impl ScmpCompareOp {
-    pub fn to_native(self) -> scmp_compare {
+    fn to_sys(self) -> scmp_compare {
         match self {
             Self::NotEqual => scmp_compare::SCMP_CMP_NE,
             Self::Less => scmp_compare::SCMP_CMP_LT,
@@ -229,7 +229,7 @@ impl From<ScmpArgCompare> for scmp_arg_cmp {
     fn from(v: ScmpArgCompare) -> scmp_arg_cmp {
         scmp_arg_cmp {
             arg: v.arg,
-            op: v.op.to_native(),
+            op: v.op.to_sys(),
             datum_a: v.datum_a,
             datum_b: v.datum_b,
         }
@@ -240,7 +240,7 @@ impl From<&ScmpArgCompare> for scmp_arg_cmp {
     fn from(v: &ScmpArgCompare) -> scmp_arg_cmp {
         scmp_arg_cmp {
             arg: v.arg,
-            op: v.op.to_native(),
+            op: v.op.to_sys(),
             datum_a: v.datum_a,
             datum_b: v.datum_b,
         }
@@ -271,7 +271,7 @@ pub enum ScmpAction {
 }
 
 impl ScmpAction {
-    pub fn to_native(self) -> u32 {
+    fn to_sys(self) -> u32 {
         match self {
             Self::KillProcess => SCMP_ACT_KILL_PROCESS,
             Self::KillThread => SCMP_ACT_KILL_THREAD,
@@ -357,7 +357,7 @@ pub enum ScmpArch {
 }
 
 impl ScmpArch {
-    pub fn to_native(self) -> u32 {
+    fn to_sys(self) -> u32 {
         match self {
             Self::Native => SCMP_ARCH_NATIVE,
             Self::X86 => SCMP_ARCH_X86,
@@ -451,7 +451,7 @@ impl ScmpFilterContext {
     /// Returns a reference to a valid filter context, or an error if the
     /// filter context could not be created or an invalid default action was given.
     pub fn new_filter(default_action: ScmpAction) -> Result<ScmpFilterContext> {
-        let ctx_ptr = unsafe { seccomp_init(default_action.to_native()) };
+        let ctx_ptr = unsafe { seccomp_init(default_action.to_sys()) };
         let ctx = NonNull::new(ctx_ptr)
             .ok_or_else(|| SeccompError::new(Common("Could not create new filter".to_string())))?;
 
@@ -492,7 +492,7 @@ impl ScmpFilterContext {
     /// and an error on an invalid filter context, architecture constant, or an
     /// issue with the call to libseccomp
     pub fn is_arch_present(&self, arch: ScmpArch) -> Result<bool> {
-        let ret = unsafe { seccomp_arch_exist(self.ctx.as_ptr(), arch.to_native()) };
+        let ret = unsafe { seccomp_arch_exist(self.ctx.as_ptr(), arch.to_sys()) };
 
         if ret != 0 {
             if ret == -(libc::EEXIST as i32) {
@@ -509,7 +509,7 @@ impl ScmpFilterContext {
     /// Accepts an architecture constant.
     /// Returns an architecture token, or an error with the call to libseccomp.
     pub fn add_arch(&mut self, arch: ScmpArch) -> Result<()> {
-        let ret = unsafe { seccomp_arch_add(self.ctx.as_ptr(), arch.to_native()) };
+        let ret = unsafe { seccomp_arch_add(self.ctx.as_ptr(), arch.to_sys()) };
 
         // Libseccomp returns -EEXIST if the specified architecture is already
         // present. Succeed silently in this case, as it's not fatal, and the
@@ -527,7 +527,7 @@ impl ScmpFilterContext {
     /// Returns an error on invalid filter context or architecture token, or an
     /// issue with the call to libseccomp.
     pub fn remove_arch(&mut self, arch: ScmpArch) -> Result<()> {
-        let ret = unsafe { seccomp_arch_remove(self.ctx.as_ptr(), arch.to_native()) };
+        let ret = unsafe { seccomp_arch_remove(self.ctx.as_ptr(), arch.to_sys()) };
 
         // Similar to add_arch, -EEXIST is returned if the arch is not present
         // Succeed silently in that case, this is not fatal and the architecture
@@ -566,7 +566,7 @@ impl ScmpFilterContext {
                 ret = unsafe {
                     seccomp_rule_add_array(
                         self.ctx.as_ptr(),
-                        action.to_native(),
+                        action.to_sys(),
                         syscall,
                         arg_cmp_len,
                         arg_cmp.as_ptr(),
@@ -574,8 +574,7 @@ impl ScmpFilterContext {
                 };
             }
             None => {
-                ret =
-                    unsafe { seccomp_rule_add(self.ctx.as_ptr(), action.to_native(), syscall, 0) };
+                ret = unsafe { seccomp_rule_add(self.ctx.as_ptr(), action.to_sys(), syscall, 0) };
             }
         };
 
@@ -601,7 +600,7 @@ impl ScmpFilterContext {
     pub fn get_filter_attr(&self, attr: ScmpFilterAttr) -> Result<u32> {
         let mut attribute: u32 = 0;
 
-        let ret = unsafe { seccomp_attr_get(self.ctx.as_ptr(), attr.to_native(), &mut attribute) };
+        let ret = unsafe { seccomp_attr_get(self.ctx.as_ptr(), attr.to_sys(), &mut attribute) };
         if ret < 0 {
             return Err(SeccompError::new(Errno(ret)));
         }
@@ -620,7 +619,7 @@ impl ScmpFilterContext {
 
     /// set_filter_attr sets a raw filter attribute
     pub fn set_filter_attr(&mut self, attr: ScmpFilterAttr, value: u32) -> Result<()> {
-        let ret = unsafe { seccomp_attr_set(self.ctx.as_ptr(), attr.to_native(), value) };
+        let ret = unsafe { seccomp_attr_set(self.ctx.as_ptr(), attr.to_sys(), value) };
         if ret < 0 {
             return Err(SeccompError::new(Errno(ret)));
         }
@@ -683,7 +682,7 @@ impl ScmpFilterContext {
     /// Accepts a new default action to be taken for syscalls which do not match.
     /// Returns an error if the filter or action provided are invalid.
     pub fn reset(&mut self, action: ScmpAction) -> Result<()> {
-        let ret = unsafe { seccomp_reset(self.ctx.as_ptr(), action.to_native()) };
+        let ret = unsafe { seccomp_reset(self.ctx.as_ptr(), action.to_sys()) };
         if ret < 0 {
             return Err(SeccompError::new(Errno(ret)));
         }
@@ -765,7 +764,7 @@ pub fn set_api(level: u32) -> Result<()> {
 /// Returns either a string containing the name of the syscall, or an error.
 /// if the syscall is unrecognized or an issue occurred.
 pub fn get_syscall_name_from_arch(arch: ScmpArch, syscall_num: i32) -> Result<String> {
-    let ret = unsafe { seccomp_syscall_resolve_num_arch(arch.to_native(), syscall_num) };
+    let ret = unsafe { seccomp_syscall_resolve_num_arch(arch.to_sys(), syscall_num) };
     if ret.is_null() {
         return Err(SeccompError::new(Common(format!(
             "Could not resolve syscall number {}",
@@ -796,8 +795,7 @@ pub fn get_syscall_from_name(name: &str, arch: Option<ScmpArch>) -> Result<i32> 
 
     match arch {
         Some(arch) => {
-            syscall =
-                unsafe { seccomp_syscall_resolve_name_arch(arch.to_native(), name_c.as_ptr()) };
+            syscall = unsafe { seccomp_syscall_resolve_name_arch(arch.to_sys(), name_c.as_ptr()) };
         }
         None => {
             syscall = unsafe { seccomp_syscall_resolve_name(name_c.as_ptr()) };
@@ -835,110 +833,110 @@ mod tests {
         assert_eq!(
             ScmpFilterAttr::from_str("SCMP_FLTATR_ACT_DEFAULT")
                 .unwrap()
-                .to_native(),
-            ScmpFilterAttr::ActDefault.to_native()
+                .to_sys(),
+            ScmpFilterAttr::ActDefault.to_sys()
         );
         assert_eq!(
             ScmpFilterAttr::from_str("SCMP_FLTATR_ACT_BADARCH")
                 .unwrap()
-                .to_native(),
-            ScmpFilterAttr::ActBadArch.to_native()
+                .to_sys(),
+            ScmpFilterAttr::ActBadArch.to_sys()
         );
         assert_eq!(
             ScmpFilterAttr::from_str("SCMP_FLTATR_CTL_NNP")
                 .unwrap()
-                .to_native(),
-            ScmpFilterAttr::CtlNnp.to_native()
+                .to_sys(),
+            ScmpFilterAttr::CtlNnp.to_sys()
         );
         assert_eq!(
             ScmpFilterAttr::from_str("SCMP_FLTATR_CTL_TSYNC")
                 .unwrap()
-                .to_native(),
-            ScmpFilterAttr::CtlTsync.to_native()
+                .to_sys(),
+            ScmpFilterAttr::CtlTsync.to_sys()
         );
         assert_eq!(
             ScmpFilterAttr::from_str("SCMP_FLTATR_API_TSKIP")
                 .unwrap()
-                .to_native(),
-            ScmpFilterAttr::ApiTskip.to_native()
+                .to_sys(),
+            ScmpFilterAttr::ApiTskip.to_sys()
         );
         assert_eq!(
             ScmpFilterAttr::from_str("SCMP_FLTATR_CTL_LOG")
                 .unwrap()
-                .to_native(),
-            ScmpFilterAttr::CtlLog.to_native()
+                .to_sys(),
+            ScmpFilterAttr::CtlLog.to_sys()
         );
         assert_eq!(
             ScmpFilterAttr::from_str("SCMP_FLTATR_CTL_SSB")
                 .unwrap()
-                .to_native(),
-            ScmpFilterAttr::CtlSsb.to_native()
+                .to_sys(),
+            ScmpFilterAttr::CtlSsb.to_sys()
         );
         assert_eq!(
             ScmpFilterAttr::from_str("SCMP_FLTATR_CTL_OPTIMIZE")
                 .unwrap()
-                .to_native(),
-            ScmpFilterAttr::CtlOptimize.to_native()
+                .to_sys(),
+            ScmpFilterAttr::CtlOptimize.to_sys()
         );
         assert_eq!(
             ScmpFilterAttr::from_str("SCMP_FLTATR_API_SYSRAWRC")
                 .unwrap()
-                .to_native(),
-            ScmpFilterAttr::ApiSysRawRc.to_native()
+                .to_sys(),
+            ScmpFilterAttr::ApiSysRawRc.to_sys()
         );
         assert!(ScmpFilterAttr::from_str("SCMP_INVALID_FLAG").is_err());
         assert_eq!(
-            ScmpCompareOp::from_str("SCMP_CMP_NE").unwrap().to_native(),
-            ScmpCompareOp::NotEqual.to_native()
+            ScmpCompareOp::from_str("SCMP_CMP_NE").unwrap().to_sys(),
+            ScmpCompareOp::NotEqual.to_sys()
         );
         assert_eq!(
-            ScmpCompareOp::from_str("SCMP_CMP_LT").unwrap().to_native(),
-            ScmpCompareOp::Less.to_native()
+            ScmpCompareOp::from_str("SCMP_CMP_LT").unwrap().to_sys(),
+            ScmpCompareOp::Less.to_sys()
         );
         assert_eq!(
-            ScmpCompareOp::from_str("SCMP_CMP_LE").unwrap().to_native(),
-            ScmpCompareOp::LessOrEqual.to_native()
+            ScmpCompareOp::from_str("SCMP_CMP_LE").unwrap().to_sys(),
+            ScmpCompareOp::LessOrEqual.to_sys()
         );
         assert_eq!(
-            ScmpCompareOp::from_str("SCMP_CMP_EQ").unwrap().to_native(),
-            ScmpCompareOp::Equal.to_native()
+            ScmpCompareOp::from_str("SCMP_CMP_EQ").unwrap().to_sys(),
+            ScmpCompareOp::Equal.to_sys()
         );
         assert_eq!(
-            ScmpCompareOp::from_str("SCMP_CMP_GE").unwrap().to_native(),
-            ScmpCompareOp::GreaterEqual.to_native()
+            ScmpCompareOp::from_str("SCMP_CMP_GE").unwrap().to_sys(),
+            ScmpCompareOp::GreaterEqual.to_sys()
         );
         assert_eq!(
-            ScmpCompareOp::from_str("SCMP_CMP_GT").unwrap().to_native(),
-            ScmpCompareOp::Greater.to_native()
+            ScmpCompareOp::from_str("SCMP_CMP_GT").unwrap().to_sys(),
+            ScmpCompareOp::Greater.to_sys()
         );
         assert_eq!(
             ScmpCompareOp::from_str("SCMP_CMP_MASKED_EQ")
                 .unwrap()
-                .to_native(),
-            ScmpCompareOp::MaskedEqual.to_native()
+                .to_sys(),
+            ScmpCompareOp::MaskedEqual.to_sys()
         );
         assert!(ScmpCompareOp::from_str("SCMP_INVALID_FLAG").is_err());
         assert_eq!(
             ScmpAction::from_str("SCMP_ACT_KILL_PROCESS", None)
                 .unwrap()
-                .to_native(),
-            ScmpAction::KillProcess.to_native()
+                .to_sys(),
+            ScmpAction::KillProcess.to_sys()
         );
         assert_eq!(
             ScmpAction::from_str("SCMP_ACT_ERRNO", Some(10))
                 .unwrap()
-                .to_native(),
-            ScmpAction::Errno(10).to_native()
+                .to_sys(),
+            ScmpAction::Errno(10).to_sys()
         );
         assert_eq!(
             ScmpAction::from_str("SCMP_ACT_TRACE", Some(10))
                 .unwrap()
-                .to_native(),
-            ScmpAction::Trace(10).to_native()
+                .to_sys(),
+            ScmpAction::Trace(10).to_sys()
         );
         assert_eq!(
-            ScmpArch::from_str("SCMP_ARCH_X86_64").unwrap().to_native(),
-            ScmpArch::X8664.to_native()
+            ScmpArch::from_str("SCMP_ARCH_X86_64").unwrap().to_sys(),
+            ScmpArch::X8664.to_sys()
         );
     }
 
@@ -988,7 +986,7 @@ mod tests {
 
         let action = ctx.get_filter_attr(ScmpFilterAttr::ActDefault).unwrap();
 
-        let expected_action: u32 = ScmpAction::Allow.to_native();
+        let expected_action: u32 = ScmpAction::Allow.to_sys();
 
         assert_eq!(expected_action, action);
     }
