@@ -775,11 +775,11 @@ pub fn get_syscall_name_from_arch(arch: ScmpArch, syscall_num: i32) -> Result<St
         ))));
     }
 
-    let name_c: &CStr = unsafe { CStr::from_ptr(ret) };
-    let name = name_c
+    let name = unsafe { CStr::from_ptr(ret) }
         .to_str()
         .map_err(|e: std::str::Utf8Error| SeccompError::with_source(Common(e.to_string()), e))?
         .to_string();
+    unsafe { libc::free(ret as *mut libc::c_void) };
 
     Ok(name)
 }
