@@ -199,7 +199,7 @@ impl std::str::FromStr for ScmpCompareOp {
 }
 
 /// ScmpArgCompare represents a rule in a libseccomp filter context
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ScmpArgCompare {
     /// argument number, starting at 0
     arg: u32,
@@ -223,6 +223,30 @@ impl ScmpArgCompare {
             datum_a,
             datum_b,
         }
+    }
+
+    pub const fn arg0(op: ScmpCompareOp, datum_a: u64, datum_b: Option<u64>) -> Self {
+        Self::new(0, op, datum_a, datum_b)
+    }
+
+    pub const fn arg1(op: ScmpCompareOp, datum_a: u64, datum_b: Option<u64>) -> Self {
+        Self::new(1, op, datum_a, datum_b)
+    }
+
+    pub const fn arg2(op: ScmpCompareOp, datum_a: u64, datum_b: Option<u64>) -> Self {
+        Self::new(2, op, datum_a, datum_b)
+    }
+
+    pub const fn arg3(op: ScmpCompareOp, datum_a: u64, datum_b: Option<u64>) -> Self {
+        Self::new(3, op, datum_a, datum_b)
+    }
+
+    pub const fn arg4(op: ScmpCompareOp, datum_a: u64, datum_b: Option<u64>) -> Self {
+        Self::new(4, op, datum_a, datum_b)
+    }
+
+    pub const fn arg5(op: ScmpCompareOp, datum_a: u64, datum_b: Option<u64>) -> Self {
+        Self::new(5, op, datum_a, datum_b)
     }
 }
 
@@ -1094,6 +1118,73 @@ mod tests {
         syscall_assert!(
             unsafe { libc::process_vm_readv(10, std::ptr::null(), 20, std::ptr::null(), 0, 0) },
             -111
+        );
+    }
+
+    #[test]
+    fn test_scmpargcmp_new() {
+        assert_eq!(
+            ScmpArgCompare::new(1, ScmpCompareOp::Equal, 5, None),
+            ScmpArgCompare {
+                arg: 1,
+                op: ScmpCompareOp::Equal,
+                datum_a: 5,
+                datum_b: 0,
+            }
+        );
+        assert_eq!(
+            ScmpArgCompare::arg0(ScmpCompareOp::Equal, 5, None),
+            ScmpArgCompare {
+                arg: 0,
+                op: ScmpCompareOp::Equal,
+                datum_a: 5,
+                datum_b: 0,
+            }
+        );
+        assert_eq!(
+            ScmpArgCompare::arg1(ScmpCompareOp::Equal, 5, None),
+            ScmpArgCompare {
+                arg: 1,
+                op: ScmpCompareOp::Equal,
+                datum_a: 5,
+                datum_b: 0,
+            }
+        );
+        assert_eq!(
+            ScmpArgCompare::arg2(ScmpCompareOp::Equal, 5, None),
+            ScmpArgCompare {
+                arg: 2,
+                op: ScmpCompareOp::Equal,
+                datum_a: 5,
+                datum_b: 0,
+            }
+        );
+        assert_eq!(
+            ScmpArgCompare::arg3(ScmpCompareOp::Equal, 5, None),
+            ScmpArgCompare {
+                arg: 3,
+                op: ScmpCompareOp::Equal,
+                datum_a: 5,
+                datum_b: 0,
+            }
+        );
+        assert_eq!(
+            ScmpArgCompare::arg4(ScmpCompareOp::Equal, 5, None),
+            ScmpArgCompare {
+                arg: 4,
+                op: ScmpCompareOp::Equal,
+                datum_a: 5,
+                datum_b: 0,
+            }
+        );
+        assert_eq!(
+            ScmpArgCompare::arg5(ScmpCompareOp::Equal, 5, None),
+            ScmpArgCompare {
+                arg: 5,
+                op: ScmpCompareOp::Equal,
+                datum_a: 5,
+                datum_b: 0,
+            }
         );
     }
 
