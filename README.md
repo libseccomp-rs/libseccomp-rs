@@ -7,12 +7,11 @@
 
 Native Rust crate for libseccomp library
 
-This is a set of projects (high-level bindings, low-level bindings and tool for generating low-level bindings automatically) that enables developers 
+This is a set of projects (high-level bindings and low-level bindings) that enables developers
 to use the libseccomp API in Rust easily.
 
 * libseccomp: High-level safe API
-* libseccomp-sys: Low-level unsafe API (automatically generated)
-* tool: Tool for generating low-level bindings using bindgen
+* libseccomp-sys: Low-level unsafe API
 
 ## Example
 ### Create and load a single seccomp rule

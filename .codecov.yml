@@ -1,3 +1,2 @@
 ignore:
   - "libseccomp-sys"
-  - "tool"
