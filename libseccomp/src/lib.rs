@@ -701,6 +701,11 @@ impl ScmpFilterContext {
 
         Ok(())
     }
+
+    /// Returns a raw pointer to the [`scmp_filter_ctx`]
+    pub fn as_ptr(&self) -> scmp_filter_ctx {
+        self.ctx.as_ptr()
+    }
 }
 
 impl Drop for ScmpFilterContext {
@@ -1095,6 +1100,12 @@ mod tests {
             unsafe { libc::process_vm_readv(10, std::ptr::null(), 20, std::ptr::null(), 0, 0) },
             -111
         );
+    }
+
+    #[test]
+    fn test_as_ptr() {
+        let ctx = ScmpFilterContext::new_filter(ScmpAction::Allow).unwrap();
+        assert_eq!(ctx.as_ptr(), ctx.ctx.as_ptr());
     }
 
     #[test]
