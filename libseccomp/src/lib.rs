@@ -35,7 +35,7 @@
 //!
 //!     let syscall = get_syscall_from_name("dup2", Some(ScmpArch::X8664))?;
 //!
-//!     let cmp = ScmpArgCompare::new(0, ScmpCompareOp::Equal, 1, None);
+//!     let cmp = ScmpArgCompare::new(0, ScmpCompareOp::Equal, 1);
 //!     filter.add_rule(ScmpAction::Errno(libc::EPERM), syscall, Some(&[cmp]))?;
 //!     filter.load()?;
 //!
@@ -163,7 +163,7 @@ pub enum ScmpCompareOp {
     /// greater than
     Greater,
     /// masked equality
-    MaskedEqual,
+    MaskedEqual(#[doc = "mask"] u64),
 }
 
 impl ScmpCompareOp {
@@ -175,7 +175,7 @@ impl ScmpCompareOp {
             Self::Equal => scmp_compare::SCMP_CMP_EQ,
             Self::GreaterEqual => scmp_compare::SCMP_CMP_GE,
             Self::Greater => scmp_compare::SCMP_CMP_GT,
-            Self::MaskedEqual => scmp_compare::SCMP_CMP_MASKED_EQ,
+            Self::MaskedEqual(_) => scmp_compare::SCMP_CMP_MASKED_EQ,
         }
     }
 }
@@ -191,7 +191,7 @@ impl std::str::FromStr for ScmpCompareOp {
             "SCMP_CMP_EQ" => Ok(Self::Equal),
             "SCMP_CMP_GE" => Ok(Self::GreaterEqual),
             "SCMP_CMP_GT" => Ok(Self::Greater),
-            "SCMP_CMP_MASKED_EQ" => Ok(Self::MaskedEqual),
+            "SCMP_CMP_MASKED_EQ" => Ok(Self::MaskedEqual(u64::default())),
             _ => Err(SeccompError::new(ParseError)),
         }
     }
@@ -209,18 +209,21 @@ pub struct ScmpArgCompare {
 }
 
 impl ScmpArgCompare {
-    pub const fn new(arg: u32, op: ScmpCompareOp, datum_a: u64, datum_b: Option<u64>) -> Self {
-        let datum_b = if let Some(datum_b) = datum_b {
-            datum_b
+    pub const fn new(arg: u32, op: ScmpCompareOp, datum: u64) -> Self {
+        if let ScmpCompareOp::MaskedEqual(mask) = op {
+            Self {
+                arg,
+                op,
+                datum_a: mask,
+                datum_b: datum,
+            }
         } else {
-            0
-        };
-
-        Self {
-            arg,
-            op,
-            datum_a,
-            datum_b,
+            Self {
+                arg,
+                op,
+                datum_a: datum,
+                datum_b: 0,
+            }
         }
     }
 }
@@ -916,7 +919,7 @@ mod tests {
             ScmpCompareOp::from_str("SCMP_CMP_MASKED_EQ")
                 .unwrap()
                 .to_sys(),
-            ScmpCompareOp::MaskedEqual.to_sys()
+            ScmpCompareOp::MaskedEqual(u64::default()).to_sys()
         );
         assert!(ScmpCompareOp::from_str("SCMP_INVALID_FLAG").is_err());
         assert_eq!(
@@ -1076,8 +1079,8 @@ mod tests {
 
         let syscall = get_syscall_from_name("process_vm_readv", None).unwrap();
 
-        let cmp1 = ScmpArgCompare::new(0, ScmpCompareOp::Equal, 10, None);
-        let cmp2 = ScmpArgCompare::new(2, ScmpCompareOp::Equal, 20, None);
+        let cmp1 = ScmpArgCompare::new(0, ScmpCompareOp::Equal, 10);
+        let cmp2 = ScmpArgCompare::new(2, ScmpCompareOp::Equal, 20);
 
         cmps.push(cmp1);
         cmps.push(cmp2);
