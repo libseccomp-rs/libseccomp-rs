@@ -198,7 +198,7 @@ impl std::str::FromStr for ScmpCompareOp {
 }
 
 /// ScmpArgCompare represents a rule in a libseccomp filter context
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ScmpArgCompare {
     /// argument number, starting at 0
     arg: u32,
@@ -248,6 +248,105 @@ impl From<&ScmpArgCompare> for scmp_arg_cmp {
             datum_b: v.datum_b,
         }
     }
+}
+
+#[rustfmt::skip]
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __private_scmp_cmp_arg {
+    (arg0) => { 0 };
+    (arg1) => { 1 };
+    (arg2) => { 2 };
+    (arg3) => { 3 };
+    (arg4) => { 4 };
+    (arg5) => { 5 };
+}
+
+/// A macro to create [`ScmpArgCompare`] in a more elegant way.
+///
+/// ```
+/// use libseccomp::{ScmpArgCompare, ScmpCompareOp, scmp_cmp};
+///
+/// assert_eq!(
+///     scmp_cmp!($arg0 != 123),
+///     ScmpArgCompare::new(0, ScmpCompareOp::NotEqual, 123),
+/// );
+/// assert_eq!(
+///     scmp_cmp!($arg1 < 123),
+///     ScmpArgCompare::new(1, ScmpCompareOp::Less, 123),
+/// );
+/// assert_eq!(
+///     scmp_cmp!($arg2 <= 123),
+///     ScmpArgCompare::new(2, ScmpCompareOp::LessOrEqual, 123),
+/// );
+/// assert_eq!(
+///     scmp_cmp!($arg3 == 123),
+///     ScmpArgCompare::new(3, ScmpCompareOp::Equal, 123),
+/// );
+/// assert_eq!(
+///     scmp_cmp!($arg4 >= 123),
+///     ScmpArgCompare::new(4, ScmpCompareOp::GreaterEqual, 123),
+/// );
+/// assert_eq!(
+///     scmp_cmp!($arg5 > 123),
+///     ScmpArgCompare::new(5, ScmpCompareOp::Greater, 123),
+/// );
+/// assert_eq!(
+///     scmp_cmp!($arg0 & 0x0f0 == 123),
+///     ScmpArgCompare::new(0, ScmpCompareOp::MaskedEqual(0x0f0), 123),
+/// );
+/// ```
+#[macro_export]
+macro_rules! scmp_cmp {
+    ($_:tt $arg:tt != $datum:expr) => {
+        $crate::ScmpArgCompare::new(
+            $crate::__private_scmp_cmp_arg!($arg),
+            $crate::ScmpCompareOp::NotEqual,
+            $datum,
+        )
+    };
+    ($_:tt $arg:tt < $datum:expr) => {
+        $crate::ScmpArgCompare::new(
+            $crate::__private_scmp_cmp_arg!($arg),
+            $crate::ScmpCompareOp::Less,
+            $datum,
+        )
+    };
+    ($_:tt $arg:tt <= $datum:expr) => {
+        $crate::ScmpArgCompare::new(
+            $crate::__private_scmp_cmp_arg!($arg),
+            $crate::ScmpCompareOp::LessOrEqual,
+            $datum,
+        )
+    };
+    ($_:tt $arg:tt == $datum:expr) => {
+        $crate::ScmpArgCompare::new(
+            $crate::__private_scmp_cmp_arg!($arg),
+            $crate::ScmpCompareOp::Equal,
+            $datum,
+        )
+    };
+    ($_:tt $arg:tt >= $datum:expr) => {
+        $crate::ScmpArgCompare::new(
+            $crate::__private_scmp_cmp_arg!($arg),
+            $crate::ScmpCompareOp::GreaterEqual,
+            $datum,
+        )
+    };
+    ($_:tt $arg:tt > $datum:expr) => {
+        $crate::ScmpArgCompare::new(
+            $crate::__private_scmp_cmp_arg!($arg),
+            $crate::ScmpCompareOp::Greater,
+            $datum,
+        )
+    };
+    ($_:tt $arg:tt & $mask:tt == $datum:expr) => {
+        $crate::ScmpArgCompare::new(
+            $crate::__private_scmp_cmp_arg!($arg),
+            $crate::ScmpCompareOp::MaskedEqual($mask),
+            $datum,
+        )
+    };
 }
 
 /// ScmpAction represents an action to be taken on a filter rule match in libseccomp
