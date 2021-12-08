@@ -164,7 +164,7 @@ pub enum ScmpCompareOp {
 }
 
 impl ScmpCompareOp {
-    fn to_sys(self) -> scmp_compare {
+    const fn to_sys(self) -> scmp_compare {
         match self {
             Self::NotEqual => scmp_compare::SCMP_CMP_NE,
             Self::Less => scmp_compare::SCMP_CMP_LT,
@@ -196,54 +196,38 @@ impl std::str::FromStr for ScmpCompareOp {
 
 /// ScmpArgCompare represents a rule in a libseccomp filter context
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub struct ScmpArgCompare {
-    /// argument number, starting at 0
-    arg: u32,
-    /// the comparison op
-    op: ScmpCompareOp,
-    datum_a: u64,
-    datum_b: u64,
-}
+#[repr(transparent)]
+pub struct ScmpArgCompare(scmp_arg_cmp);
 
 impl ScmpArgCompare {
     pub const fn new(arg: u32, op: ScmpCompareOp, datum: u64) -> Self {
         if let ScmpCompareOp::MaskedEqual(mask) = op {
-            Self {
+            Self(scmp_arg_cmp {
                 arg,
-                op,
+                op: op.to_sys(),
                 datum_a: mask,
                 datum_b: datum,
-            }
+            })
         } else {
-            Self {
+            Self(scmp_arg_cmp {
                 arg,
-                op,
+                op: op.to_sys(),
                 datum_a: datum,
                 datum_b: 0,
-            }
+            })
         }
     }
 }
 
 impl From<ScmpArgCompare> for scmp_arg_cmp {
     fn from(v: ScmpArgCompare) -> scmp_arg_cmp {
-        scmp_arg_cmp {
-            arg: v.arg,
-            op: v.op.to_sys(),
-            datum_a: v.datum_a,
-            datum_b: v.datum_b,
-        }
+        v.0
     }
 }
 
 impl From<&ScmpArgCompare> for scmp_arg_cmp {
     fn from(v: &ScmpArgCompare) -> scmp_arg_cmp {
-        scmp_arg_cmp {
-            arg: v.arg,
-            op: v.op.to_sys(),
-            datum_a: v.datum_a,
-            datum_b: v.datum_b,
-        }
+        v.0
     }
 }
 
@@ -659,26 +643,15 @@ impl ScmpFilterContext {
         syscall: i32,
         comparators: Option<&[ScmpArgCompare]>,
     ) -> Result<()> {
-        let ret: i32;
-
-        match comparators {
-            Some(cmps) => {
-                let arg_cmp: Vec<scmp_arg_cmp> = cmps.iter().map(From::from).collect();
-                let arg_cmp_len: u32 = arg_cmp.len().try_into()?;
-
-                ret = unsafe {
-                    seccomp_rule_add_array(
-                        self.ctx.as_ptr(),
-                        action.to_sys(),
-                        syscall,
-                        arg_cmp_len,
-                        arg_cmp.as_ptr(),
-                    )
-                };
-            }
-            None => {
-                ret = unsafe { seccomp_rule_add(self.ctx.as_ptr(), action.to_sys(), syscall, 0) };
-            }
+        let comparators = comparators.unwrap_or(&[]);
+        let ret = unsafe {
+            seccomp_rule_add_array(
+                self.ctx.as_ptr(),
+                action.to_sys(),
+                syscall,
+                comparators.len() as u32,
+                comparators.as_ptr() as *const scmp_arg_cmp,
+            )
         };
 
         if ret != 0 {
@@ -1087,6 +1060,46 @@ mod tests {
     }
 
     #[test]
+    fn test_scmpargcompare() {
+        assert_eq!(
+            ScmpArgCompare::new(0, ScmpCompareOp::NotEqual, 8),
+            ScmpArgCompare(scmp_arg_cmp {
+                arg: 0,
+                op: scmp_compare::SCMP_CMP_NE,
+                datum_a: 8,
+                datum_b: 0,
+            })
+        );
+        assert_eq!(
+            ScmpArgCompare::new(0, ScmpCompareOp::MaskedEqual(0b0010), 2),
+            ScmpArgCompare(scmp_arg_cmp {
+                arg: 0,
+                op: scmp_compare::SCMP_CMP_MASKED_EQ,
+                datum_a: 0b0010,
+                datum_b: 2,
+            })
+        );
+        assert_eq!(
+            scmp_arg_cmp::from(ScmpArgCompare::new(0, ScmpCompareOp::NotEqual, 8)),
+            scmp_arg_cmp {
+                arg: 0,
+                op: scmp_compare::SCMP_CMP_NE,
+                datum_a: 8,
+                datum_b: 0,
+            }
+        );
+        assert_eq!(
+            scmp_arg_cmp::from(&ScmpArgCompare::new(0, ScmpCompareOp::NotEqual, 8)),
+            scmp_arg_cmp {
+                arg: 0,
+                op: scmp_compare::SCMP_CMP_NE,
+                datum_a: 8,
+                datum_b: 0,
+            }
+        );
+    }
+
+    #[test]
     fn test_set_syscall_priority() {
         let mut ctx = ScmpFilterContext::new_filter(ScmpAction::KillThread).unwrap();
         let syscall = get_syscall_from_name("open", None).unwrap();
@@ -1235,43 +1248,5 @@ mod tests {
     fn test_as_ptr() {
         let ctx = ScmpFilterContext::new_filter(ScmpAction::Allow).unwrap();
         assert_eq!(ctx.as_ptr(), ctx.ctx.as_ptr());
-    }
-
-    #[test]
-    fn test_scmp_arg_cmp_from_scmpargcompare() {
-        // scmp_arg_cmp does not implement PartialEq, that's why we destruct
-        // the struct and assert_eq the individual fields.
-
-        let scmp_arg_cmp {
-            arg,
-            op,
-            datum_a,
-            datum_b,
-        } = <scmp_arg_cmp as From<ScmpArgCompare>>::from(ScmpArgCompare {
-            arg: 0,
-            op: ScmpCompareOp::Equal,
-            datum_a: 1,
-            datum_b: 0,
-        });
-        assert_eq!(arg, 0);
-        assert_eq!(op, scmp_compare::SCMP_CMP_EQ);
-        assert_eq!(datum_a, 1);
-        assert_eq!(datum_b, 0);
-
-        let scmp_arg_cmp {
-            arg,
-            op,
-            datum_a,
-            datum_b,
-        } = <scmp_arg_cmp as From<&ScmpArgCompare>>::from(&ScmpArgCompare {
-            arg: 0,
-            op: ScmpCompareOp::Equal,
-            datum_a: 1,
-            datum_b: 0,
-        });
-        assert_eq!(arg, 0);
-        assert_eq!(op, scmp_compare::SCMP_CMP_EQ);
-        assert_eq!(datum_a, 1);
-        assert_eq!(datum_b, 0);
     }
 }
