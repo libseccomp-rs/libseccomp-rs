@@ -13,7 +13,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Install upstream libseccomp
-        uses: ./.github/actions/setup
+        run: sudo ./scripts/install_libseccomp.sh
       - name: Build crate
         run: make debug
 
@@ -35,7 +35,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Install upstream libseccomp
-        uses: ./.github/actions/setup
+        run: sudo ./scripts/install_libseccomp.sh
       - name: Prepare for clippy
         run: rustup component add clippy
       - name: run clippy
@@ -48,26 +48,51 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Install upstream libseccomp
-        uses: ./.github/actions/setup
+        run: sudo ./scripts/install_libseccomp.sh
       - name: Run test
         run: make test
 
-  static-link:
-    name: Static-link Check
+  static-link-gnu:
+    name: Static-link Check for GNU libc
     runs-on: ubuntu-latest
+    env:
+      LIBSECCOMP_LINK_TYPE: static
+      LIBSECCOMP_LIB_PATH: /usr/local/lib
     steps:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Install upstream libseccomp
-        uses: ./.github/actions/setup
-      - name: Set environment variables
-        run: |
-          export LIBSECCOMP_LINK_TYPE=static
-          export LIBSECCOMP_LIB_PATH=/usr/local/lib
+        run: sudo ./scripts/install_libseccomp.sh
       - name: Build crate
         run: make build
       - name: Run test
         run: make test
+
+  static-link-musl:
+    name: Static-link Check for musl libc
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - x86_64-unknown-linux-musl
+    env:
+      LIBSECCOMP_LINK_TYPE: static
+      LIBSECCOMP_LIB_PATH: /usr/local/libseccomp-musl/lib
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install Rust toolchain
+        run: rustup target add ${{ matrix.target }}
+      - name: Install musl gcc
+        run: sudo apt-get install musl-tools
+      - name: Install upstream libseccomp
+        run: |
+          install_dir=$(dirname ${{ env.LIBSECCOMP_LIB_PATH }})
+          sudo ./scripts/install_libseccomp.sh -m -i ${install_dir}
+      - name: Build crate
+        run: cargo build --target ${{ matrix.target }}
+      - name: Run test
+        run: cargo test --target ${{ matrix.target }} -- --nocapture --test-threads 1
 
   coverage:
     name: Code Coverage
@@ -80,7 +105,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Install upstream libseccomp
-        uses: ./.github/actions/setup
+        run: sudo ./scripts/install_libseccomp.sh
       - name: Run cargo tarpaulin
         uses: actions-rs/tarpaulin@v0.1
         with:
