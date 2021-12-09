@@ -87,6 +87,6 @@ jobs:
       - name: Run cargo tarpaulin
         uses: actions-rs/tarpaulin@v0.1
         with:
-          args: '--${{ matrix.features }}'
+          args: '--${{ matrix.features }} -- --test-threads 1'
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v1

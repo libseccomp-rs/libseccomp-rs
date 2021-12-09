@@ -22,7 +22,7 @@ build:
 
 .PHONY: test
 test:
-	cargo test -- --color always --nocapture
+	cargo test -- --color always --nocapture --test-threads 1
 
 .PHONY: check
 check: fmt clippy
