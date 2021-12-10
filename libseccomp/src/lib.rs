@@ -14,10 +14,9 @@
 //!
 //! fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!     let mut filter = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
-//!     filter.add_arch(ScmpArch::Native)?;
-//!
 //!     let syscall = get_syscall_from_name("getuid", None)?;
 //!
+//!     filter.add_arch(ScmpArch::X8664)?;
 //!     filter.add_rule(ScmpAction::Errno(1), syscall, None)?;
 //!     filter.load()?;
 //!
@@ -26,16 +25,14 @@
 //! ```
 
 //! ```rust
-//! use libc;
 //! use libseccomp::*;
 //!
 //! fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!     let mut filter = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
-//!     filter.add_arch(ScmpArch::X8664)?;
-//!
-//!     let syscall = get_syscall_from_name("dup2", Some(ScmpArch::X8664))?;
-//!
+//!     let syscall = get_syscall_from_name("dup3", Some(ScmpArch::X8664))?;
 //!     let cmp = ScmpArgCompare::new(0, ScmpCompareOp::Equal, 1);
+//!
+//!     filter.add_arch(ScmpArch::X8664)?;
 //!     filter.add_rule(ScmpAction::Errno(libc::EPERM), syscall, Some(&[cmp]))?;
 //!     filter.load()?;
 //!
@@ -1155,12 +1152,12 @@ mod tests {
         let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow).unwrap();
         ctx.add_arch(ScmpArch::Native).unwrap();
 
-        let syscall = get_syscall_from_name("dup2", None).unwrap();
+        let syscall = get_syscall_from_name("dup3", None).unwrap();
 
-        ctx.add_rule(ScmpAction::Errno(111), syscall, None).unwrap();
+        ctx.add_rule(ScmpAction::Errno(10), syscall, None).unwrap();
         ctx.load().unwrap();
 
-        syscall_assert!(unsafe { libc::dup2(0, 1) }, -111);
+        syscall_assert!(unsafe { libc::dup3(0, 100, libc::O_CLOEXEC) }, -10);
     }
 
     #[test]
