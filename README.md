@@ -20,27 +20,35 @@ to use the libseccomp API in Rust easily.
 ```rust
 use libseccomp::*;
 
-// new_filter creates and returns a new filter context.
-let mut filter = ScmpFilterContext::new_filter(ScmpAction::Allow).unwrap();
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // new_filter creates and returns a new filter context.
+    let mut filter = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
 
-// add_arch adds an architecture to the filter.
-filter.add_arch(ScmpArch::Native).unwrap();
+    // add_arch adds an architecture to the filter.
+    filter.add_arch(ScmpArch::X8664)?;
 
-// get_syscall_from_name returns the number of a syscall by name for a given
-// architectures's ABI.
-// If arch argument is None, the function returns the number of a syscall
-// on the kernel's native architecture.
-let syscall = get_syscall_from_name("dup2", None).unwrap();
+    // get_syscall_from_name returns the number of a syscall by name for a given
+    // architectures's ABI.
+    // If arch argument is None, the function returns the number of a syscall
+    // on the kernel's native architecture.
+    let syscall = get_syscall_from_name("dup3", None)?;
 
-// add_rule adds a single rule for an unconditional or conditional action on a syscall.
-filter.add_rule(ScmpAction::Errno(111), syscall, None).unwrap();
+    // add_rule adds a single rule for an unconditional or conditional action on a syscall.
+    filter.add_rule(ScmpAction::Errno(10), syscall, None)?;
 
-// load loads the filter context into the kernel.
-filter.load().unwrap();
+    // load loads the filter context into the kernel.
+    filter.load()?;
 
-// The dup2 fails by the seccomp rule.
-assert_eq!(unsafe { libc::dup2(1, 2) } as i32, -libc::EPERM);
-assert_eq!(std::io::Error::last_os_error().raw_os_error().unwrap(), 111);
+    // The dup3 fails by the seccomp rule.
+    assert_eq!(
+        unsafe { libc::dup3(0, 100, libc::O_CLOEXEC) } as i32,
+        -libc::EPERM
+    );
+    assert_eq!(std::io::Error::last_os_error().raw_os_error().unwrap(), 10);
+
+    Ok(())
+}
+
 ```
 
 ## Requirements
