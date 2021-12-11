@@ -35,7 +35,6 @@ pub enum ErrorKind {
 
 pub struct SeccompError {
     kind: ErrorKind,
-    code: Option<i32>,
     source: Option<Box<dyn Error + Send + Sync>>,
 }
 
@@ -82,7 +81,6 @@ impl fmt::Debug for SeccompError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_struct("Error")
             .field("kind", &self.kind)
-            .field("code", &self.code)
             .field("source", &self.source)
             .field("message", &self.msg())
             .finish()
@@ -121,18 +119,7 @@ impl_seccomperror_from!(std::str::Utf8Error);
 
 impl SeccompError {
     pub(crate) fn new(kind: ErrorKind) -> Self {
-        match kind {
-            ErrorKind::Errno(e) => Self {
-                kind,
-                code: Some(e),
-                source: None,
-            },
-            _ => Self {
-                kind,
-                code: None,
-                source: None,
-            },
-        }
+        Self { kind, source: None }
     }
 
     pub(crate) fn with_source<E>(kind: ErrorKind, source: E) -> Self
@@ -141,7 +128,6 @@ impl SeccompError {
     {
         Self {
             kind,
-            code: None,
             source: Some(Box::new(source)),
         }
     }
