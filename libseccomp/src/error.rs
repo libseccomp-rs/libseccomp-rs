@@ -3,8 +3,25 @@
 // Copyright 2021 Sony Group Corporation
 //
 
+use std::borrow::Cow;
 use std::error::Error;
 use std::fmt;
+
+// Errno message
+const EACCES: &str = "Setting the attribute with the given value is not allowed";
+const ECANCELED: &str = "There was a system failure beyond the control of libseccomp";
+const EDOM: &str = "Architecture specific failure";
+const EEXIST: &str = "Failure regrading the existance of argument";
+const EFAULT: &str = "Internal libseccomp failure";
+const EINVAL: &str = "Invalid input to the libseccomp API";
+const ENOENT: &str = "No matching entry found";
+const ENOMEM: &str = "Unable to allocate enough memory to perform the requested operation";
+const EOPNOTSUPP: &str = "The library doesn't support the particular operation";
+const ERANGE: &str = "Provided buffer is too small";
+const ESRCH: &str = "Unable to load the filter due to thread issues";
+
+// ParseError message
+const PARSE_ERROR: &str = "Parse error by invalid argument";
 
 /// The different types of errors that can occur while manipulating libseccomp api.
 #[derive(Debug, Eq, PartialEq)]
@@ -23,32 +40,25 @@ pub struct SeccompError {
 }
 
 impl SeccompError {
-    fn msg(&self) -> String {
+    fn msg(&self) -> Cow<'static, str> {
         match &self.kind {
             ErrorKind::Errno(e) => match -(*e) {
-                libc::EDOM => "Architecture specific failure".to_string(),
-                libc::EACCES => {
-                    "Setting the attribute with the given value is not allowed".to_string()
-                }
-                libc::EEXIST => "Failure regrading the existance of argument".to_string(),
-                libc::EINVAL => "Invalid input to the libseccomp API".to_string(),
-                libc::ENOMEM => {
-                    "Unable to allocate enough memory to perform the requested operation"
-                        .to_string()
-                }
-                libc::ECANCELED => {
-                    "There was a system failure beyond the control of libseccomp".to_string()
-                }
-                libc::EFAULT => "Internal libseccomp failure".to_string(),
-                libc::ESRCH => "Unable to load the filter due to thread issues".to_string(),
-                libc::EOPNOTSUPP => {
-                    "The library doesn't support the particular operation".to_string()
-                }
-                errno => format!("Unknown error({})", errno),
+                libc::EACCES => EACCES.into(),
+                libc::ECANCELED => ECANCELED.into(),
+                libc::EDOM => EDOM.into(),
+                libc::EEXIST => EEXIST.into(),
+                libc::EFAULT => EFAULT.into(),
+                libc::EINVAL => EINVAL.into(),
+                libc::ENOENT => ENOENT.into(),
+                libc::ENOMEM => ENOMEM.into(),
+                libc::EOPNOTSUPP => EOPNOTSUPP.into(),
+                libc::ERANGE => ERANGE.into(),
+                libc::ESRCH => ESRCH.into(),
+                errno => format!("Unknown error({})", errno).into(),
             },
-            ErrorKind::Common(s) => s.to_string(),
-            ErrorKind::ParseError => "Parse error by invalid argument".to_string(),
-            ErrorKind::Source => self.source.as_ref().unwrap().to_string(),
+            ErrorKind::Common(s) => s.clone().into(),
+            ErrorKind::ParseError => PARSE_ERROR.into(),
+            ErrorKind::Source => self.source.as_ref().unwrap().to_string().into(),
         }
     }
 }
