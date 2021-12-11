@@ -134,3 +134,152 @@ impl SeccompError {
 }
 
 pub type Result<T> = ::std::result::Result<T, SeccompError>;
+
+#[cfg(test)]
+mod tests {
+    use super::ErrorKind::*;
+    use super::*;
+    use std::ffi::CString;
+
+    const TEST_ERR_MSG: &str = "test error";
+    const TEST_NULL_STR: &str = "f\0oo";
+    const NULL_ERR_MSG: &str = "nul byte found in provided data at position: 1";
+
+    #[test]
+    fn test_msg() {
+        let null_err = CString::new(TEST_NULL_STR).unwrap_err();
+
+        // Errno
+        assert_eq!(SeccompError::new(Errno(-libc::EACCES)).msg(), EACCES);
+        assert_eq!(SeccompError::new(Errno(-libc::ECANCELED)).msg(), ECANCELED);
+        assert_eq!(SeccompError::new(Errno(-libc::EDOM)).msg(), EDOM);
+        assert_eq!(SeccompError::new(Errno(-libc::EEXIST)).msg(), EEXIST);
+        assert_eq!(SeccompError::new(Errno(-libc::EFAULT)).msg(), EFAULT);
+        assert_eq!(SeccompError::new(Errno(-libc::EINVAL)).msg(), EINVAL);
+        assert_eq!(SeccompError::new(Errno(-libc::ENOENT)).msg(), ENOENT);
+        assert_eq!(SeccompError::new(Errno(-libc::ENOMEM)).msg(), ENOMEM);
+        assert_eq!(
+            SeccompError::new(Errno(-libc::EOPNOTSUPP)).msg(),
+            EOPNOTSUPP
+        );
+        assert_eq!(SeccompError::new(Errno(-libc::ERANGE)).msg(), ERANGE);
+        assert_eq!(SeccompError::new(Errno(-libc::ESRCH)).msg(), ESRCH);
+        assert_eq!(
+            SeccompError::new(Errno(-libc::EPIPE)).msg(),
+            format!("Unknown error({})", libc::EPIPE)
+        );
+
+        // Common
+        assert_eq!(
+            SeccompError::new(Common(TEST_ERR_MSG.to_string())).msg(),
+            TEST_ERR_MSG
+        );
+
+        // ParseError
+        assert_eq!(SeccompError::new(ParseError).msg(), PARSE_ERROR);
+
+        // Source
+        assert_eq!(
+            SeccompError::with_source(Source, null_err).msg(),
+            NULL_ERR_MSG
+        );
+    }
+
+    #[test]
+    fn test_source() {
+        let null_err = CString::new(TEST_NULL_STR).unwrap_err();
+
+        assert!(SeccompError::new(Errno(-libc::EACCES)).source().is_none());
+        assert!(SeccompError::with_source(Errno(-libc::EACCES), null_err)
+            .source()
+            .is_some());
+    }
+
+    #[test]
+    fn test_from() {
+        let null_err = CString::new(TEST_NULL_STR).unwrap_err();
+        let scmp_err = SeccompError::from(null_err.clone());
+
+        assert_eq!(scmp_err.kind, ErrorKind::Source);
+        assert_eq!(scmp_err.source().unwrap().to_string(), null_err.to_string());
+    }
+
+    #[test]
+    fn test_display() {
+        let null_err = CString::new(TEST_NULL_STR).unwrap_err();
+
+        // Errno without source
+        assert_eq!(
+            format!("{}", SeccompError::new(Errno(-libc::EACCES))),
+            EACCES
+        );
+        // Errno with source
+        assert_eq!(
+            format!(
+                "{}",
+                SeccompError::with_source(Errno(-libc::EACCES), null_err.clone())
+            ),
+            format!("{} caused by: {}", EACCES, NULL_ERR_MSG)
+        );
+
+        // Common without source
+        assert_eq!(
+            format!("{}", SeccompError::new(Common(TEST_ERR_MSG.to_string()))),
+            TEST_ERR_MSG
+        );
+        // Common with source
+        assert_eq!(
+            format!(
+                "{}",
+                SeccompError::with_source(Common(TEST_ERR_MSG.to_string()), null_err.clone())
+            ),
+            format!("{} caused by: {}", TEST_ERR_MSG, NULL_ERR_MSG)
+        );
+
+        // Parse without source
+        assert_eq!(format!("{}", SeccompError::new(ParseError)), PARSE_ERROR);
+        // Parse with source
+        assert_eq!(
+            format!(
+                "{}",
+                SeccompError::with_source(ParseError, null_err.clone())
+            ),
+            format!("{} caused by: {}", PARSE_ERROR, NULL_ERR_MSG)
+        );
+
+        // Source
+        assert_eq!(
+            format!("{}", SeccompError::with_source(ErrorKind::Source, null_err)),
+            NULL_ERR_MSG
+        )
+    }
+
+    #[test]
+    fn test_debug() {
+        let null_err = CString::new(TEST_NULL_STR).unwrap_err();
+
+        // Errno without source
+        assert_eq!(
+            format!("{:?}", SeccompError::new(Errno(-libc::EACCES)),),
+            format!(
+                "Error {{ kind: Errno({}), source: {}, message: \"{}\" }}",
+                -libc::EACCES,
+                "None",
+                EACCES
+            )
+        );
+        // Errno with source
+        assert_eq!(
+            format!(
+                "{:?}",
+                SeccompError::with_source(Errno(-libc::EACCES), null_err),
+            ),
+            format!(
+                "Error {{ kind: Errno({}), source: {}, message: \"{}\" }}",
+                -libc::EACCES,
+                "Some(NulError(1, [102, 0, 111, 111]))",
+                EACCES
+            )
+        );
+    }
+}
