@@ -16,38 +16,66 @@ pub enum ErrorKind {
     Source,
 }
 
-#[derive(Debug)]
 pub struct SeccompError {
     kind: ErrorKind,
     code: Option<i32>,
     source: Option<Box<dyn Error + Send + Sync>>,
 }
 
+impl SeccompError {
+    fn msg(&self) -> String {
+        match &self.kind {
+            ErrorKind::Errno(e) => match -(*e) {
+                libc::EDOM => "Architecture specific failure".to_string(),
+                libc::EACCES => {
+                    "Setting the attribute with the given value is not allowed".to_string()
+                }
+                libc::EEXIST => "Failure regrading the existance of argument".to_string(),
+                libc::EINVAL => "Invalid input to the libseccomp API".to_string(),
+                libc::ENOMEM => {
+                    "Unable to allocate enough memory to perform the requested operation"
+                        .to_string()
+                }
+                libc::ECANCELED => {
+                    "There was a system failure beyond the control of libseccomp".to_string()
+                }
+                libc::EFAULT => "Internal libseccomp failure".to_string(),
+                libc::ESRCH => "Unable to load the filter due to thread issues".to_string(),
+                libc::EOPNOTSUPP => {
+                    "The library doesn't support the particular operation".to_string()
+                }
+                errno => format!("Unknown error({})", errno),
+            },
+            ErrorKind::Common(s) => s.to_string(),
+            ErrorKind::ParseError => "Parse error by invalid argument".to_string(),
+            ErrorKind::Source => self.source.as_ref().unwrap().to_string(),
+        }
+    }
+}
+
 impl fmt::Display for SeccompError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let msg = match &self.kind {
-            ErrorKind::Errno(e) => match -(*e) {
-                libc::EDOM => "Architecture specific failure",
-                libc::EACCES => "Setting the attribute with the given value is not allowed",
-                libc::EEXIST => "Failure regrading the existance of argument",
-                libc::EINVAL => "Invalid input",
-                libc::ENOMEM => "The library was unable to allocate enough memory",
-                libc::ECANCELED => "There was a system failure beyond the control of the library",
-                libc::EFAULT => "Internal libseccomp failure",
-                libc::ESRCH => "Unable to load the filter due to thread issues",
-                libc::EOPNOTSUPP => "The library doesn't support the particular operation",
-                errno => return write!(f, "Error caused by: errno({})", errno),
-            },
-            ErrorKind::Common(s) => s,
-            ErrorKind::ParseError => "Invalid argument",
-            ErrorKind::Source => return self.source.as_ref().unwrap().fmt(f),
-        };
+        let msg = self.msg();
 
-        if let Some(source) = &self.source {
-            write!(f, "{} caused by: {}", msg, source)
-        } else {
-            write!(f, "{}", msg)
+        match &self.source {
+            Some(source) if self.kind != ErrorKind::Source => {
+                write!(f, "{} caused by: {}", msg, source)
+            }
+            Some(_) | None => {
+                write!(f, "{}", msg)
+            }
         }
+    }
+}
+
+impl fmt::Debug for SeccompError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("Error")
+            .field("kind", &self.kind)
+            .field("code", &self.code)
+            .field("source", &self.source)
+            .field("message", &self.msg())
+            .finish()
     }
 }
 
