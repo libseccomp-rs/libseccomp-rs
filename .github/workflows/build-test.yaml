@@ -6,8 +6,23 @@ on:
   pull_request:
     types: [opened, reopened, edited, synchronize]
 jobs:
-  build:
-    name: Build
+  validate:
+    name: Format and Lint Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install upstream libseccomp
+        run: sudo ./scripts/install_libseccomp.sh
+      - name: Prepare for rustfmt and clippy
+        run: rustup component add rustfmt clippy
+      - name: Run rustfmt
+        run: make fmt
+      - name: Run clippy
+        run: make clippy
+
+  test:
+    name: Unit Tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -16,39 +31,6 @@ jobs:
         run: sudo ./scripts/install_libseccomp.sh
       - name: Build crate
         run: make debug
-
-  fmt:
-    name: Format Check
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Prepare for rustfmt
-        run: rustup component add rustfmt
-      - name: Run rustfmt
-        run: make fmt
-
-  clippy:
-    name: Clippy Check
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Install upstream libseccomp
-        run: sudo ./scripts/install_libseccomp.sh
-      - name: Prepare for clippy
-        run: rustup component add clippy
-      - name: run clippy
-        run: make clippy
-
-  test:
-    name: Unit Test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Install upstream libseccomp
-        run: sudo ./scripts/install_libseccomp.sh
       - name: Run test
         run: make test
 
