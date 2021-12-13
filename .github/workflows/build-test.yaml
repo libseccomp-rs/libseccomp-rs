@@ -24,11 +24,15 @@ jobs:
   test:
     name: Unit Tests
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        libseccomp-version: [2.4.3, 2.5.1, 2.5.3]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Install upstream libseccomp
-        run: sudo ./scripts/install_libseccomp.sh
+        run: sudo ./scripts/install_libseccomp.sh -v ${{ matrix.libseccomp-version }}
       - name: Build crate
         run: make debug
       - name: Run test
@@ -54,7 +58,9 @@ jobs:
     name: Static-link Check for musl libc
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
+        libseccomp-version: [2.4.3, 2.5.1, 2.5.3]
         target:
           - x86_64-unknown-linux-musl
     env:
@@ -70,7 +76,7 @@ jobs:
       - name: Install upstream libseccomp
         run: |
           install_dir=$(dirname ${{ env.LIBSECCOMP_LIB_PATH }})
-          sudo ./scripts/install_libseccomp.sh -m -i ${install_dir}
+          sudo ./scripts/install_libseccomp.sh -m -v ${{ matrix.libseccomp-version }} -i ${install_dir}
       - name: Build crate
         run: cargo build --target ${{ matrix.target }}
       - name: Run test
