@@ -910,7 +910,7 @@ pub fn get_syscall_from_name(name: &str, arch: Option<ScmpArch>) -> Result<i32> 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::io::Error;
+    use std::io::{stdout, Error};
     use std::str::FromStr;
 
     macro_rules! syscall_assert {
@@ -1145,6 +1145,17 @@ mod tests {
 
         let ret = ctx1.is_arch_present(prospective_arch).unwrap();
         assert!(ret);
+    }
+
+    #[test]
+    fn test_export_functions() {
+        let ctx = ScmpFilterContext::new_filter(ScmpAction::Allow).unwrap();
+
+        assert!(ctx.export_bpf(&mut stdout()).is_ok());
+        assert!(ctx.export_bpf(&mut -1).is_err());
+
+        assert!(ctx.export_pfc(&mut stdout()).is_ok());
+        assert!(ctx.export_pfc(&mut -1).is_err());
     }
 
     #[test]
