@@ -38,24 +38,8 @@ jobs:
       - name: Run test
         run: make test
 
-  static-link-gnu:
-    name: Static-link Check for GNU libc
-    runs-on: ubuntu-latest
-    env:
-      LIBSECCOMP_LINK_TYPE: static
-      LIBSECCOMP_LIB_PATH: /usr/local/lib
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Install upstream libseccomp
-        run: sudo ./scripts/install_libseccomp.sh
-      - name: Build crate
-        run: make build
-      - name: Run test
-        run: make test
-
   static-link-musl:
-    name: Static-link Check for musl libc
+    name: Statically Linking with musl
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
