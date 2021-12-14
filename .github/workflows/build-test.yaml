@@ -28,11 +28,17 @@ jobs:
       fail-fast: false
       matrix:
         libseccomp-version: [2.4.3, 2.5.1, 2.5.3]
+    env:
+      LIBSECCOMP_LINK_TYPE: dylib
+      LIBSECCOMP_LIB_PATH: /usr/local/libseccomp/lib
     steps:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Install upstream libseccomp
-        run: sudo ./scripts/install_libseccomp.sh -v ${{ matrix.libseccomp-version }}
+        run: |
+          install_dir=$(dirname ${{ env.LIBSECCOMP_LIB_PATH }})
+          sudo ./scripts/install_libseccomp.sh -v ${{ matrix.libseccomp-version }} -i ${install_dir}
+          echo "LD_LIBRARY_PATH=${{ env.LIBSECCOMP_LIB_PATH }}" >> $GITHUB_ENV
       - name: Build crate
         run: make debug
       - name: Run test
