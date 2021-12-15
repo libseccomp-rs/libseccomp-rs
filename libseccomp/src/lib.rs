@@ -623,7 +623,7 @@ impl ScmpFilterContext {
         // Libseccomp returns -EEXIST if the specified architecture is already
         // present. Succeed silently in this case, as it's not fatal, and the
         // architecture is present already.
-        if ret < 0 && ret != -(libc::EEXIST as i32) {
+        if ret != 0 && ret != -(libc::EEXIST as i32) {
             return Err(SeccompError::new(Errno(ret)));
         }
 
@@ -641,7 +641,7 @@ impl ScmpFilterContext {
         // Similar to add_arch, -EEXIST is returned if the arch is not present
         // Succeed silently in that case, this is not fatal and the architecture
         // is not present in the filter after remove_arch
-        if ret < 0 && ret != -(libc::EEXIST as i32) {
+        if ret != 0 && ret != -(libc::EEXIST as i32) {
             return Err(SeccompError::new(Errno(ret)));
         }
 
@@ -681,7 +681,7 @@ impl ScmpFilterContext {
             }
         };
 
-        if ret < 0 {
+        if ret != 0 {
             return Err(SeccompError::new(Errno(ret)));
         }
 
@@ -693,7 +693,7 @@ impl ScmpFilterContext {
     /// Returns an error if the filter context is invalid or the syscall failed.
     pub fn load(&self) -> Result<()> {
         let ret = unsafe { seccomp_load(self.ctx.as_ptr()) };
-        if ret < 0 {
+        if ret != 0 {
             return Err(SeccompError::new(Errno(ret)));
         }
 
@@ -704,7 +704,7 @@ impl ScmpFilterContext {
         let mut attribute: u32 = 0;
 
         let ret = unsafe { seccomp_attr_get(self.ctx.as_ptr(), attr.to_sys(), &mut attribute) };
-        if ret < 0 {
+        if ret != 0 {
             return Err(SeccompError::new(Errno(ret)));
         }
 
@@ -723,7 +723,7 @@ impl ScmpFilterContext {
     /// set_filter_attr sets a raw filter attribute
     pub fn set_filter_attr(&mut self, attr: ScmpFilterAttr, value: u32) -> Result<()> {
         let ret = unsafe { seccomp_attr_set(self.ctx.as_ptr(), attr.to_sys(), value) };
-        if ret < 0 {
+        if ret != 0 {
             return Err(SeccompError::new(Errno(ret)));
         }
 
@@ -745,7 +745,7 @@ impl ScmpFilterContext {
     /// Returns an error if writing to the file fails.
     pub fn export_pfc<T: AsRawFd>(&self, fd: &mut T) -> Result<()> {
         let ret = unsafe { seccomp_export_pfc(self.ctx.as_ptr(), fd.as_raw_fd()) };
-        if ret < 0 {
+        if ret != 0 {
             return Err(SeccompError::new(Errno(ret)));
         }
 
@@ -759,7 +759,7 @@ impl ScmpFilterContext {
     /// Returns an error if writing to the file fails.
     pub fn export_bpf<T: AsRawFd>(&self, fd: &mut T) -> Result<()> {
         let ret = unsafe { seccomp_export_bpf(self.ctx.as_ptr(), fd.as_raw_fd()) };
-        if ret < 0 {
+        if ret != 0 {
             return Err(SeccompError::new(Errno(ret)));
         }
 
@@ -786,7 +786,7 @@ impl ScmpFilterContext {
     /// Returns an error if the filter or action provided are invalid.
     pub fn reset(&mut self, action: ScmpAction) -> Result<()> {
         let ret = unsafe { seccomp_reset(self.ctx.as_ptr(), action.to_sys()) };
-        if ret < 0 {
+        if ret != 0 {
             return Err(SeccompError::new(Errno(ret)));
         }
 
