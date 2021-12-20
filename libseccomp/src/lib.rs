@@ -1036,8 +1036,10 @@ mod tests {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn test_get_library_version() {
         let ret = ScmpVersion::current().unwrap();
+        assert_eq!(ret, get_library_version().unwrap());
         println!(
             "test_get_library_version: {}.{}.{}",
             ret.major, ret.minor, ret.micro
@@ -1045,8 +1047,10 @@ mod tests {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn test_get_native_arch() {
         let ret = ScmpArch::native().unwrap();
+        assert_eq!(ret, get_native_arch().unwrap());
         println!("test_get_native_arch: native arch is {:?}", ret);
     }
 
