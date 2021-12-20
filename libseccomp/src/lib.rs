@@ -699,6 +699,23 @@ impl ScmpFilterContext {
 
         Ok(())
     }
+
+    /// set_syscall_priority sets a syscall's priority.
+    /// This provides a priority hint to the seccomp filter generator in libseccomp
+    /// such that higher priority syscalls are placed earlier in the seccomp filter code
+    /// so that they incur less overhead at the expense of lower priority syscalls.
+    ///
+    /// Accepts the priority parameter that is an 8-bit value ranging from 0 - 255;
+    /// a higher value represents a higher priority.
+    pub fn set_syscall_priority(&mut self, syscall: i32, priority: u8) -> Result<()> {
+        let ret = unsafe { seccomp_syscall_priority(self.ctx.as_ptr(), syscall, priority) };
+        if ret != 0 {
+            return Err(SeccompError::new(Errno(ret)));
+        }
+
+        Ok(())
+    }
+
     /// get_filter_attr gets a raw filter attribute
     pub fn get_filter_attr(&self, attr: ScmpFilterAttr) -> Result<u32> {
         let mut attribute: u32 = 0;
@@ -1067,6 +1084,16 @@ mod tests {
 
         let api = get_api().unwrap();
         assert_eq!(expected_api, api);
+    }
+
+    #[test]
+    fn test_set_syscall_priority() {
+        let mut ctx = ScmpFilterContext::new_filter(ScmpAction::KillThread).unwrap();
+        let syscall = get_syscall_from_name("open", None).unwrap();
+        let priority = 100;
+
+        assert!(ctx.set_syscall_priority(syscall, priority).is_ok());
+        assert!(ctx.set_syscall_priority(-1, priority).is_err());
     }
 
     #[test]
