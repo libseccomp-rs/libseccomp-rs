@@ -1033,6 +1033,64 @@ mod tests {
             ScmpArch::from_str("SCMP_ARCH_X86_64").unwrap().to_sys(),
             ScmpArch::X8664.to_sys()
         );
+        assert_eq!(
+            ScmpArch::from_str("SCMP_ARCH_X32").unwrap().to_sys(),
+            ScmpArch::X32.to_sys()
+        );
+        assert_eq!(
+            ScmpArch::from_str("SCMP_ARCH_MIPS").unwrap().to_sys(),
+            ScmpArch::Mips.to_sys()
+        );
+        assert_eq!(
+            ScmpArch::from_str("SCMP_ARCH_MIPS64").unwrap().to_sys(),
+            ScmpArch::Mips64.to_sys()
+        );
+        assert_eq!(
+            ScmpArch::from_str("SCMP_ARCH_MIPSEL").unwrap().to_sys(),
+            ScmpArch::Mipsel.to_sys()
+        );
+        assert_eq!(
+            ScmpArch::from_str("SCMP_ARCH_MIPSEL64").unwrap().to_sys(),
+            ScmpArch::Mipsel64.to_sys()
+        );
+        assert_eq!(
+            ScmpArch::from_str("SCMP_ARCH_MIPSEL64N32")
+                .unwrap()
+                .to_sys(),
+            ScmpArch::Mipsel64N32.to_sys()
+        );
+        assert_eq!(
+            ScmpArch::from_str("SCMP_ARCH_PPC").unwrap().to_sys(),
+            ScmpArch::Ppc.to_sys()
+        );
+        assert_eq!(
+            ScmpArch::from_str("SCMP_ARCH_PPC64").unwrap().to_sys(),
+            ScmpArch::Ppc64.to_sys()
+        );
+        assert_eq!(
+            ScmpArch::from_str("SCMP_ARCH_PPC64LE").unwrap().to_sys(),
+            ScmpArch::Ppc64Le.to_sys()
+        );
+        assert_eq!(
+            ScmpArch::from_str("SCMP_ARCH_S390").unwrap().to_sys(),
+            ScmpArch::S390.to_sys()
+        );
+        assert_eq!(
+            ScmpArch::from_str("SCMP_ARCH_S390X").unwrap().to_sys(),
+            ScmpArch::S390X.to_sys()
+        );
+        assert_eq!(
+            ScmpArch::from_str("SCMP_ARCH_PARISC").unwrap().to_sys(),
+            ScmpArch::Parisc.to_sys()
+        );
+        assert_eq!(
+            ScmpArch::from_str("SCMP_ARCH_PARISC64").unwrap().to_sys(),
+            ScmpArch::Parisc64.to_sys()
+        );
+        assert_eq!(
+            ScmpArch::from_str("SCMP_ARCH_RISCV64").unwrap().to_sys(),
+            ScmpArch::Riscv64.to_sys()
+        );
     }
 
     #[test]
