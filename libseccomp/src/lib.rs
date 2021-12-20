@@ -41,6 +41,7 @@
 //! ```
 
 pub mod error;
+#[cfg(libseccomp_v2_5)]
 pub mod notify;
 
 use error::ErrorKind::*;
@@ -363,7 +364,9 @@ pub enum ScmpAction {
     KillThread,
     /// Throw a SIGSYS signal
     Trap,
-    /// Notifies userspace
+    /// Triggers a userspace notification.  
+    /// NOTE: This action is only usable when the libseccomp API level 6
+    /// or higher is supported.
     Notify,
     /// Return the specified error code
     /// NOTE: You can only use integers from 0 to `u16::MAX`.
@@ -823,20 +826,6 @@ impl ScmpFilterContext {
         Ok(())
     }
 
-    /// get_notify_fd gets a notification fd of the loaded filter.
-    ///
-    /// Returns -1 if a notification fd has not yet been created,
-    /// and -EINVAL if the filter context is invalid.
-    #[cfg(libseccomp_v2_5)]
-    pub fn get_notify_fd(&self) -> Result<i32> {
-        let ret = unsafe { seccomp_notify_fd(self.ctx.as_ptr()) };
-        if ret < 0 {
-            return Err(SeccompError::new(Errno(ret)));
-        }
-
-        Ok(ret)
-    }
-
     /// reset resets a filter context, removing all its existing state.
     ///
     /// Accepts a new default action to be taken for syscalls which do not match.
@@ -914,6 +903,63 @@ pub fn check_api(min_level: u32, expected: ScmpVersion) -> Result<bool> {
         Ok(true)
     } else {
         Ok(false)
+    }
+}
+
+/// Ensures that the libseccomp version is equal to or greater than the
+/// specified version.
+///
+/// # Arguments
+///
+/// * `msg` - An arbitrary non-empty operation description, used as a part
+/// of the error message returned.
+/// * `expected` - The libseccomp version you want to check
+///
+/// # Errors
+///
+/// If the libseccomp version being used is less than the specified version,
+/// an error will be returned.
+// This function will not be used if the libseccomp version is less than 2.5.0.
+#[allow(dead_code)]
+fn ensure_supported_version(msg: &str, expected: ScmpVersion) -> Result<()> {
+    if check_version(expected)? {
+        Ok(())
+    } else {
+        let current = ScmpVersion::current()?;
+        Err(SeccompError::new(Common(format!(
+            "{} requires libseccomp >= {} (current version: {})",
+            msg, expected, current,
+        ))))
+    }
+}
+
+/// Ensures that both the libseccomp API level and the libseccomp version are
+/// equal to or greater than the specified API level and version.
+///
+/// # Arguments
+///
+/// * `msg` - An arbitrary non-empty operation description, used as a part
+/// of the error message returned.
+/// * `min_level` - The libseccomp API level you want to check
+/// * `expected` - The libseccomp version you want to check
+///
+/// # Errors
+///
+/// If the libseccomp API level and the libseccomp version being used are less than
+/// the specified version, an error will be returned.
+// This function will not be used if the libseccomp version is less than 2.5.0.
+#[allow(dead_code)]
+fn ensure_supported_api(msg: &str, min_level: u32, expected: ScmpVersion) -> Result<()> {
+    let level = get_api()?;
+
+    if level >= min_level {
+        ensure_supported_version(msg, expected)
+    } else {
+        let current = ScmpVersion::current()?;
+        Err(SeccompError::new(Common(format!(
+            "{} requires libseccomp >= {} and API level >= {} (current version: {}, API level: {})",
+            msg, expected, min_level, current, level
+        ))))
     }
 }
 
@@ -1154,6 +1200,18 @@ mod tests {
     fn test_check_api() {
         assert!(check_api(3, ScmpVersion::from((2, 4, 0))).unwrap());
         assert!(!check_api(100, ScmpVersion::from((2, 4, 0))).unwrap());
+    }
+
+    #[test]
+    fn test_ensure_supported_version() {
+        assert!(ensure_supported_version("test", ScmpVersion::from((2, 4, 0))).is_ok());
+        assert!(ensure_supported_version("test", ScmpVersion::from((100, 100, 100))).is_err());
+    }
+
+    #[test]
+    fn test_ensure_supported_api() {
+        assert!(ensure_supported_api("test", 3, ScmpVersion::from((2, 4, 0))).is_ok());
+        assert!(ensure_supported_api("test", 100, ScmpVersion::from((2, 4, 0))).is_err());
     }
 
     #[test]
