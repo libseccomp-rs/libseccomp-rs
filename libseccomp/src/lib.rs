@@ -17,7 +17,7 @@
 //!     let syscall = get_syscall_from_name("getuid", None)?;
 //!
 //!     filter.add_arch(ScmpArch::X8664)?;
-//!     filter.add_rule(ScmpAction::Errno(1), syscall, None)?;
+//!     filter.add_rule(ScmpAction::Errno(1), syscall)?;
 //!     filter.load()?;
 //!
 //!     Ok(())
@@ -33,7 +33,7 @@
 //!     let cmp = ScmpArgCompare::new(0, ScmpCompareOp::Equal, 1);
 //!
 //!     filter.add_arch(ScmpArch::X8664)?;
-//!     filter.add_rule(ScmpAction::Errno(libc::EPERM), syscall, Some(&[cmp]))?;
+//!     filter.add_rule_conditional(ScmpAction::Errno(libc::EPERM), syscall, &[cmp])?;
 //!     filter.load()?;
 //!
 //!     Ok(())
@@ -632,20 +632,64 @@ impl ScmpFilterContext {
         Ok(())
     }
 
-    /// add_rule adds a single rule for an unconditional or conditional action on a syscall.
+    /// Adds a single rule for an unconditional action on a syscall.
     ///
-    /// Accepts the number of the syscall the action and the conditions to be taken on the call being made.
-    /// If the compartors is None, the function adds a single rule for an unconditional action.
-    /// Returns an error if an issue was encountered adding the rule.
-    pub fn add_rule(
+    /// If the specified rule needs to be rewritten due to architecture specifics,
+    /// it will be rewritten without notification.
+    pub fn add_rule(&mut self, action: ScmpAction, syscall: i32) -> Result<()> {
+        self.add_rule_conditional(action, syscall, &[])
+    }
+
+    /// Adds a single rule for a conditional action on a syscall.
+    ///
+    /// If the specified rule needs to be rewritten due to architecture specifics,
+    /// it will be rewritten without notification.
+    ///
+    /// Comparators are AND'd together (i.e. all must match for the rule to match).
+    /// You can only compare each argument once in a single rule.
+    pub fn add_rule_conditional(
         &mut self,
         action: ScmpAction,
         syscall: i32,
-        comparators: Option<&[ScmpArgCompare]>,
+        comparators: &[ScmpArgCompare],
     ) -> Result<()> {
-        let comparators = comparators.unwrap_or(&[]);
         let ret = unsafe {
             seccomp_rule_add_array(
+                self.ctx.as_ptr(),
+                action.to_sys(),
+                syscall,
+                comparators.len() as u32,
+                comparators.as_ptr() as *const scmp_arg_cmp,
+            )
+        };
+
+        if ret != 0 {
+            return Err(SeccompError::new(Errno(ret)));
+        }
+
+        Ok(())
+    }
+
+    /// Adds a single rule for an unconditional action on a syscall.
+    ///
+    /// If the specified rule can not be represented on the architecture,
+    /// the function will fail.
+    pub fn add_rule_exact(&mut self, action: ScmpAction, syscall: i32) -> Result<()> {
+        self.add_rule_conditional_exact(action, syscall, &[])
+    }
+
+    /// Adds a single rule for a conditional action on a syscall.
+    ///
+    /// If the specified rule can not be represented on the architecture,
+    /// the function will fail.
+    pub fn add_rule_conditional_exact(
+        &mut self,
+        action: ScmpAction,
+        syscall: i32,
+        comparators: &[ScmpArgCompare],
+    ) -> Result<()> {
+        let ret = unsafe {
+            seccomp_rule_add_exact_array(
                 self.ctx.as_ptr(),
                 action.to_sys(),
                 syscall,
@@ -1209,7 +1253,7 @@ mod tests {
 
         let syscall = get_syscall_from_name("dup3", None).unwrap();
 
-        ctx.add_rule(ScmpAction::Errno(10), syscall, None).unwrap();
+        ctx.add_rule(ScmpAction::Errno(10), syscall).unwrap();
         ctx.load().unwrap();
 
         syscall_assert!(unsafe { libc::dup3(0, 100, libc::O_CLOEXEC) }, -10);
@@ -1229,7 +1273,49 @@ mod tests {
         cmps.push(cmp1);
         cmps.push(cmp2);
 
-        ctx.add_rule(ScmpAction::Errno(111), syscall, Some(&cmps))
+        ctx.add_rule_conditional(ScmpAction::Errno(111), syscall, &cmps)
+            .unwrap();
+
+        ctx.load().unwrap();
+
+        syscall_assert!(
+            unsafe { libc::process_vm_readv(10, std::ptr::null(), 0, std::ptr::null(), 0, 0) },
+            0
+        );
+        syscall_assert!(
+            unsafe { libc::process_vm_readv(10, std::ptr::null(), 20, std::ptr::null(), 0, 0) },
+            -111
+        );
+    }
+
+    #[test]
+    fn test_rule_add_exact_load() {
+        let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow).unwrap();
+        ctx.add_arch(ScmpArch::Native).unwrap();
+
+        let syscall = get_syscall_from_name("dup3", None).unwrap();
+
+        ctx.add_rule_exact(ScmpAction::Errno(10), syscall).unwrap();
+        ctx.load().unwrap();
+
+        syscall_assert!(unsafe { libc::dup3(0, 100, libc::O_CLOEXEC) }, -10);
+    }
+
+    #[test]
+    fn test_rule_add_exact_array_load() {
+        let mut cmps: Vec<ScmpArgCompare> = Vec::new();
+        let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow).unwrap();
+        ctx.add_arch(ScmpArch::Native).unwrap();
+
+        let syscall = get_syscall_from_name("process_vm_readv", None).unwrap();
+
+        let cmp1 = ScmpArgCompare::new(0, ScmpCompareOp::Equal, 10);
+        let cmp2 = ScmpArgCompare::new(2, ScmpCompareOp::Equal, 20);
+
+        cmps.push(cmp1);
+        cmps.push(cmp2);
+
+        ctx.add_rule_conditional_exact(ScmpAction::Errno(111), syscall, &cmps)
             .unwrap();
 
         ctx.load().unwrap();
