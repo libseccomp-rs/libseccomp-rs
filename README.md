@@ -32,8 +32,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // on the kernel's native architecture.
     let syscall = get_syscall_from_name("dup3", None)?;
 
-    // add_rule adds a single rule for an unconditional or conditional action on a syscall.
-    filter.add_rule(ScmpAction::Errno(10), syscall, None)?;
+    // add_rule adds a single rule for an unconditional action on a syscall.
+    filter.add_rule(ScmpAction::Errno(10), syscall)?;
 
     // load loads the filter context into the kernel.
     filter.load()?;
