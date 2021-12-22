@@ -5,13 +5,13 @@
 
 Low-level bindings for the libseccomp library
 
-This crate contains the raw FFI bindings to the [libseccomp](https://github.com/seccomp/libseccomp)
-library.
+The libseccomp-sys crate contains the raw FFI bindings to the
+[libseccomp library](https://github.com/seccomp/libseccomp).
 
-These low level, mostly `unsafe` bindings are then used by [libseccomp-rs](https://crates.io/crates/libseccomp) 
-wraps them in a nice to use, mostly safe API.
+These low-level, mostly `unsafe` bindings are then used by the [libseccomp crate](https://crates.io/crates/libseccomp)
+which wraps them in a nice to use, mostly safe API.
 Therefore most users should not need to interact with this crate directly.
 
 ## Version information
 
-Currently, this crate supports libseccomp version 2.5.3 that is the latest version.
+Currently, the libseccomp-sys supports libseccomp version 2.5.3.

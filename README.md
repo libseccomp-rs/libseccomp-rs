@@ -5,16 +5,24 @@
 [![Documentation on docs.rs](https://docs.rs/libseccomp/badge.svg)](https://docs.rs/libseccomp)
 [![codecov](https://codecov.io/gh/libseccomp-rs/libseccomp-rs/branch/main/graph/badge.svg)](https://codecov.io/gh/libseccomp-rs/libseccomp-rs)
 
-Native Rust crate for libseccomp library
+Rust Language Bindings for the libseccomp Library
 
-This is a set of projects (high-level bindings and low-level bindings) that enables developers
-to use the libseccomp API in Rust easily.
+The libseccomp library provides an easy to use, platform independent, interface to
+the Linux Kernel's syscall filtering mechanism. The libseccomp API is designed to
+abstract away the underlying BPF based syscall filter language and present a more
+conventional function-call based filtering interface that should be familiar to, and
+easily adopted by, application developers.
 
-* libseccomp: High-level safe API
-* libseccomp-sys: Low-level unsafe API
+The libseccomp-rs provides a Rust based interface to the libseccomp library.
+This repository contains libseccomp and libseccomp-sys crates that enable developers
+to use the libseccomp API in Rust.
+
+* **libseccomp**: High-level safe API
+* **libseccomp-sys**: Low-level unsafe API
 
 ## Example
-### Create and load a single seccomp rule
+
+Create and load a single seccomp rule:
 
 ```rust
 use libseccomp::*;
@@ -51,23 +59,26 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 ```
 
 ## Requirements
-Before using the `libseccomp-rs`, you must install the libseccomp library for your system.
-The libseccomp version 2.4 or newer is required.
+Before using the libseccomp crate, you need to install the libseccomp library for your system.
+The libseccomp library version 2.4 or newer is required.
 
-### Installing the libseccomp from the package on debian-based linux
+### Installing the libseccomp library from a package
+
+e.g. Debian-based Linux
 
 ``` sh
 $ sudo apt install libseccomp-dev
 ```
 
-### Building and installing the libseccomp 2.5.1 from the source
+### Building and installing the libseccomp library from sources
 If you want to build the libseccomp library from an official release tarball instead of the package,
 you should follow the quick step.
 
 ```sh
-$ wget https://github.com/seccomp/libseccomp/releases/download/v2.5.1/libseccomp-2.5.1.tar.gz
-$ tar xvf libseccomp-2.5.1.tar.gz
-$ cd libseccomp-2.5.1
+$ LIBSECCOMP_VERSION=2.5.3
+$ wget https://github.com/seccomp/libseccomp/releases/download/v${LIBSECCOMP_VERSION}/libseccomp-${LIBSECCOMP_VERSION}.tar.gz
+$ tar xvf libseccomp-${LIBSECCOMP_VERSION}.tar.gz
+$ cd libseccomp-${LIBSECCOMP_VERSION}
 $ ./configure
 $ make
 $ sudo make install
@@ -76,45 +87,42 @@ $ sudo make install
 For more details, see the [libseccomp library repository](https://github.com/seccomp/libseccomp).
 
 ## Setup
-If you use the libseccomp crate with dynamically linked the [libseccomp library](https://github.com/seccomp/libseccomp),
-you do not need additional settings about environment variables.
+If you use the libseccomp crate with dynamically linked the libseccomp library,
+you do not need additional settings.
 
-However, if you want to use the crate with statically linked the library,
-you have to set the `LIBSECCOMP_LINK_TYPE` and `LIBSECCOMP_LIB_PATH` environment variable
-like below.
+However, if you want to use the libseccomp crate against musl-libc with statically linked the libseccomp library,
+you have to set the `LIBSECCOMP_LINK_TYPE` and `LIBSECCOMP_LIB_PATH` environment variables as follows.
 
 ```sh
 $ export LIBSECCOMP_LINK_TYPE=static
 $ export LIBSECCOMP_LIB_PATH="the path of the directory containing libseccomp.a (e.g. /usr/lib)"
 ```
 
-Now, add the following to your `Cargo.toml` to start building the crate.
+> **Note**:
+> To build the libseccomp crate against musl-libc, you need to build the libseccomp library manually for musl-libc
+> or use a musl-based distribution that provides a package for the statically-linked libseccomp library
 
-```
+Now, add the following to your `Cargo.toml` to start building the libseccomp crate.
+
+```toml
 [dependencies]
 libseccomp = "0.1.3"
 ```
 
 ## Testing the crate
-A number of tests are provided in the Makefile, if you want to run the standard
-regression tests, you can execute the following command.
+The libseccomp crate provides a number of unit tests.
+If you want to run the standard regression tests, you can execute the following command.
 
 ``` sh
 $ make test
 ```
 
 ## How to contribute
-Anyone is welcome to join and contribute code, documentation and use cases.
+Anyone is welcome to join and contribute code, documentation, and use cases.
 
 - Change or add something
-- Make sure you're using the latest Rust version
-- Run `rustfmt` to guarantee code style conformance
-
-``` sh
-$ rustup component add rustfmt
-$ cargo fmt
-```
-
+- Make sure you're using the latest stable version of Rust
+- Run `make check` to guarantee code style conformance
 - Open a pull request in Github
 
 ## License
@@ -124,3 +132,7 @@ This crate is licensed under:
 - Apache 2.0 License (see LICENSE-APACHE),
 
 at your option.
+
+Unless you explicitly state otherwise, any contribution intentionally submitted
+for inclusion in libseccomp-rs by you, as defined in the Apache-2.0 license,
+shall be dual licensed as above, without any additional terms or conditions.
