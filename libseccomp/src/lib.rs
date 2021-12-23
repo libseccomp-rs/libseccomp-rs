@@ -3,9 +3,15 @@
 // Copyright 2021 Sony Group Corporation
 //
 
-//! Native Rust crate for libseccomp library
+//! Rust Language Bindings for the libseccomp Library
 //!
-//! This is a high-level safe API for `libseccomp` on Linux.
+//! The libseccomp library provides an easy to use, platform independent, interface to
+//! the Linux Kernel's syscall filtering mechanism. The libseccomp API is designed to
+//! abstract away the underlying BPF based syscall filter language and present a more
+//! conventional function-call based filtering interface that should be familiar to, and
+//! easily adopted by, application developers.
+//!
+//! The libseccomp crate is a high-level safe API for the libseccomp library.
 //!
 //! # Examples
 //!
@@ -62,7 +68,15 @@ pub struct ScmpVersion {
 }
 
 impl ScmpVersion {
-    /// Returns the version of the currently loaded libseccomp library.
+    /// Gets the version of the currently loaded libseccomp library.
+    ///
+    /// This function returns `ScmpVersion` that represents the currently
+    /// loaded libseccomp version.
+    ///
+    /// # Errors
+    ///
+    /// If this function encounters an issue while getting the version,
+    /// an error will be returned.
     pub fn current() -> Result<Self> {
         if let Some(version) = unsafe { seccomp_version().as_ref() } {
             Ok(Self {
@@ -100,7 +114,10 @@ impl fmt::Display for ScmpVersion {
     }
 }
 
-/// ScmpFilterArttr represents filter attributes
+/// Represents filter attributes.
+///
+/// You can set/get the attributes of a filter context with
+/// [`ScmpFilterContext::set_filter_attr`] and [`ScmpFilterContext::get_filter_attr`] methods.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum ScmpFilterAttr {
@@ -115,11 +132,11 @@ pub enum ScmpFilterAttr {
     /// A flag to specify if the kernel should attempt to
     /// synchronize the filters across all threads on seccomp load.
     CtlTsync,
-    /// A flag to specify if libseccomp should allow filter rules
+    /// A flag to specify if the libseccomp should allow filter rules
     /// to be created for the -1 syscall.
     ApiTskip,
     /// A flag to specify if the kernel should log all filter
-    /// actions taken except for the ScmpAction::ActAllow action.
+    /// actions taken except for the [`ScmpAction::Allow`] action.
     CtlLog,
     /// A flag to disable Speculative Store Bypass mitigations for
     /// this filter.
@@ -127,8 +144,8 @@ pub enum ScmpFilterAttr {
     /// A flag to specify the optimization level of the seccomp
     /// filter.
     CtlOptimize,
-    /// A flag to specify if libseccomp should pass system error
-    /// codes back to the caller instead of the default  -ECANCELED.
+    /// A flag to specify if the libseccomp should pass system error
+    /// codes back to the caller instead of the default -ECANCELED.
     ApiSysRawRc,
 }
 
@@ -151,8 +168,21 @@ impl ScmpFilterAttr {
 impl std::str::FromStr for ScmpFilterAttr {
     type Err = SeccompError;
 
-    fn from_str(s: &str) -> Result<Self> {
-        match s {
+    /// Converts string seccomp filter attribute to `ScmpFilterAttr`.
+    ///
+    /// # Arguments
+    ///
+    /// * `attr` - A string filter attribute, e.g. `SCMP_FLTATR_*`.
+    ///
+    /// See the [seccomp_attr_set(3)] man page for details on valid filter attribute values.
+    ///
+    /// [seccomp_attr_set(3)]: https://www.man7.org/linux/man-pages/man3/seccomp_attr_set.3.html
+    ///
+    /// # Errors
+    ///
+    /// If an invalid filter attribute is specified, an error will be returned.
+    fn from_str(attr: &str) -> Result<Self> {
+        match attr {
             "SCMP_FLTATR_ACT_DEFAULT" => Ok(Self::ActDefault),
             "SCMP_FLTATR_ACT_BADARCH" => Ok(Self::ActBadArch),
             "SCMP_FLTATR_CTL_NNP" => Ok(Self::CtlNnp),
@@ -167,23 +197,27 @@ impl std::str::FromStr for ScmpFilterAttr {
     }
 }
 
-/// ScmpCompareOp represents a comparison operator which can be used in a filter rule
+/// Represents a comparison operator which can be used in a filter rule.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum ScmpCompareOp {
-    /// not equal
+    /// Not equal
     NotEqual,
-    /// less than
+    /// Less than
     Less,
-    /// less than or equal
+    /// Less than or equal
     LessOrEqual,
-    /// equal
+    /// Equal
     Equal,
-    /// greater than or equal
+    /// Greater than or equal
     GreaterEqual,
-    /// greater than
+    /// Greater than
     Greater,
-    /// masked equality
+    /// Masked equality
+    ///
+    /// This works like `Equal` with the exception that the syscall argument is
+    /// masked with `mask` via an bitwise AND (i.e. you can check specific bits in the
+    /// argument).
     MaskedEqual(#[doc = "mask"] u64),
 }
 
@@ -204,8 +238,21 @@ impl ScmpCompareOp {
 impl std::str::FromStr for ScmpCompareOp {
     type Err = SeccompError;
 
-    fn from_str(s: &str) -> Result<Self> {
-        match s {
+    /// Converts string seccomp comparison operator to `ScmpCompareOp`.
+    ///
+    /// # Arguments
+    ///
+    /// * `cmp_op` - A string comparison operator, e.g. `SCMP_CMP_*`.
+    ///
+    /// See the [seccomp_rule_add(3)] man page for details on valid comparison operator values.
+    ///
+    /// [seccomp_rule_add(3)]: https://www.man7.org/linux/man-pages/man3/seccomp_rule_add.3.html
+    ///
+    /// # Errors
+    ///
+    /// If an invalid comparison operator is specified, an error will be returned.
+    fn from_str(cmp_op: &str) -> Result<Self> {
+        match cmp_op {
             "SCMP_CMP_NE" => Ok(Self::NotEqual),
             "SCMP_CMP_LT" => Ok(Self::Less),
             "SCMP_CMP_LE" => Ok(Self::LessOrEqual),
@@ -218,12 +265,26 @@ impl std::str::FromStr for ScmpCompareOp {
     }
 }
 
-/// ScmpArgCompare represents a rule in a libseccomp filter context
+/// Represents a rule in a libseccomp filter context.
 #[derive(Debug, Clone, Copy, PartialEq)]
 #[repr(transparent)]
 pub struct ScmpArgCompare(scmp_arg_cmp);
 
 impl ScmpArgCompare {
+    /// Creates and returns a new condition to attach to a filter rule.
+    ///
+    /// The rule will match if the comparison of argument `arg` (zero-indexed argument
+    /// of the syscall) with the value provided by `datum` using the compare operator
+    /// provided by `op` is true.
+    ///
+    /// You can use the [`scmp_cmp!`](crate::scmp_cmp) macro instead of this to create
+    /// `ScmpArgCompare` in a more elegant way.
+    ///
+    /// # Arguments
+    ///
+    /// * `arg` - The number of the argument
+    /// * `op` - A comparison operator
+    /// * `datum` - A value to compare to
     pub const fn new(arg: u32, op: ScmpCompareOp, datum: u64) -> Self {
         if let ScmpCompareOp::MaskedEqual(mask) = op {
             Self(scmp_arg_cmp {
@@ -354,28 +415,28 @@ macro_rules! scmp_cmp {
     };
 }
 
-/// ScmpAction represents an action to be taken on a filter rule match in libseccomp
+/// Represents an action to be taken on a filter rule match in the libseccomp.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum ScmpAction {
-    /// Kill the process
+    /// Kills the process.
     KillProcess,
-    /// Kill the thread
+    /// Kills the thread.
     KillThread,
-    /// Throw a SIGSYS signal
+    /// Throws a SIGSYS signal.
     Trap,
     /// Triggers a userspace notification.  
     /// NOTE: This action is only usable when the libseccomp API level 6
     /// or higher is supported.
     Notify,
-    /// Return the specified error code
+    /// Returns the specified error code.  
     /// NOTE: You can only use integers from 0 to `u16::MAX`.
     Errno(i32),
-    /// Notify a tracing process with the specified value
+    /// Notifies a tracing process with the specified value.
     Trace(u16),
-    /// Allow the syscall to be executed after the action has been logged
+    /// Allows the syscall to be executed after the action has been logged.
     Log,
-    /// Allow the syscall to be executed
+    /// Allows the syscall to be executed.
     Allow,
 }
 
@@ -393,7 +454,20 @@ impl ScmpAction {
         }
     }
 
-    /// Convert string seccomp action to ScmpAction
+    /// Converts string seccomp action to `ScmpAction`.
+    ///
+    /// # Arguments
+    ///
+    /// * `action` - A string action, e.g. `SCMP_ACT_*`.
+    ///
+    /// See the [seccomp_rule_add(3)] man page for details on valid action values.
+    ///
+    /// [seccomp_rule_add(3)]: https://www.man7.org/linux/man-pages/man3/seccomp_rule_add.3.html
+    ///
+    /// # Errors
+    ///
+    /// If an invalid action is specified or a value on `"SCMP_ACT_TRACE"` is not in the
+    /// range from 0 to `u16::MAX`, an error will be returned.
     pub fn from_str(action: &str, val: Option<i32>) -> Result<Self> {
         match action {
             "SCMP_ACT_KILL_PROCESS" => Ok(Self::KillProcess),
@@ -416,8 +490,8 @@ impl ScmpAction {
     }
 }
 
-/// ScmpArch represents a CPU architecture. Seccomp can restrict syscalls on a
-/// per-architecture basis.
+/// Represents a CPU architecture.
+/// Seccomp can restrict syscalls on a per-architecture basis.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum ScmpArch {
@@ -516,6 +590,11 @@ impl ScmpArch {
     }
 
     /// Returns the system's native architecture.
+    ///
+    /// # Errors
+    ///
+    /// If this function encounters an issue while getting the native architecture,
+    /// an error will be returned.
     pub fn native() -> Result<Self> {
         let ret = unsafe { seccomp_arch_native() };
 
@@ -531,8 +610,21 @@ impl ScmpArch {
 impl std::str::FromStr for ScmpArch {
     type Err = SeccompError;
 
-    fn from_str(s: &str) -> Result<Self> {
-        match s {
+    /// Converts string seccomp architecture to `ScmpArch`.
+    ///
+    /// # Arguments
+    ///
+    /// * `arch` - A string architecture, e.g. `SCMP_ARCH_*`.
+    ///
+    /// See the [seccomp_arch_add(3)] man page for details on valid architecture values.
+    ///
+    /// [seccomp_arch_add(3)]: https://www.man7.org/linux/man-pages/man3/seccomp_arch_add.3.html
+    ///
+    /// # Errors
+    ///
+    /// If an invalid architecture is specified, an error will be returned.
+    fn from_str(arch: &str) -> Result<Self> {
+        match arch {
             "SCMP_ARCH_NATIVE" => Ok(Self::Native),
             "SCMP_ARCH_X86" => Ok(Self::X86),
             "SCMP_ARCH_X86_64" => Ok(Self::X8664),
@@ -557,18 +649,28 @@ impl std::str::FromStr for ScmpArch {
     }
 }
 
-/// ScmpFilterContext represents a filter context in libseccomp.
+/// **Represents a filter context in the libseccomp.**
 #[derive(Debug)]
 pub struct ScmpFilterContext {
     ctx: NonNull<libc::c_void>,
 }
 
 impl ScmpFilterContext {
-    /// new_filter creates and returns a new filter context.
+    /// Creates and returns a new filter context.
     ///
-    /// Accepts a default action to be taken for syscalls which match no rules in the filter.
-    /// Returns a reference to a valid filter context, or an error if the
-    /// filter context could not be created or an invalid default action was given.
+    /// This initializes the internal seccomp filter state and should
+    /// be called before any other functions in this crate to ensure the filter
+    /// state is initialized.
+    ///
+    /// This function returns a valid filter context.
+    ///
+    /// # Arguments
+    ///
+    /// * `default_action` - A default action to be taken for syscalls which match no rules in the filter
+    ///
+    /// # Errors
+    ///
+    /// If the filter context can not be created, an error will be returned.
     pub fn new_filter(default_action: ScmpAction) -> Result<ScmpFilterContext> {
         let ctx_ptr = unsafe { seccomp_init(default_action.to_sys()) };
         let ctx = NonNull::new(ctx_ptr)
@@ -577,15 +679,20 @@ impl ScmpFilterContext {
         Ok(ScmpFilterContext { ctx })
     }
 
-    /// merge merges two filters.
+    /// Merges two filters.
+    ///
     /// In order to merge two seccomp filters, both filters must have the same
     /// attribute values and no overlapping architectures.
-    /// If successful, the src seccomp filter is released and all internal memory
+    /// If successful, the `src` seccomp filter is released and all internal memory
     /// associated with the filter is freed.
     ///
-    /// Accepts a seccomp filter in src that will be merged into the filter this is
-    /// called on.
-    /// Returns an error if merging the filters failed.
+    /// # Arguments
+    ///
+    /// * `src` - A seccomp filter that will be merged into the filter this is called on.
+    ///
+    /// # Errors
+    ///
+    /// If merging the filters fails, an error will be returned.
     pub fn merge(&mut self, src: Self) -> Result<()> {
         let ret = unsafe { seccomp_merge(self.ctx.as_ptr(), src.ctx.as_ptr()) };
         if ret != 0 {
@@ -598,7 +705,7 @@ impl ScmpFilterContext {
         Ok(())
     }
 
-    /// is_arch_present checks if an architecture is present in a filter.
+    /// Checks if an architecture is present in a filter.
     ///
     /// If a filter contains an architecture, it uses its default action for
     /// syscalls which do not match rules in it, and its rules can match syscalls
@@ -606,10 +713,18 @@ impl ScmpFilterContext {
     /// If a filter does not contain an architecture, all syscalls made to that
     /// kernel ABI will fail with the filter's default Bad Architecture Action
     /// (by default, killing the proc).
-    /// Accepts an architecture constant.
-    /// Returns true if the architecture is present in the filter, false otherwise,
-    /// and an error on an invalid filter context, architecture constant, or an
-    /// issue with the call to libseccomp
+    ///
+    /// This function returns `Ok(true)` if the architecture is present in the filter,
+    /// `Ok(false)` otherwise.
+    ///
+    /// # Arguments
+    ///
+    /// * `arch` - An architecture token
+    ///
+    /// # Errors
+    ///
+    /// If this function is called with an invalid filter or an issue is
+    /// encountered calling to the libseccomp API, an error will be returned.
     pub fn is_arch_present(&self, arch: ScmpArch) -> Result<bool> {
         let ret = unsafe { seccomp_arch_exist(self.ctx.as_ptr(), arch.to_sys()) };
 
@@ -623,10 +738,16 @@ impl ScmpFilterContext {
         Ok(true)
     }
 
-    /// add_arch adds an architecture to the filter.
+    /// Adds an architecture to the filter.
     ///
-    /// Accepts an architecture constant.
-    /// Returns an architecture token, or an error with the call to libseccomp.
+    /// # Arguments
+    ///
+    /// * `arch` - An architecture token
+    ///
+    /// # Errors
+    ///
+    /// If this function is called with an invalid filter or an issue is
+    /// encountered adding the architecture, an error will be returned.
     pub fn add_arch(&mut self, arch: ScmpArch) -> Result<()> {
         let ret = unsafe { seccomp_arch_add(self.ctx.as_ptr(), arch.to_sys()) };
 
@@ -640,11 +761,16 @@ impl ScmpFilterContext {
         Ok(())
     }
 
-    /// remove_arch removes an architecture from the filter.
+    /// Removes an architecture from the filter.
     ///
-    /// Accepts an architecture constant.
-    /// Returns an error on invalid filter context or architecture token, or an
-    /// issue with the call to libseccomp.
+    /// # Arguments
+    ///
+    /// * `arch` - An architecture token
+    ///
+    /// # Errors
+    ///
+    /// If this function is called with an invalid filter or an issue is
+    /// encountered removing the architecture, an error will be returned.
     pub fn remove_arch(&mut self, arch: ScmpArch) -> Result<()> {
         let ret = unsafe { seccomp_arch_remove(self.ctx.as_ptr(), arch.to_sys()) };
 
@@ -662,6 +788,16 @@ impl ScmpFilterContext {
     ///
     /// If the specified rule needs to be rewritten due to architecture specifics,
     /// it will be rewritten without notification.
+    ///
+    /// # Arguments
+    ///
+    /// * `action` - An action to be taken on the call being made
+    /// * `syscall` - The number of syscall
+    ///
+    /// # Errors
+    ///
+    /// If this function is called with an invalid filter or an issue is
+    /// encountered adding the rule, an error will be returned.
     pub fn add_rule(&mut self, action: ScmpAction, syscall: i32) -> Result<()> {
         self.add_rule_conditional(action, syscall, &[])
     }
@@ -670,9 +806,19 @@ impl ScmpFilterContext {
     ///
     /// If the specified rule needs to be rewritten due to architecture specifics,
     /// it will be rewritten without notification.
-    ///
     /// Comparators are AND'd together (i.e. all must match for the rule to match).
     /// You can only compare each argument once in a single rule.
+    ///
+    /// # Arguments
+    ///
+    /// * `action` - An action to be taken on the call being made
+    /// * `syscall` - The number of syscall
+    /// * `comparators` - An array of the rule in a seccomp filter
+    ///
+    /// # Errors
+    ///
+    /// If this function is called with an invalid filter or an issue is
+    /// encountered adding the rule, an error will be returned.
     pub fn add_rule_conditional(
         &mut self,
         action: ScmpAction,
@@ -698,16 +844,41 @@ impl ScmpFilterContext {
 
     /// Adds a single rule for an unconditional action on a syscall.
     ///
+    /// The functions will attempt to add the rule exactly as specified so it may
+    /// behave differently on different architectures.
     /// If the specified rule can not be represented on the architecture,
     /// the function will fail.
+    ///
+    /// # Arguments
+    ///
+    /// * `action` - An action to be taken on the call being made
+    /// * `syscall` - The number of syscall
+    ///
+    /// # Errors
+    ///
+    /// If this function is called with an invalid filter or an issue is
+    /// encountered adding the rule, an error will be returned.
     pub fn add_rule_exact(&mut self, action: ScmpAction, syscall: i32) -> Result<()> {
         self.add_rule_conditional_exact(action, syscall, &[])
     }
 
     /// Adds a single rule for a conditional action on a syscall.
     ///
+    /// The functions will attempt to add the rule exactly as specified so it may
+    /// behave differently on different architectures.
     /// If the specified rule can not be represented on the architecture,
     /// the function will fail.
+    ///
+    /// # Arguments
+    ///
+    /// * `action` - An action to be taken on the call being made
+    /// * `syscall` - The number of syscall
+    /// * `comparators` - An array of the rule in a seccomp filter
+    ///
+    /// # Errors
+    ///
+    /// If this function is called with an invalid filter or an issue is
+    /// encountered adding the rule, an error will be returned.
     pub fn add_rule_conditional_exact(
         &mut self,
         action: ScmpAction,
@@ -731,9 +902,14 @@ impl ScmpFilterContext {
         Ok(())
     }
 
-    /// load loads a filter context into the kernel.
+    /// Loads a filter context into the kernel.
     ///
-    /// Returns an error if the filter context is invalid or the syscall failed.
+    /// If the function succeeds, the new filter will be active when the function returns.
+    ///
+    /// # Errors
+    ///
+    /// If this function is called with an invalid filter or an issue is
+    /// encountered loading the rule, an error will be returned.
     pub fn load(&self) -> Result<()> {
         let ret = unsafe { seccomp_load(self.ctx.as_ptr()) };
         if ret != 0 {
@@ -743,13 +919,22 @@ impl ScmpFilterContext {
         Ok(())
     }
 
-    /// set_syscall_priority sets a syscall's priority.
-    /// This provides a priority hint to the seccomp filter generator in libseccomp
+    /// Sets a syscall's priority.
+    ///
+    /// This provides a priority hint to the seccomp filter generator in the libseccomp
     /// such that higher priority syscalls are placed earlier in the seccomp filter code
     /// so that they incur less overhead at the expense of lower priority syscalls.
     ///
-    /// Accepts the priority parameter that is an 8-bit value ranging from 0 - 255;
+    /// # Arguments
+    ///
+    /// * `syscall` - The number of syscall
+    /// * `priority` - The priority parameter that is an 8-bit value ranging from 0 to 255;
     /// a higher value represents a higher priority.
+    ///
+    /// # Errors
+    ///
+    /// If this function is called with an invalid filter or the number of syscall
+    /// is invalid, an error will be returned.
     pub fn set_syscall_priority(&mut self, syscall: i32, priority: u8) -> Result<()> {
         let ret = unsafe { seccomp_syscall_priority(self.ctx.as_ptr(), syscall, priority) };
         if ret != 0 {
@@ -759,7 +944,19 @@ impl ScmpFilterContext {
         Ok(())
     }
 
-    /// get_filter_attr gets a raw filter attribute
+    /// Gets a raw filter attribute value.
+    ///
+    /// The seccomp filter attributes are tunable values that affect how the library behaves
+    /// when generating and loading the seccomp filter into the kernel.
+    ///
+    /// # Arguments
+    ///
+    /// * `attr` - A seccomp filter attribute
+    ///
+    /// # Errors
+    ///
+    /// If this function is called with an invalid filter or an issue is
+    /// encountered retrieving the attribute, an error will be returned.
     pub fn get_filter_attr(&self, attr: ScmpFilterAttr) -> Result<u32> {
         let mut attribute: u32 = 0;
 
@@ -771,16 +968,39 @@ impl ScmpFilterContext {
         Ok(attribute)
     }
 
-    /// get_no_new_privs_bit returns the current state the No New Privileges bit will be set
-    /// to on the filter being loaded, or an error if an issue was encountered
-    /// retrieving the value.
+    /// Gets the current state of the No New Privileges bit.
+    ///
+    /// This function returns `Ok(true)` if the No New Privileges bit is set to on the filter being
+    /// loaded, `Ok(false)` otherwise.
+    ///
+    /// # Errors
+    ///
+    /// If this function is called with an invalid filter or an issue is
+    /// encountered getting the current state, an error will be returned.
     pub fn get_no_new_privs_bit(&self) -> Result<bool> {
         let ret = self.get_filter_attr(ScmpFilterAttr::CtlNnp)?;
 
         Ok(ret != 0)
     }
 
-    /// set_filter_attr sets a raw filter attribute
+    /// Sets a raw filter attribute value.
+    ///
+    /// The seccomp filter attributes are tunable values that affect how the library behaves
+    /// when generating and loading the seccomp filter into the kernel.
+    ///
+    /// # Arguments
+    ///
+    /// * `attr` - A seccomp filter attribute
+    /// * `value` - A value of or the parameter of the attribute
+    ///
+    /// See the [seccomp_attr_set(3)] man page for details on available attribute values.
+    ///
+    /// [seccomp_attr_set(3)]: https://www.man7.org/linux/man-pages/man3/seccomp_attr_set.3.html
+    ///
+    /// # Errors
+    ///
+    /// If this function is called with an invalid filter or an issue is
+    /// encountered setting the attribute, an error will be returned.
     pub fn set_filter_attr(&mut self, attr: ScmpFilterAttr, value: u32) -> Result<()> {
         let ret = unsafe { seccomp_attr_set(self.ctx.as_ptr(), attr.to_sys(), value) };
         if ret != 0 {
@@ -790,19 +1010,38 @@ impl ScmpFilterContext {
         Ok(())
     }
 
-    /// set_no_new_privs_bit sets the state of the No New Privileges bit, which will be
-    /// applied on filter load, or an error if an issue was encountered setting the value.
-    /// Filters with No New Privileges set to 0 can only be loaded if the process
-    /// has the CAP_SYS_ADMIN capability.
+    /// Sets the state of the No New Privileges bit which will be
+    /// applied on filter load.
+    ///
+    /// Filters with No New Privileges set to on (`state` == `true`) can only be loaded
+    /// if the process has the CAP_SYS_ADMIN capability.
+    /// Settings this to off (`state` == `false`) means that loading the seccomp filter
+    /// into the kernel fill fail if the CAP_SYS_ADMIN is missing.
+    ///
+    /// Defaults to on (`state` == `true`).
+    ///
+    /// # Arguments
+    ///
+    /// * `state` - A state flag to specify whether the NO_NEW_PRIVS functionality should be enabled
+    ///
+    /// # Errors
+    ///
+    /// If this function is called with an invalid filter or an issue is
+    /// encountered setting the attribute, an error will be returned.
     pub fn set_no_new_privs_bit(&mut self, state: bool) -> Result<()> {
         self.set_filter_attr(ScmpFilterAttr::CtlNnp, state.into())
     }
 
-    /// export_pfc outputs PFC-formatted, human-readable dump of a filter context's
-    /// rules to a file.
+    /// Outputs PFC(Pseudo Filter Code)-formatted, human-readable dump of a filter context's rules to a file.
     ///
-    /// Accepts file to write to (must be open for writing).
-    /// Returns an error if writing to the file fails.
+    /// # Arguments
+    ///
+    /// * `fd` - A file descriptor to write to (must be open for writing)
+    ///
+    /// # Errors
+    ///
+    /// If this function is called with an invalid filter or  writing to the file fails,
+    /// an error will be returned.
     pub fn export_pfc<T: AsRawFd>(&self, fd: &mut T) -> Result<()> {
         let ret = unsafe { seccomp_export_pfc(self.ctx.as_ptr(), fd.as_raw_fd()) };
         if ret != 0 {
@@ -812,11 +1051,17 @@ impl ScmpFilterContext {
         Ok(())
     }
 
-    /// export_bpf outputs Berkeley Packet Filter-formatted, kernel-readable dump of a
+    /// Outputs BPF(Berkeley Packet Filter)-formatted, kernel-readable dump of a
     /// filter context's rules to a file.
     ///
-    /// Accepts file to write to (must be open for writing).
-    /// Returns an error if writing to the file fails.
+    /// # Arguments
+    ///
+    /// * `fd` - A file descriptor to write to (must be open for writing)
+    ///
+    /// # Errors
+    ///
+    /// If this function is called with an invalid filter or  writing to the file fails,
+    /// an error will be returned.
     pub fn export_bpf<T: AsRawFd>(&self, fd: &mut T) -> Result<()> {
         let ret = unsafe { seccomp_export_bpf(self.ctx.as_ptr(), fd.as_raw_fd()) };
         if ret != 0 {
@@ -826,10 +1071,16 @@ impl ScmpFilterContext {
         Ok(())
     }
 
-    /// reset resets a filter context, removing all its existing state.
+    /// Resets a filter context, removing all its existing state.
     ///
-    /// Accepts a new default action to be taken for syscalls which do not match.
-    /// Returns an error if the filter or action provided are invalid.
+    /// # Arguments
+    ///
+    /// * `action` - A new default action to be taken for syscalls which do not match
+    ///
+    /// # Errors
+    ///
+    /// If this function is called with an invalid filter or an issue is encountered
+    /// resetting the filter, an error will be returned.
     pub fn reset(&mut self, action: ScmpAction) -> Result<()> {
         let ret = unsafe { seccomp_reset(self.ctx.as_ptr(), action.to_sys()) };
         if ret != 0 {
@@ -839,14 +1090,16 @@ impl ScmpFilterContext {
         Ok(())
     }
 
-    /// Returns a raw pointer to the [`scmp_filter_ctx`]
+    /// Gets a raw pointer of a seccomp filter.
+    ///
+    /// This function return a raw pointer to the [`scmp_filter_ctx`].
     pub fn as_ptr(&self) -> scmp_filter_ctx {
         self.ctx.as_ptr()
     }
 }
 
 impl Drop for ScmpFilterContext {
-    /// drop releases a filter context, freeing its memory.
+    /// Releases a filter context, freeing its memory.
     ///
     /// After calling this function, the given filter is no longer valid and cannot be used.
     fn drop(&mut self) {
@@ -975,12 +1228,17 @@ pub fn get_native_arch() -> Result<ScmpArch> {
     ScmpArch::native()
 }
 
-/// get_api returns the API level supported by the system.
+/// Gets the API level supported by the system.
 ///
-/// Returns a positive int containing the API level, or 0 with an error if the
-/// API level could not be detected due to the library being older than v2.4.0.
-/// See the seccomp_api_get(3) man page for details on available API levels:
-/// <https://github.com/seccomp/libseccomp/blob/main/doc/man/man3/seccomp_api_get.3>
+/// This function returns a positive int containing the API level.
+/// See the [seccomp_api_get(3)] man page for details on available API levels.
+///
+/// [seccomp_api_get(3)]: https://www.man7.org/linux/man-pages/man3/seccomp_api_get.3.html
+///
+/// # Errors
+///
+/// If the API level can not be detected due to the library being older than v2.4.0,
+/// an error will be returned.
 pub fn get_api() -> Result<u32> {
     let ret = unsafe { seccomp_api_get() };
     if ret == 0 {
@@ -992,13 +1250,21 @@ pub fn get_api() -> Result<u32> {
     Ok(ret)
 }
 
-/// set_api forcibly sets the API level. General use of this function is strongly
-/// discouraged.
+/// Sets the API level forcibly.
 ///
-/// Returns an error if the API level could not be set. An error is always
-/// returned if the library is older than v2.4.0
-/// See the seccomp_api_get(3) man page for details on available API levels:
-/// <https://github.com/seccomp/libseccomp/blob/main/doc/man/man3/seccomp_api_get.3>
+/// General use of this function is strongly discouraged.
+/// See the [seccomp_api_get(3)] man page for details on available API levels.
+///
+/// [seccomp_api_get(3)]: https://www.man7.org/linux/man-pages/man3/seccomp_api_get.3.html
+///
+/// # Arguments
+///
+/// * `level` - The API level
+///
+/// # Errors
+///
+/// If the API level can not be detected due to the library being older than v2.4.0,
+/// an error will be returned.
 pub fn set_api(level: u32) -> Result<()> {
     let ret = unsafe { seccomp_api_set(level) };
     if ret != 0 {
@@ -1010,19 +1276,25 @@ pub fn set_api(level: u32) -> Result<()> {
     Ok(())
 }
 
-/// get_syscall_name_from_arch retrieves the name of a syscall from its number for a given
-/// architecture.
+/// Retrieves the name of a syscall from its number for a given architecture.
 ///
-/// Acts on any syscall number.
-/// Accepts a valid architecture constant.
-/// Returns either a string containing the name of the syscall, or an error.
-/// if the syscall is unrecognized or an issue occurred.
-pub fn get_syscall_name_from_arch(arch: ScmpArch, syscall_num: i32) -> Result<String> {
-    let ret = unsafe { seccomp_syscall_resolve_num_arch(arch.to_sys(), syscall_num) };
+/// This function returns a string containing the name of the syscall.
+///
+/// # Arguments
+///
+/// * `arch` - A valid architecture token
+/// * `syscall` - The number of syscall
+///
+/// # Errors
+///
+/// If the syscall is unrecognized or an issue occurs or an issue is
+/// encountered getting the name of the syscall, an error will be returned.
+pub fn get_syscall_name_from_arch(arch: ScmpArch, syscall: i32) -> Result<String> {
+    let ret = unsafe { seccomp_syscall_resolve_num_arch(arch.to_sys(), syscall) };
     if ret.is_null() {
         return Err(SeccompError::new(Common(format!(
             "Could not resolve syscall number {}",
-            syscall_num
+            syscall
         ))));
     }
 
@@ -1032,13 +1304,21 @@ pub fn get_syscall_name_from_arch(arch: ScmpArch, syscall_num: i32) -> Result<St
     Ok(name)
 }
 
-/// get_syscall_from_name returns the number of a syscall by name for a given
-/// architecture's ABI.
+/// Gets the number of a syscall by name for a given architecture's ABI.
 ///
-/// Accepts the name of a syscall and an architecture constant.
-/// If arch argument is None, the functions returns the number of a syscall on the kernel's native architecture.
-/// Returns the number of the syscall, or an error if an invalid architecture is
-/// passed or a syscall with that name was not found.
+/// This function returns the number of the syscall.
+///
+/// # Arguments
+///
+/// * `name` - The name of a syscall
+/// * `arch` - An architecture token as `Option` type
+/// If arch argument is `None`, the functions returns the number of a syscall
+/// on the kernel's native architecture.
+///
+/// # Errors
+///
+/// If an invalid string for the syscall name is specified or a syscall with that
+/// name is not found, an error will be returned.
 pub fn get_syscall_from_name(name: &str, arch: Option<ScmpArch>) -> Result<i32> {
     let name_c = CString::new(name)?;
     let syscall: i32;
