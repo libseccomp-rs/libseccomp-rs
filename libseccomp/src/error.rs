@@ -11,7 +11,7 @@ use std::fmt;
 const EACCES: &str = "Setting the attribute with the given value is not allowed";
 const ECANCELED: &str = "There was a system failure beyond the control of libseccomp";
 const EDOM: &str = "Architecture specific failure";
-const EEXIST: &str = "Failure regrading the existance of argument";
+const EEXIST: &str = "Failure regrading the existence of argument";
 const EFAULT: &str = "Internal libseccomp failure";
 const EINVAL: &str = "Invalid input to the libseccomp API";
 const ENOENT: &str = "No matching entry found";
@@ -23,16 +23,21 @@ const ESRCH: &str = "Unable to load the filter due to thread issues";
 // ParseError message
 const PARSE_ERROR: &str = "Parse error by invalid argument";
 
-/// The different types of errors that can occur while manipulating libseccomp api.
+/// A list specifying different categories of error.
 #[derive(Debug, Eq, PartialEq)]
 #[non_exhaustive]
 pub enum ErrorKind {
+    /// An error that represents error code on failure of the libseccomp API.
     Errno(i32),
-    Common(String),
+    /// A parse error occurred while trying to convert a value.
     ParseError,
+    /// A lower-level error that is caused by an error from a lower-level module.
     Source,
+    /// A custom error that does not fall under any other error kind.
+    Common(String),
 }
 
+/// The error type for libseccomp operations.
 pub struct SeccompError {
     kind: ErrorKind,
     source: Option<Box<dyn Error + Send + Sync>>,

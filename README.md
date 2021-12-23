@@ -28,22 +28,21 @@ Create and load a single seccomp rule:
 use libseccomp::*;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // new_filter creates and returns a new filter context.
+    // Creates and returns a new filter context.
     let mut filter = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
 
-    // add_arch adds an architecture to the filter.
+    // Adds an architecture to the filter.
     filter.add_arch(ScmpArch::X8664)?;
 
-    // get_syscall_from_name returns the number of a syscall by name for a given
-    // architectures's ABI.
+    // Returns the number of a syscall by name for a given architectures's ABI.
     // If arch argument is None, the function returns the number of a syscall
     // on the kernel's native architecture.
     let syscall = get_syscall_from_name("dup3", None)?;
 
-    // add_rule adds a single rule for an unconditional action on a syscall.
+    // Adds a single rule for an unconditional action on the syscall.
     filter.add_rule(ScmpAction::Errno(10), syscall)?;
 
-    // load loads the filter context into the kernel.
+    // Loads the filter context into the kernel.
     filter.load()?;
 
     // The dup3 fails by the seccomp rule.
