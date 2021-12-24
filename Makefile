@@ -1,3 +1,8 @@
+# SPDX-License-Identifier: Apache-2.0 or MIT
+#
+# Copyright 2021 Sony Group Corporation
+#
+
 all: build fmt test
 
 #
