@@ -48,17 +48,18 @@ use error::{Result, SeccompError};
 use libseccomp_sys::*;
 use std::convert::TryInto;
 use std::ffi::{CStr, CString};
+use std::fmt;
 use std::os::unix::io::AsRawFd;
 use std::ptr::NonNull;
 
-/// ScmpVersion represents the version information of
-/// the currently loaded libseccomp library
+/// Represents the version information of the libseccomp library.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ScmpVersion {
     pub major: u32,
     pub minor: u32,
     pub micro: u32,
 }
+
 impl ScmpVersion {
     /// Returns the version of the currently loaded libseccomp library.
     pub fn current() -> Result<Self> {
@@ -73,6 +74,28 @@ impl ScmpVersion {
                 "Could not get seccomp version".to_string(),
             )))
         }
+    }
+}
+
+impl From<(u32, u32, u32)> for ScmpVersion {
+    /// Creates a `ScmpVersion` from the specified arbitrary version.
+    ///
+    /// # Arguments
+    ///
+    /// * `version` - A tuple that represents the version of the libseccomp library.  
+    /// The index 0, 1, and 2 represent `major`, `minor`, and `micro` respectively.
+    fn from(version: (u32, u32, u32)) -> Self {
+        Self {
+            major: version.0,
+            minor: version.1,
+            micro: version.2,
+        }
+    }
+}
+
+impl fmt::Display for ScmpVersion {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}.{}.{}", self.major, self.minor, self.micro)
     }
 }
 
@@ -842,6 +865,58 @@ impl Drop for ScmpFilterContext {
     }
 }
 
+/// Checks that the libseccomp version being used is equal to or greater than
+/// the specified version.
+///
+/// This function returns `Ok(true)` if the libseccomp version is equal to
+/// or greater than the specified version, `Ok(false)` otherwise.
+///
+/// # Arguments
+///
+/// * `expected` - The libseccomp version you want to check
+///
+/// # Errors
+///
+/// If an issue is encountered getting the current version, an error will be returned.
+pub fn check_version(expected: ScmpVersion) -> Result<bool> {
+    let current = ScmpVersion::current()?;
+
+    if current.major == expected.major
+        && (current.minor > expected.minor
+            || (current.minor == expected.minor && current.micro >= expected.micro))
+    {
+        Ok(true)
+    } else {
+        Ok(false)
+    }
+}
+
+/// Checks that both the libseccomp API level and the libseccomp version being
+/// used are equal to or greater than the specified API level and version.
+///
+/// This function returns `Ok(true)` if both the libseccomp API level and the
+/// libseccomp version are equal to or greater than the specified API level and
+/// version, `Ok(false)` otherwise.
+///
+/// # Arguments
+///
+/// * `min_level` - The libseccomp API level you want to check
+/// * `expected` - The libseccomp version you want to check
+///
+/// # Errors
+///
+/// If an issue is encountered getting the current API level or version,
+/// an error will be returned.
+pub fn check_api(min_level: u32, expected: ScmpVersion) -> Result<bool> {
+    let level = get_api()?;
+
+    if level >= min_level && check_version(expected)? {
+        Ok(true)
+    } else {
+        Ok(false)
+    }
+}
+
 /// Deprecated alias for [`ScmpVersion::current()`].
 #[deprecated(since = "0.2.0", note = "Use ScmpVersion::current().")]
 pub fn get_library_version() -> Result<ScmpVersion> {
@@ -1067,6 +1142,18 @@ mod tests {
             ScmpArch::from_str("SCMP_ARCH_X86_64").unwrap().to_sys(),
             ScmpArch::X8664.to_sys()
         );
+    }
+
+    #[test]
+    fn test_check_version() {
+        assert!(check_version(ScmpVersion::from((2, 4, 0))).unwrap());
+        assert!(!check_version(ScmpVersion::from((100, 100, 100))).unwrap());
+    }
+
+    #[test]
+    fn test_check_api() {
+        assert!(check_api(3, ScmpVersion::from((2, 4, 0))).unwrap());
+        assert!(!check_api(100, ScmpVersion::from((2, 4, 0))).unwrap());
     }
 
     #[test]
