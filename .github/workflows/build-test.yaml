@@ -72,6 +72,17 @@ jobs:
       - name: Run test
         run: cargo test --target ${{ matrix.target }} -- --nocapture --test-threads 1
 
+  doc:
+    name: Documentation Check
+    runs-on: ubuntu-latest
+    env:
+      RUSTDOCFLAGS: -Dwarnings
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Generate documentations
+        run: cargo doc --no-deps
+
   coverage:
     name: Code Coverage
     runs-on: ubuntu-latest
