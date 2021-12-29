@@ -14,6 +14,12 @@ fn main() {
         env::set_var("PKG_CONFIG_PATH", pkgconfig);
     }
 
+    let target = env::var("TARGET").unwrap_or_default();
+    let host = env::var("HOST").unwrap_or_default();
+    if target != host {
+        env::set_var("PKG_CONFIG_ALLOW_CROSS", "1");
+    }
+
     if pkg_config::Config::new()
         .atleast_version("2.5.0")
         .probe("libseccomp")
