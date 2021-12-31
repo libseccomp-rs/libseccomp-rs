@@ -16,3 +16,6 @@ libseccomp-sys = { version = "0.2.0", path = "../libseccomp-sys" }
 
 [build-dependencies]
 pkg-config = "0.3.19"
+
+[package.metadata.docs.rs]
+rustc-args = ["--cfg", "docsrs"]
