@@ -47,7 +47,7 @@
 //! ```
 
 pub mod error;
-#[cfg(libseccomp_v2_5)]
+#[cfg(any(libseccomp_v2_5, docsrs))]
 pub mod notify;
 
 use error::ErrorKind::*;
