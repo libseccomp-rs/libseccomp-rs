@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Added
+
+### Changed
+
+### Removed
+
+## 0.2.0 - 2021-12-31
+### Added
 - `ScmpVersion::current()` as rustified replacement for `get_library_version()`.
 - `ScmpFilterContext::get_no_new_privs_bit()` to query the state of the No New Privileges bit.
 - `ScmpArch::native()` as rustified replacement for `get_native_arch()`.
