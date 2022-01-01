@@ -20,7 +20,7 @@
 //!
 //! fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!     let mut filter = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
-//!     let syscall = get_syscall_from_name("getuid", None)?;
+//!     let syscall = ScmpSyscall::from_name("getuid")?;
 //!
 //!     filter.add_arch(ScmpArch::X8664)?;
 //!     filter.add_rule(ScmpAction::Errno(1), syscall)?;
@@ -35,7 +35,7 @@
 //!
 //! fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!     let mut filter = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
-//!     let syscall = get_syscall_from_name("dup3", None)?;
+//!     let syscall = ScmpSyscall::from_name("dup3")?;
 //!     let cmp = ScmpArgCompare::new(0, ScmpCompareOp::Equal, 1);
 //!
 //!     filter.add_arch(ScmpArch::X8664)?;
@@ -666,6 +666,208 @@ impl std::str::FromStr for ScmpArch {
     }
 }
 
+/// Represents a syscall number.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct ScmpSyscall {
+    nr: i32,
+}
+impl ScmpSyscall {
+    fn to_sys(self) -> i32 {
+        self.nr
+    }
+
+    fn from_sys(nr: i32) -> Self {
+        Self { nr }
+    }
+
+    /// Resolves a syscall name to `ScmpSyscall`.
+    ///
+    /// This function returns a `ScmpSyscall` that can be passed to
+    /// [`add_rule`](ScmpFilterContext::add_rule) like functions.
+    ///
+    /// # Arguments
+    ///
+    /// * `name` - The name of a syscall
+    ///
+    /// # Errors
+    ///
+    ///  If an invalid string for the syscall name is specified or a syscall with that
+    ///  name is not found, an error will be returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use libseccomp::*;
+    /// let syscall = ScmpSyscall::from_name("chroot")?;
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn from_name(name: &str) -> Result<Self> {
+        Self::from_name_by_arch(name, ScmpArch::Native)
+    }
+
+    /// Resolves a syscall name to `ScmpSyscall`.
+    ///
+    /// NOTE: This functions is probably not what you want.
+    ///
+    /// This function returns a `ScmpSyscall` for the specified architecture.
+    ///
+    /// # Arguments
+    ///
+    /// * `name` - The name of a syscall
+    /// * `arch` - An architecture token
+    ///
+    /// # Errors
+    ///
+    ///  If an invalid string for the syscall name is specified or a syscall with that
+    ///  name is not found, an error will be returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use libseccomp::*;
+    /// let syscall = ScmpSyscall::from_name_by_arch("chroot", ScmpArch::Aarch64)?;
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn from_name_by_arch(name: &str, arch: ScmpArch) -> Result<Self> {
+        let name_c = CString::new(name)?;
+        let nr = unsafe { seccomp_syscall_resolve_name_arch(arch.to_sys(), name_c.as_ptr()) };
+        if nr == __NR_SCMP_ERROR {
+            return Err(SeccompError::new(Common(format!(
+                "Could not resolve syscall name {}",
+                name
+            ))));
+        }
+
+        Ok(Self { nr })
+    }
+
+    /// Resolves a syscall name to `ScmpSyscall`.
+    ///
+    /// This function returns a `ScmpSyscall` for the specified architecture
+    /// rewritten if necessary.
+    ///
+    /// # Arguments
+    ///
+    /// * `name` - The name of a syscall
+    /// * `arch` - An architecture token
+    ///
+    /// # Errors
+    ///
+    ///  If an invalid string for the syscall name is specified or a syscall with that
+    ///  name is not found, an error will be returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use libseccomp::*;
+    /// let syscall = ScmpSyscall::from_name_by_arch_rewrite("socketcall", ScmpArch::X32)?;
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn from_name_by_arch_rewrite(name: &str, arch: ScmpArch) -> Result<Self> {
+        let name_c = CString::new(name)?;
+        let nr = unsafe { seccomp_syscall_resolve_name_rewrite(arch.to_sys(), name_c.as_ptr()) };
+        if nr == __NR_SCMP_ERROR {
+            return Err(SeccompError::new(Common(format!(
+                "Could not resolve syscall name {}",
+                name
+            ))));
+        }
+
+        Ok(Self { nr })
+    }
+
+    /// Resolves this `ScmpSyscall` to it's name for the native architecture.
+    ///
+    /// This function returns a string containing the name of the syscall.
+    ///
+    /// # Errors
+    ///
+    /// If the syscall is unrecognized or an issue is encountered getting the
+    /// name of the syscall, an error will be returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use libseccomp::*;
+    /// assert_eq!(ScmpSyscall::from_name("mount")?.get_name()?, String::from("mount"));
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn get_name(self) -> Result<String> {
+        Self::get_name_by_arch(self, ScmpArch::Native)
+    }
+
+    /// Resolves this `ScmpSyscall` to it's name for a given architecture.
+    ///
+    /// This function returns a string containing the name of the syscall.
+    ///
+    /// # Arguments
+    ///
+    /// * `arch` - A valid architecture token
+    ///
+    /// # Errors
+    ///
+    /// If the syscall is unrecognized or an issue is encountered getting the
+    /// name of the syscall, an error will be returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use libseccomp::*;
+    /// assert_eq!(
+    ///     ScmpSyscall::from_name_by_arch("mount", ScmpArch::Mips)?
+    ///         .get_name_by_arch(ScmpArch::Mips)?,
+    ///     String::from("mount"),
+    /// );
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn get_name_by_arch(self, arch: ScmpArch) -> Result<String> {
+        let ret = unsafe { seccomp_syscall_resolve_num_arch(arch.to_sys(), self.to_sys()) };
+        if ret.is_null() {
+            return Err(SeccompError::new(Common(format!(
+                "Could not resolve syscall number {}",
+                self.nr
+            ))));
+        }
+
+        let name = unsafe { CStr::from_ptr(ret) }.to_str()?.to_string();
+        unsafe { libc::free(ret as *mut libc::c_void) };
+
+        Ok(name)
+    }
+}
+impl From<i32> for ScmpSyscall {
+    /// Creates a `ScmpSyscall` from the specified syscall number.
+    ///
+    /// # Arguments
+    ///
+    /// * `nr` - The number of syscall
+    fn from(nr: i32) -> Self {
+        Self::from_sys(nr)
+    }
+}
+
+mod private {
+    pub trait Sealed {}
+
+    impl Sealed for super::ScmpSyscall {}
+    impl Sealed for i32 {}
+}
+
+pub trait Syscall: private::Sealed {
+    fn to_syscall_nr(self) -> i32;
+}
+impl Syscall for ScmpSyscall {
+    fn to_syscall_nr(self) -> i32 {
+        self.to_sys()
+    }
+}
+
+impl Syscall for i32 {
+    fn to_syscall_nr(self) -> i32 {
+        self
+    }
+}
+
 /// **Represents a filter context in the libseccomp.**
 #[derive(Debug)]
 pub struct ScmpFilterContext {
@@ -855,7 +1057,7 @@ impl ScmpFilterContext {
     /// ctx.add_rule(ScmpAction::Errno(libc::EPERM), syscall)?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn add_rule(&mut self, action: ScmpAction, syscall: i32) -> Result<()> {
+    pub fn add_rule<S: Syscall>(&mut self, action: ScmpAction, syscall: S) -> Result<()> {
         self.add_rule_conditional(action, syscall, &[])
     }
 
@@ -890,17 +1092,17 @@ impl ScmpFilterContext {
     /// )?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn add_rule_conditional(
+    pub fn add_rule_conditional<S: Syscall>(
         &mut self,
         action: ScmpAction,
-        syscall: i32,
+        syscall: S,
         comparators: &[ScmpArgCompare],
     ) -> Result<()> {
         let ret = unsafe {
             seccomp_rule_add_array(
                 self.ctx.as_ptr(),
                 action.to_sys(),
-                syscall,
+                syscall.to_syscall_nr(),
                 comparators.len() as u32,
                 comparators.as_ptr() as *const scmp_arg_cmp,
             )
@@ -929,7 +1131,7 @@ impl ScmpFilterContext {
     ///
     /// If this function is called with an invalid filter or an issue is
     /// encountered adding the rule, an error will be returned.
-    pub fn add_rule_exact(&mut self, action: ScmpAction, syscall: i32) -> Result<()> {
+    pub fn add_rule_exact<S: Syscall>(&mut self, action: ScmpAction, syscall: S) -> Result<()> {
         self.add_rule_conditional_exact(action, syscall, &[])
     }
 
@@ -964,17 +1166,17 @@ impl ScmpFilterContext {
     /// )?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn add_rule_conditional_exact(
+    pub fn add_rule_conditional_exact<S: Syscall>(
         &mut self,
         action: ScmpAction,
-        syscall: i32,
+        syscall: S,
         comparators: &[ScmpArgCompare],
     ) -> Result<()> {
         let ret = unsafe {
             seccomp_rule_add_exact_array(
                 self.ctx.as_ptr(),
                 action.to_sys(),
-                syscall,
+                syscall.to_syscall_nr(),
                 comparators.len() as u32,
                 comparators.as_ptr() as *const scmp_arg_cmp,
             )
@@ -1020,8 +1222,10 @@ impl ScmpFilterContext {
     ///
     /// If this function is called with an invalid filter or the number of syscall
     /// is invalid, an error will be returned.
-    pub fn set_syscall_priority(&mut self, syscall: i32, priority: u8) -> Result<()> {
-        let ret = unsafe { seccomp_syscall_priority(self.ctx.as_ptr(), syscall, priority) };
+    pub fn set_syscall_priority<S: Syscall>(&mut self, syscall: S, priority: u8) -> Result<()> {
+        let ret = unsafe {
+            seccomp_syscall_priority(self.ctx.as_ptr(), syscall.to_syscall_nr(), priority)
+        };
         if ret != 0 {
             return Err(SeccompError::new(Errno(ret)));
         }
@@ -1445,19 +1649,9 @@ pub fn reset_global_state() -> Result<()> {
 ///
 /// If the syscall is unrecognized or an issue occurs or an issue is
 /// encountered getting the name of the syscall, an error will be returned.
+#[deprecated(since = "0.2.3", note = "Use ScmpSyscall::get_name_by_arch instead.")]
 pub fn get_syscall_name_from_arch(arch: ScmpArch, syscall: i32) -> Result<String> {
-    let ret = unsafe { seccomp_syscall_resolve_num_arch(arch.to_sys(), syscall) };
-    if ret.is_null() {
-        return Err(SeccompError::new(Common(format!(
-            "Could not resolve syscall number {}",
-            syscall
-        ))));
-    }
-
-    let name = unsafe { CStr::from_ptr(ret) }.to_str()?.to_string();
-    unsafe { libc::free(ret as *mut libc::c_void) };
-
-    Ok(name)
+    ScmpSyscall::from_sys(syscall).get_name_by_arch(arch)
 }
 
 /// Gets the number of a syscall by name for a given architecture's ABI.
@@ -1475,27 +1669,9 @@ pub fn get_syscall_name_from_arch(arch: ScmpArch, syscall: i32) -> Result<String
 ///
 /// If an invalid string for the syscall name is specified or a syscall with that
 /// name is not found, an error will be returned.
+#[deprecated(since = "0.2.3", note = "Use ScmpSyscall::from_name* instead.")]
 pub fn get_syscall_from_name(name: &str, arch: Option<ScmpArch>) -> Result<i32> {
-    let name_c = CString::new(name)?;
-    let syscall: i32;
-
-    match arch {
-        Some(arch) => {
-            syscall = unsafe { seccomp_syscall_resolve_name_arch(arch.to_sys(), name_c.as_ptr()) };
-        }
-        None => {
-            syscall = unsafe { seccomp_syscall_resolve_name(name_c.as_ptr()) };
-        }
-    }
-
-    if syscall == __NR_SCMP_ERROR {
-        return Err(SeccompError::new(Common(format!(
-            "Could not resolve syscall name {}",
-            name
-        ))));
-    }
-
-    Ok(syscall)
+    Ok(ScmpSyscall::from_name_by_arch(name, arch.unwrap_or(ScmpArch::Native))?.to_sys())
 }
 
 #[cfg(test)]
@@ -1731,7 +1907,7 @@ mod tests {
     #[test]
     fn test_set_syscall_priority() {
         let mut ctx = ScmpFilterContext::new_filter(ScmpAction::KillThread).unwrap();
-        let syscall = get_syscall_from_name("open", None).unwrap();
+        let syscall = ScmpSyscall::from_name("open").unwrap();
         let priority = 100;
 
         assert!(ctx.set_syscall_priority(syscall, priority).is_ok());
@@ -1783,7 +1959,9 @@ mod tests {
 
     #[test]
     fn test_get_syscall_name_from_arch() {
-        let name = get_syscall_name_from_arch(ScmpArch::Arm, 5).unwrap();
+        let name = ScmpSyscall::from(5)
+            .get_name_by_arch(ScmpArch::Arm)
+            .unwrap();
 
         println!(
             "test_get_syscall_from_name: Got syscall name of 5 on ARM arch as {}",
@@ -1793,13 +1971,15 @@ mod tests {
 
     #[test]
     fn test_get_syscall_from_name() {
-        let num = get_syscall_from_name("open", None).unwrap();
+        let num = ScmpSyscall::from_name("open").unwrap().to_sys();
         println!(
             "test_get_syscall_from_name: Got syscall number of open on native arch as {}",
             num
         );
 
-        let num = get_syscall_from_name("open", Some(ScmpArch::Arm)).unwrap();
+        let num = ScmpSyscall::from_name_by_arch("open", ScmpArch::Arm)
+            .unwrap()
+            .to_sys();
         println!(
             "test_get_syscall_from_name: Got syscall number of open on ARM arch as {}",
             num
@@ -1858,7 +2038,7 @@ mod tests {
         let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow).unwrap();
         ctx.add_arch(ScmpArch::Native).unwrap();
 
-        let syscall = get_syscall_from_name("dup3", None).unwrap();
+        let syscall = ScmpSyscall::from_name("dup3").unwrap();
 
         ctx.add_rule(ScmpAction::Errno(10), syscall).unwrap();
         ctx.load().unwrap();
@@ -1872,7 +2052,7 @@ mod tests {
         let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow).unwrap();
         ctx.add_arch(ScmpArch::Native).unwrap();
 
-        let syscall = get_syscall_from_name("process_vm_readv", None).unwrap();
+        let syscall = ScmpSyscall::from_name("process_vm_readv").unwrap();
 
         let cmp1 = ScmpArgCompare::new(0, ScmpCompareOp::Equal, 10);
         let cmp2 = ScmpArgCompare::new(2, ScmpCompareOp::Equal, 20);
@@ -1900,7 +2080,7 @@ mod tests {
         let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow).unwrap();
         ctx.add_arch(ScmpArch::Native).unwrap();
 
-        let syscall = get_syscall_from_name("dup3", None).unwrap();
+        let syscall = ScmpSyscall::from_name("dup3").unwrap();
 
         ctx.add_rule_exact(ScmpAction::Errno(10), syscall).unwrap();
         ctx.load().unwrap();
@@ -1914,7 +2094,7 @@ mod tests {
         let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow).unwrap();
         ctx.add_arch(ScmpArch::Native).unwrap();
 
-        let syscall = get_syscall_from_name("process_vm_readv", None).unwrap();
+        let syscall = ScmpSyscall::from_name("process_vm_readv").unwrap();
 
         let cmp1 = ScmpArgCompare::new(0, ScmpCompareOp::Equal, 10);
         let cmp2 = ScmpArgCompare::new(2, ScmpCompareOp::Equal, 20);

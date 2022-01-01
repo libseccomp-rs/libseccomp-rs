@@ -295,7 +295,7 @@ pub fn notify_id_valid(fd: ScmpFd, id: u64) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{get_syscall_from_name, ScmpAction, ScmpArch, ScmpFilterContext};
+    use crate::{ScmpAction, ScmpArch, ScmpFilterContext, ScmpSyscall};
     use libc::{dup3, O_CLOEXEC};
     use std::thread;
 
@@ -324,7 +324,7 @@ mod tests {
         skip_if_not_supported!();
 
         let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow).unwrap();
-        let syscall = get_syscall_from_name("dup3", None).unwrap();
+        let syscall = ScmpSyscall::from_name("dup3").unwrap().to_sys();
         let arch = ScmpArch::native().unwrap();
 
         ctx.add_arch(arch).unwrap();
@@ -382,8 +382,8 @@ mod tests {
             // Checks architecture
             assert_eq!(req.data.arch, test.arch);
 
-            // Checks the number of sycall
-            assert_eq!(req.data.syscall, test.syscall,);
+            // Checks the number of syscall
+            assert_eq!(req.data.syscall, test.syscall);
 
             // Checks syscall arguments
             for (i, test_val) in test.args.iter().enumerate() {
