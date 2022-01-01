@@ -12,8 +12,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 an architecture not in the filter.
 - `reset_global_state()` to reset libseccomp's global state.
 - `derive(Hash)` for the most types
+- `ScmpSyscall` type
+  - `ScmpSyscall::from_name()` (replaces `get_syscall_from_name`)
+  - `ScmpSyscall::from_name_by_arch()` (replaces `get_syscall_from_name`)
+  - `ScmpSyscall::from_name_by_arch_rewrite()` (new)
+  - `ScmpSyscall::get_name()` (replaces `get_syscall_name_from_arch`)
+  - `ScmpSyscall::get_name_by_arch()` (replaces `get_syscall_name_from_arch`)
 
 ### Changed
+
+### Deprecated
+- `get_syscall_from_name`, use `ScmpSyscall::from_name*()`
+- `get_syscall_name_from_arch`, use `ScmpSyscall::get_name*()`
 
 ### Removed
 
