@@ -725,6 +725,17 @@ impl ScmpFilterContext {
     ///
     /// If this function is called with an invalid filter or an issue is
     /// encountered calling to the libseccomp API, an error will be returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use libseccomp::*;
+    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// assert!(!ctx.is_arch_present(ScmpArch::Aarch64)?);
+    /// ctx.add_arch(ScmpArch::Aarch64)?;
+    /// assert!(ctx.is_arch_present(ScmpArch::Aarch64)?);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     pub fn is_arch_present(&self, arch: ScmpArch) -> Result<bool> {
         let ret = unsafe { seccomp_arch_exist(self.ctx.as_ptr(), arch.to_sys()) };
 
@@ -748,6 +759,15 @@ impl ScmpFilterContext {
     ///
     /// If this function is called with an invalid filter or an issue is
     /// encountered adding the architecture, an error will be returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use libseccomp::*;
+    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// ctx.add_arch(ScmpArch::X86)?;
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     pub fn add_arch(&mut self, arch: ScmpArch) -> Result<()> {
         let ret = unsafe { seccomp_arch_add(self.ctx.as_ptr(), arch.to_sys()) };
 
@@ -771,6 +791,16 @@ impl ScmpFilterContext {
     ///
     /// If this function is called with an invalid filter or an issue is
     /// encountered removing the architecture, an error will be returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use libseccomp::*;
+    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// ctx.add_arch(ScmpArch::X86)?;
+    /// ctx.remove_arch(ScmpArch::X86)?;
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     pub fn remove_arch(&mut self, arch: ScmpArch) -> Result<()> {
         let ret = unsafe { seccomp_arch_remove(self.ctx.as_ptr(), arch.to_sys()) };
 
@@ -798,6 +828,16 @@ impl ScmpFilterContext {
     ///
     /// If this function is called with an invalid filter or an issue is
     /// encountered adding the rule, an error will be returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use libseccomp::*;
+    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let syscall = get_syscall_from_name("ptrace", None)?;
+    /// ctx.add_rule(ScmpAction::Errno(libc::EPERM), syscall)?;
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     pub fn add_rule(&mut self, action: ScmpAction, syscall: i32) -> Result<()> {
         self.add_rule_conditional(action, syscall, &[])
     }
@@ -819,6 +859,20 @@ impl ScmpFilterContext {
     ///
     /// If this function is called with an invalid filter or an issue is
     /// encountered adding the rule, an error will be returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use libseccomp::*;
+    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let syscall = get_syscall_from_name("open", None)?;
+    /// ctx.add_rule_conditional(
+    ///     ScmpAction::Errno(libc::EPERM),
+    ///     syscall,
+    ///     &[scmp_cmp!($arg1 & (libc::O_TRUNC as u64) == libc::O_TRUNC as u64)],
+    /// )?;
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     pub fn add_rule_conditional(
         &mut self,
         action: ScmpAction,
@@ -879,6 +933,20 @@ impl ScmpFilterContext {
     ///
     /// If this function is called with an invalid filter or an issue is
     /// encountered adding the rule, an error will be returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use libseccomp::*;
+    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let syscall = get_syscall_from_name("socket", None)?;
+    /// ctx.add_rule_conditional_exact(
+    ///     ScmpAction::Errno(libc::EPERM),
+    ///     syscall,
+    ///     &[scmp_cmp!($arg1 != libc::AF_UNIX as u64)],
+    /// )?;
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     pub fn add_rule_conditional_exact(
         &mut self,
         action: ScmpAction,
@@ -1223,7 +1291,7 @@ pub fn get_library_version() -> Result<ScmpVersion> {
 }
 
 /// Deprecated alias for [`ScmpArch::native()`].
-#[deprecated(since = "0.2.0", note = "Use ScmpArch::native()")]
+#[deprecated(since = "0.2.0", note = "Use ScmpArch::native().")]
 pub fn get_native_arch() -> Result<ScmpArch> {
     ScmpArch::native()
 }
