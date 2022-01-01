@@ -46,8 +46,10 @@
 //! }
 //! ```
 
+#![cfg_attr(docsrs, feature(doc_cfg))]
+
 pub mod error;
-#[cfg(any(libseccomp_v2_5, docsrs))]
+#[cfg(any(libseccomp_v2_5, doc))]
 pub mod notify;
 
 use error::ErrorKind::*;

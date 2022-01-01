@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Changed
+- Re-fixed docs.rs build to make the `notify` module visible in the documentations by `doc_cfg`
+feature.
 
 ### Removed
 
