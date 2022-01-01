@@ -105,7 +105,7 @@ Now, add the following to your `Cargo.toml` to start building the libseccomp cra
 
 ```toml
 [dependencies]
-libseccomp = "0.2.1"
+libseccomp = "0.2.2"
 ```
 
 ## Testing the crate

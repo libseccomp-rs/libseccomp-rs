@@ -7,13 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Added
+
+### Changed
+
+### Removed
+
+## 0.2.2 - 2022-01-01
+### Added
 - Some more examples to function documentation.
 
 ### Changed
 - Re-fixed docs.rs build to make the `notify` module visible in the documentations by `doc_cfg`
 feature.
-
-### Removed
 
 ## 0.2.1 - 2021-12-31
 ### Changed
