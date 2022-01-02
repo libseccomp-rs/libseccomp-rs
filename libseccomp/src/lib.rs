@@ -456,6 +456,20 @@ impl ScmpAction {
         }
     }
 
+    fn from_sys(val: u32) -> Result<Self> {
+        match val & SCMP_ACT_MASK {
+            SCMP_ACT_KILL_PROCESS => Ok(Self::KillProcess),
+            SCMP_ACT_KILL_THREAD => Ok(Self::KillThread),
+            SCMP_ACT_TRAP => Ok(Self::Trap),
+            SCMP_ACT_NOTIFY => Ok(Self::Notify),
+            SCMP_ACT_ERRNO_MASK => Ok(Self::Errno(val as u16 as i32)),
+            SCMP_ACT_TRACE_MASK => Ok(Self::Trace(val as u16)),
+            SCMP_ACT_LOG => Ok(Self::Log),
+            SCMP_ACT_ALLOW => Ok(Self::Allow),
+            _ => Err(SeccompError::new(ParseError)),
+        }
+    }
+
     /// Converts string seccomp action to `ScmpAction`.
     ///
     /// # Arguments
@@ -1039,6 +1053,29 @@ impl ScmpFilterContext {
         Ok(attribute)
     }
 
+    /// Gets the default action taken when the loaded filter does not match the architecture
+    /// of the executing application.
+    ///
+    /// # Errors
+    ///
+    /// If this function is called with an invalid filter or an issue is
+    /// encountered getting the action, an error will be returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use libseccomp::*;
+    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let action = ctx.get_badarch_action()?;
+    /// assert_eq!(action, ScmpAction::KillThread);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn get_badarch_action(&self) -> Result<ScmpAction> {
+        let ret = self.get_filter_attr(ScmpFilterAttr::ActBadArch)?;
+
+        ScmpAction::from_sys(ret)
+    }
+
     /// Gets the current state of the No New Privileges bit.
     ///
     /// This function returns `Ok(true)` if the No New Privileges bit is set to on the filter being
@@ -1079,6 +1116,32 @@ impl ScmpFilterContext {
         }
 
         Ok(())
+    }
+
+    /// Sets the default action taken when the loaded filter does not match the architecture
+    /// of the executing application.
+    ///
+    /// Defaults to on (`action` == [`ScmpAction::KillThread`]).
+    ///
+    /// # Arguments
+    ///
+    /// * `action` - An action to be taken on a syscall for an architecture not in the filter.
+    ///
+    /// # Errors
+    ///
+    /// If this function is called with an invalid filter or an issue is
+    /// encountered setting the attribute, an error will be returned.
+    ///
+    /// # Examples
+    ///
+    ///  ```
+    /// # use libseccomp::*;
+    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// ctx.set_badarch_action(ScmpAction::KillProcess)?;
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn set_badarch_action(&mut self, action: ScmpAction) -> Result<()> {
+        self.set_filter_attr(ScmpFilterAttr::ActBadArch, action.to_sys())
     }
 
     /// Sets the state of the No New Privileges bit which will be
@@ -1492,19 +1555,22 @@ mod tests {
         for data in test_data {
             if data.0 == "SCMP_ACT_ERRNO" || data.0 == "SCMP_ACT_TRACE" {
                 assert_eq!(
-                    ScmpAction::from_str(data.0, Some(10)).unwrap().to_sys(),
-                    data.1.to_sys()
+                    ScmpAction::from_sys(ScmpAction::from_str(data.0, Some(10)).unwrap().to_sys())
+                        .unwrap(),
+                    data.1
                 );
             } else {
                 assert_eq!(
-                    ScmpAction::from_str(data.0, None).unwrap().to_sys(),
-                    data.1.to_sys()
+                    ScmpAction::from_sys(ScmpAction::from_str(data.0, None).unwrap().to_sys())
+                        .unwrap(),
+                    data.1
                 );
             }
         }
         assert!(ScmpAction::from_str("SCMP_ACT_ERRNO", None).is_err());
         assert!(ScmpAction::from_str("SCMP_ACT_TRACE", None).is_err());
         assert!(ScmpAction::from_str("SCMP_INVALID_FLAG", None).is_err());
+        assert!(ScmpAction::from_sys(0x00010000).is_err());
     }
 
     #[test]
@@ -1654,9 +1720,22 @@ mod tests {
     fn test_filter_attributes() {
         let mut ctx = ScmpFilterContext::new_filter(ScmpAction::KillThread).unwrap();
 
+        // Test for CtlNnp
         ctx.set_no_new_privs_bit(false).unwrap();
         let ret = ctx.get_no_new_privs_bit().unwrap();
         assert!(!ret);
+
+        // Test for ActBadArch
+        let test_actions = [
+            ScmpAction::Trap,
+            ScmpAction::Errno(libc::EACCES),
+            ScmpAction::Trace(10),
+        ];
+        for action in test_actions {
+            ctx.set_badarch_action(action).unwrap();
+            let ret = ctx.get_badarch_action().unwrap();
+            assert_eq!(ret, action);
+        }
     }
 
     #[test]
