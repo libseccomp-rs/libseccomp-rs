@@ -1430,115 +1430,116 @@ mod tests {
     }
 
     #[test]
-    fn test_parse() {
-        assert_eq!(
-            ScmpFilterAttr::from_str("SCMP_FLTATR_ACT_DEFAULT")
-                .unwrap()
-                .to_sys(),
-            ScmpFilterAttr::ActDefault.to_sys()
-        );
-        assert_eq!(
-            ScmpFilterAttr::from_str("SCMP_FLTATR_ACT_BADARCH")
-                .unwrap()
-                .to_sys(),
-            ScmpFilterAttr::ActBadArch.to_sys()
-        );
-        assert_eq!(
-            ScmpFilterAttr::from_str("SCMP_FLTATR_CTL_NNP")
-                .unwrap()
-                .to_sys(),
-            ScmpFilterAttr::CtlNnp.to_sys()
-        );
-        assert_eq!(
-            ScmpFilterAttr::from_str("SCMP_FLTATR_CTL_TSYNC")
-                .unwrap()
-                .to_sys(),
-            ScmpFilterAttr::CtlTsync.to_sys()
-        );
-        assert_eq!(
-            ScmpFilterAttr::from_str("SCMP_FLTATR_API_TSKIP")
-                .unwrap()
-                .to_sys(),
-            ScmpFilterAttr::ApiTskip.to_sys()
-        );
-        assert_eq!(
-            ScmpFilterAttr::from_str("SCMP_FLTATR_CTL_LOG")
-                .unwrap()
-                .to_sys(),
-            ScmpFilterAttr::CtlLog.to_sys()
-        );
-        assert_eq!(
-            ScmpFilterAttr::from_str("SCMP_FLTATR_CTL_SSB")
-                .unwrap()
-                .to_sys(),
-            ScmpFilterAttr::CtlSsb.to_sys()
-        );
-        assert_eq!(
-            ScmpFilterAttr::from_str("SCMP_FLTATR_CTL_OPTIMIZE")
-                .unwrap()
-                .to_sys(),
-            ScmpFilterAttr::CtlOptimize.to_sys()
-        );
-        assert_eq!(
-            ScmpFilterAttr::from_str("SCMP_FLTATR_API_SYSRAWRC")
-                .unwrap()
-                .to_sys(),
-            ScmpFilterAttr::ApiSysRawRc.to_sys()
-        );
+    fn test_parse_filter_attr() {
+        let test_data = [
+            ("SCMP_FLTATR_ACT_DEFAULT", ScmpFilterAttr::ActDefault),
+            ("SCMP_FLTATR_ACT_BADARCH", ScmpFilterAttr::ActBadArch),
+            ("SCMP_FLTATR_CTL_NNP", ScmpFilterAttr::CtlNnp),
+            ("SCMP_FLTATR_CTL_TSYNC", ScmpFilterAttr::CtlTsync),
+            ("SCMP_FLTATR_API_TSKIP", ScmpFilterAttr::ApiTskip),
+            ("SCMP_FLTATR_CTL_LOG", ScmpFilterAttr::CtlLog),
+            ("SCMP_FLTATR_CTL_SSB", ScmpFilterAttr::CtlSsb),
+            ("SCMP_FLTATR_CTL_OPTIMIZE", ScmpFilterAttr::CtlOptimize),
+            ("SCMP_FLTATR_API_SYSRAWRC", ScmpFilterAttr::ApiSysRawRc),
+        ];
+        for data in test_data {
+            assert_eq!(
+                ScmpFilterAttr::from_str(data.0).unwrap().to_sys(),
+                data.1.to_sys()
+            );
+        }
         assert!(ScmpFilterAttr::from_str("SCMP_INVALID_FLAG").is_err());
-        assert_eq!(
-            ScmpCompareOp::from_str("SCMP_CMP_NE").unwrap().to_sys(),
-            ScmpCompareOp::NotEqual.to_sys()
-        );
-        assert_eq!(
-            ScmpCompareOp::from_str("SCMP_CMP_LT").unwrap().to_sys(),
-            ScmpCompareOp::Less.to_sys()
-        );
-        assert_eq!(
-            ScmpCompareOp::from_str("SCMP_CMP_LE").unwrap().to_sys(),
-            ScmpCompareOp::LessOrEqual.to_sys()
-        );
-        assert_eq!(
-            ScmpCompareOp::from_str("SCMP_CMP_EQ").unwrap().to_sys(),
-            ScmpCompareOp::Equal.to_sys()
-        );
-        assert_eq!(
-            ScmpCompareOp::from_str("SCMP_CMP_GE").unwrap().to_sys(),
-            ScmpCompareOp::GreaterEqual.to_sys()
-        );
-        assert_eq!(
-            ScmpCompareOp::from_str("SCMP_CMP_GT").unwrap().to_sys(),
-            ScmpCompareOp::Greater.to_sys()
-        );
-        assert_eq!(
-            ScmpCompareOp::from_str("SCMP_CMP_MASKED_EQ")
-                .unwrap()
-                .to_sys(),
-            ScmpCompareOp::MaskedEqual(u64::default()).to_sys()
-        );
+    }
+
+    #[test]
+    fn test_parse_compare_op() {
+        let test_data = [
+            ("SCMP_CMP_NE", ScmpCompareOp::NotEqual),
+            ("SCMP_CMP_LT", ScmpCompareOp::Less),
+            ("SCMP_CMP_LE", ScmpCompareOp::LessOrEqual),
+            ("SCMP_CMP_EQ", ScmpCompareOp::Equal),
+            ("SCMP_CMP_GE", ScmpCompareOp::GreaterEqual),
+            ("SCMP_CMP_GT", ScmpCompareOp::Greater),
+            (
+                "SCMP_CMP_MASKED_EQ",
+                ScmpCompareOp::MaskedEqual(u64::default()),
+            ),
+        ];
+
+        for data in test_data {
+            assert_eq!(
+                ScmpCompareOp::from_str(data.0).unwrap().to_sys(),
+                data.1.to_sys()
+            );
+        }
         assert!(ScmpCompareOp::from_str("SCMP_INVALID_FLAG").is_err());
-        assert_eq!(
-            ScmpAction::from_str("SCMP_ACT_KILL_PROCESS", None)
-                .unwrap()
-                .to_sys(),
-            ScmpAction::KillProcess.to_sys()
-        );
-        assert_eq!(
-            ScmpAction::from_str("SCMP_ACT_ERRNO", Some(10))
-                .unwrap()
-                .to_sys(),
-            ScmpAction::Errno(10).to_sys()
-        );
-        assert_eq!(
-            ScmpAction::from_str("SCMP_ACT_TRACE", Some(10))
-                .unwrap()
-                .to_sys(),
-            ScmpAction::Trace(10).to_sys()
-        );
-        assert_eq!(
-            ScmpArch::from_str("SCMP_ARCH_X86_64").unwrap().to_sys(),
-            ScmpArch::X8664.to_sys()
-        );
+    }
+
+    #[test]
+    fn test_parse_action() {
+        let test_data = [
+            ("SCMP_ACT_KILL_PROCESS", ScmpAction::KillProcess),
+            ("SCMP_ACT_KILL_THREAD", ScmpAction::KillThread),
+            ("SCMP_ACT_KILL", ScmpAction::KillThread),
+            ("SCMP_ACT_TRAP", ScmpAction::Trap),
+            ("SCMP_ACT_NOTIFY", ScmpAction::Notify),
+            ("SCMP_ACT_ERRNO", ScmpAction::Errno(10)),
+            ("SCMP_ACT_TRACE", ScmpAction::Trace(10)),
+            ("SCMP_ACT_LOG", ScmpAction::Log),
+            ("SCMP_ACT_ALLOW", ScmpAction::Allow),
+        ];
+
+        for data in test_data {
+            if data.0 == "SCMP_ACT_ERRNO" || data.0 == "SCMP_ACT_TRACE" {
+                assert_eq!(
+                    ScmpAction::from_str(data.0, Some(10)).unwrap().to_sys(),
+                    data.1.to_sys()
+                );
+            } else {
+                assert_eq!(
+                    ScmpAction::from_str(data.0, None).unwrap().to_sys(),
+                    data.1.to_sys()
+                );
+            }
+        }
+        assert!(ScmpAction::from_str("SCMP_ACT_ERRNO", None).is_err());
+        assert!(ScmpAction::from_str("SCMP_ACT_TRACE", None).is_err());
+        assert!(ScmpAction::from_str("SCMP_INVALID_FLAG", None).is_err());
+    }
+
+    #[test]
+    fn test_parse_arch() {
+        let test_data = [
+            ("SCMP_ARCH_NATIVE", ScmpArch::Native),
+            ("SCMP_ARCH_X86", ScmpArch::X86),
+            ("SCMP_ARCH_X86_64", ScmpArch::X8664),
+            ("SCMP_ARCH_X32", ScmpArch::X32),
+            ("SCMP_ARCH_ARM", ScmpArch::Arm),
+            ("SCMP_ARCH_AARCH64", ScmpArch::Aarch64),
+            ("SCMP_ARCH_MIPS", ScmpArch::Mips),
+            ("SCMP_ARCH_MIPS64", ScmpArch::Mips64),
+            ("SCMP_ARCH_MIPS64N32", ScmpArch::Mips64N32),
+            ("SCMP_ARCH_MIPSEL", ScmpArch::Mipsel),
+            ("SCMP_ARCH_MIPSEL64", ScmpArch::Mipsel64),
+            ("SCMP_ARCH_MIPSEL64N32", ScmpArch::Mipsel64N32),
+            ("SCMP_ARCH_PPC", ScmpArch::Ppc),
+            ("SCMP_ARCH_PPC64", ScmpArch::Ppc64),
+            ("SCMP_ARCH_PPC64LE", ScmpArch::Ppc64Le),
+            ("SCMP_ARCH_S390", ScmpArch::S390),
+            ("SCMP_ARCH_S390X", ScmpArch::S390X),
+            ("SCMP_ARCH_PARISC", ScmpArch::Parisc),
+            ("SCMP_ARCH_PARISC64", ScmpArch::Parisc64),
+            ("SCMP_ARCH_RISCV64", ScmpArch::Riscv64),
+        ];
+
+        for data in test_data {
+            assert_eq!(
+                ScmpArch::from_sys(ScmpArch::from_str(data.0).unwrap().to_sys()).unwrap(),
+                data.1
+            );
+        }
+        assert!(ScmpArch::from_str("SCMP_INVALID_FLAG").is_err());
+        assert!(ScmpArch::from_sys(1).is_err());
     }
 
     #[test]
