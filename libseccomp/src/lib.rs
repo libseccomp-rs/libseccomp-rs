@@ -635,6 +635,7 @@ impl std::str::FromStr for ScmpArch {
             "SCMP_ARCH_AARCH64" => Ok(Self::Aarch64),
             "SCMP_ARCH_MIPS" => Ok(Self::Mips),
             "SCMP_ARCH_MIPS64" => Ok(Self::Mips64),
+            "SCMP_ARCH_MIPS64N32" => Ok(Self::Mips64N32),
             "SCMP_ARCH_MIPSEL" => Ok(Self::Mipsel),
             "SCMP_ARCH_MIPSEL64" => Ok(Self::Mipsel64),
             "SCMP_ARCH_MIPSEL64N32" => Ok(Self::Mipsel64N32),
