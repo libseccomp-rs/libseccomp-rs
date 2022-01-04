@@ -35,7 +35,7 @@
 //!
 //! fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!     let mut filter = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
-//!     let syscall = get_syscall_from_name("dup3", Some(ScmpArch::X8664))?;
+//!     let syscall = get_syscall_from_name("dup3", None)?;
 //!     let cmp = ScmpArgCompare::new(0, ScmpCompareOp::Equal, 1);
 //!
 //!     filter.add_arch(ScmpArch::X8664)?;
