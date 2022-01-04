@@ -1410,6 +1410,28 @@ pub fn set_api(level: u32) -> Result<()> {
     Ok(())
 }
 
+/// Resets the libseccomp library's global state.
+///
+/// This function resets the (internal) global state of the libseccomp library,
+/// this includes any notification file descriptors retrieved by
+/// [`get_notify_fd`](ScmpFilterContext::get_notify_fd).
+/// Normally you do not need this but it may be required to continue using
+/// the libseccomp library after a `fork()`/`clone()` to ensure the API level
+/// and user notification state is properly reset.
+///
+/// # Errors
+///
+/// If the linked libseccomp library is older than v2.5.1 this function will
+/// return an error.
+pub fn reset_global_state() -> Result<()> {
+    let ret = unsafe { seccomp_reset(std::ptr::null_mut(), 0) };
+    if ret != 0 {
+        return Err(SeccompError::new(Errno(ret)));
+    }
+
+    Ok(())
+}
+
 /// Retrieves the name of a syscall from its number for a given architecture.
 ///
 /// This function returns a string containing the name of the syscall.
@@ -1748,6 +1770,15 @@ mod tests {
         let expected_action: u32 = ScmpAction::Allow.to_sys();
 
         assert_eq!(expected_action, action);
+    }
+
+    #[test]
+    fn test_reset_global_state() {
+        if check_version(ScmpVersion::from((2, 5, 1))).unwrap() {
+            assert!(reset_global_state().is_ok());
+        } else {
+            assert!(reset_global_state().is_err());
+        }
     }
 
     #[test]
