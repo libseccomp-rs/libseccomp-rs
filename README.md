@@ -20,6 +20,8 @@ to use the libseccomp API in Rust.
 * **libseccomp**: High-level safe API
 * **libseccomp-sys**: Low-level unsafe API
 
+[CHANGELOG](https://github.com/libseccomp-rs/libseccomp-rs/blob/main/CHANGELOG.md)
+
 ## Example
 
 Create and load a single seccomp rule:
@@ -123,6 +125,35 @@ Anyone is welcome to join and contribute code, documentation, and use cases.
 - Make sure you're using the latest stable version of Rust
 - Run `make check` to guarantee code style conformance
 - Open a pull request in Github
+
+We use the following format for doc comments of a function:
+```
+/// Brief summary of the function on one line. (Start from "verb-s")
+///
+/// Detailed description of the function. (if you have)
+///
+/// Description of the return value on success.
+/// (Start from "This function returns...")
+///
+/// # Arguments (if the function has arguments)
+///
+/// * `arg` - Descripition of the argument
+///
+/// # Errors (if the function returns `Result`)
+///
+///  If this function encounters..., an error will be returned.
+///
+/// # Panics (if the function can `panic`)
+///
+///  Panics if...
+///
+/// # Examples (if you want to show the example)
+///
+/// ```
+/// Example codes
+/// ```
+pub fn foo() {
+```
 
 ## License
 This crate is licensed under:
