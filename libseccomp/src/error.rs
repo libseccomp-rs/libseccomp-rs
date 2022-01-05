@@ -24,7 +24,7 @@ const ESRCH: &str = "Unable to load the filter due to thread issues";
 const PARSE_ERROR: &str = "Parse error by invalid argument";
 
 /// A list specifying different categories of error.
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 #[non_exhaustive]
 pub enum ErrorKind {
     /// An error that represents error code on failure of the libseccomp API.

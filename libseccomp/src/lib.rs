@@ -62,7 +62,7 @@ use std::os::unix::io::AsRawFd;
 use std::ptr::NonNull;
 
 /// Represents the version information of the libseccomp library.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct ScmpVersion {
     pub major: u32,
     pub minor: u32,
@@ -120,7 +120,7 @@ impl fmt::Display for ScmpVersion {
 ///
 /// You can set/get the attributes of a filter context with
 /// [`ScmpFilterContext::set_filter_attr`] and [`ScmpFilterContext::get_filter_attr`] methods.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[non_exhaustive]
 pub enum ScmpFilterAttr {
     /// The default filter action as specified in the call to seccomp reset.
@@ -200,7 +200,7 @@ impl std::str::FromStr for ScmpFilterAttr {
 }
 
 /// Represents a comparison operator which can be used in a filter rule.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[non_exhaustive]
 pub enum ScmpCompareOp {
     /// Not equal
@@ -268,7 +268,7 @@ impl std::str::FromStr for ScmpCompareOp {
 }
 
 /// Represents a rule in a libseccomp filter context.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(transparent)]
 pub struct ScmpArgCompare(scmp_arg_cmp);
 
@@ -418,7 +418,7 @@ macro_rules! scmp_cmp {
 }
 
 /// Represents an action to be taken on a filter rule match in the libseccomp.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[non_exhaustive]
 pub enum ScmpAction {
     /// Kills the process.
@@ -508,7 +508,7 @@ impl ScmpAction {
 
 /// Represents a CPU architecture.
 /// Seccomp can restrict syscalls on a per-architecture basis.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[non_exhaustive]
 pub enum ScmpArch {
     /// The native architecture token
