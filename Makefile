@@ -2,48 +2,48 @@
 #
 # Copyright 2021 Sony Group Corporation
 #
+# libseccomp-rs
+#
 
-all: build fmt test
+.PHONY: all build release debug test check fmt clippy clean
+
+all: build
 
 #
 # Build
 #
 
-.PHONY: debug
-debug:
-	RUSTFLAGS="--deny warnings" cargo build
-
-.PHONY: release
-release:
-	cargo build --release
-
-.PHONY: build
 build:
 	cargo build
 
+release:
+	cargo build --release
+
+debug:
+	RUSTFLAGS="--deny warnings" cargo build
+
 #
-# Tests and linters
+# Test
 #
 
-.PHONY: test
 test:
 	cargo test -- --color always --nocapture --test-threads 1
 
-.PHONY: check
-check: fmt clippy
+check: fmt clippy test
 
-.PHONY: fmt
+#
+# Format and Lint
+#
+
 fmt:
 	cargo fmt --all -- --check
 
-.PHONY: clippy
 clippy:
-	cargo clippy --all-targets --all-features -- -D warnings
+	cargo clippy --all-targets --all-features -- --deny warnings
 
 #
 # Clean
 #
 
-.PHONY: clean
 clean:
-	rm -rf ./target
+	cargo clean
