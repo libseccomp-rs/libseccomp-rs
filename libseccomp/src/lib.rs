@@ -1053,7 +1053,7 @@ impl ScmpFilterContext {
     /// ```
     /// # use libseccomp::*;
     /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
-    /// let syscall = get_syscall_from_name("ptrace", None)?;
+    /// let syscall = ScmpSyscall::from_name("ptrace")?;
     /// ctx.add_rule(ScmpAction::Errno(libc::EPERM), syscall)?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
@@ -1084,7 +1084,7 @@ impl ScmpFilterContext {
     /// ```
     /// # use libseccomp::*;
     /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
-    /// let syscall = get_syscall_from_name("open", None)?;
+    /// let syscall = ScmpSyscall::from_name("open")?;
     /// ctx.add_rule_conditional(
     ///     ScmpAction::Errno(libc::EPERM),
     ///     syscall,
@@ -1158,7 +1158,7 @@ impl ScmpFilterContext {
     /// ```
     /// # use libseccomp::*;
     /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
-    /// let syscall = get_syscall_from_name("socket", None)?;
+    /// let syscall = ScmpSyscall::from_name("socket")?;
     /// ctx.add_rule_conditional_exact(
     ///     ScmpAction::Errno(libc::EPERM),
     ///     syscall,
