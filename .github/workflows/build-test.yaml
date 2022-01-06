@@ -94,6 +94,15 @@ jobs:
       - name: Run codespell
         run: codespell --ignore-words-list crate
 
+  readme:
+    name: Readme Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Verify that the libseccomp crate version is up to date in README
+        run: grep -q "$(sed -n 's/^version = \(.*\)/libseccomp = \1/p' libseccomp/Cargo.toml)" README.md
+
   coverage:
     name: Code Coverage
     runs-on: ubuntu-latest
