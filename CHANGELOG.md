@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `"SCMP_ARCH_MIPS64N32"` to `ScmpArch::from_str()`.
 - `ScmpFilterContext::{get,set}_badarch_action()` to get/set the default action taken on a syscall for
 an architecture not in the filter.
+- `ScmpFilterContext::get_default_action()` to get the default action as specified in the call to
+`new_filter()` or `reset()`.
 - `reset_global_state()` to reset libseccomp's global state.
 - `derive(Hash)` for the most types
 - `ScmpSyscall` type

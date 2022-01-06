@@ -1257,6 +1257,29 @@ impl ScmpFilterContext {
         Ok(attribute)
     }
 
+    /// Gets the default action as specified in the call to
+    /// [`new_filter()`](ScmpFilterContext::new_filter) or [`reset()`](ScmpFilterContext::reset).
+    ///
+    /// # Errors
+    ///
+    /// If this function is called with an invalid filter or an issue is
+    /// encountered getting the action, an error will be returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use libseccomp::*;
+    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let action = ctx.get_default_action()?;
+    /// assert_eq!(action, ScmpAction::Allow);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn get_default_action(&self) -> Result<ScmpAction> {
+        let ret = self.get_filter_attr(ScmpFilterAttr::ActDefault)?;
+
+        ScmpAction::from_sys(ret)
+    }
+
     /// Gets the default action taken when the loaded filter does not match the architecture
     /// of the executing application.
     ///
@@ -1934,6 +1957,10 @@ mod tests {
             let ret = ctx.get_badarch_action().unwrap();
             assert_eq!(ret, action);
         }
+
+        // Test for ActDefault
+        let ret = ctx.get_default_action().unwrap();
+        assert_eq!(ret, ScmpAction::KillThread);
     }
 
     #[test]
