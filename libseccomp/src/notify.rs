@@ -204,6 +204,7 @@ impl ScmpNotifResp {
     /// * `val` - Return value for the syscall that created the notification
     /// * `error` - An error code
     /// * `flags` - Userspace notification response flag
+    #[must_use]
     pub fn new(id: u64, val: i64, error: i32, flags: u32) -> Self {
         Self {
             id,
