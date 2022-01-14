@@ -287,6 +287,7 @@ impl ScmpArgCompare {
     /// * `arg` - The number of the argument
     /// * `op` - A comparison operator
     /// * `datum` - A value to compare to
+    #[must_use]
     pub const fn new(arg: u32, op: ScmpCompareOp, datum: u64) -> Self {
         if let ScmpCompareOp::MaskedEqual(mask) = op {
             Self(scmp_arg_cmp {
@@ -1431,6 +1432,7 @@ impl ScmpFilterContext {
     /// Gets a raw pointer of a seccomp filter.
     ///
     /// This function return a raw pointer to the [`scmp_filter_ctx`].
+    #[must_use]
     pub fn as_ptr(&self) -> scmp_filter_ctx {
         self.ctx.as_ptr()
     }
