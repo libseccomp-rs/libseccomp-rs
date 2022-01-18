@@ -36,10 +36,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Adds an architecture to the filter.
     filter.add_arch(ScmpArch::X8664)?;
 
-    // Returns the number of a syscall by name for a given architectures's ABI.
-    // If arch argument is None, the function returns the number of a syscall
-    // on the kernel's native architecture.
-    let syscall = get_syscall_from_name("dup3", None)?;
+    // Returns the number of a syscall by name.
+    let syscall = ScmpSyscall::from_name("dup3")?;
 
     // Adds a single rule for an unconditional action on the syscall.
     filter.add_rule(ScmpAction::Errno(10), syscall)?;
