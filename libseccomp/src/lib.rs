@@ -1293,11 +1293,11 @@ impl ScmpFilterContext {
     /// ```
     /// # use libseccomp::*;
     /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
-    /// let action = ctx.get_badarch_action()?;
+    /// let action = ctx.get_act_badarch()?;
     /// assert_eq!(action, ScmpAction::KillThread);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn get_badarch_action(&self) -> Result<ScmpAction> {
+    pub fn get_act_badarch(&self) -> Result<ScmpAction> {
         let ret = self.get_filter_attr(ScmpFilterAttr::ActBadArch)?;
 
         ScmpAction::from_sys(ret)
@@ -1364,10 +1364,10 @@ impl ScmpFilterContext {
     ///  ```
     /// # use libseccomp::*;
     /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
-    /// ctx.set_badarch_action(ScmpAction::KillProcess)?;
+    /// ctx.set_act_badarch(ScmpAction::KillProcess)?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn set_badarch_action(&mut self, action: ScmpAction) -> Result<()> {
+    pub fn set_act_badarch(&mut self, action: ScmpAction) -> Result<()> {
         self.set_filter_attr(ScmpFilterAttr::ActBadArch, action.to_sys())
     }
 
@@ -1953,8 +1953,8 @@ mod tests {
             ScmpAction::Trace(10),
         ];
         for action in test_actions {
-            ctx.set_badarch_action(action).unwrap();
-            let ret = ctx.get_badarch_action().unwrap();
+            ctx.set_act_badarch(action).unwrap();
+            let ret = ctx.get_act_badarch().unwrap();
             assert_eq!(ret, action);
         }
 

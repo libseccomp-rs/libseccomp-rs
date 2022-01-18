@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 - `"SCMP_ARCH_MIPS64N32"` to `ScmpArch::from_str()`.
-- `ScmpFilterContext::{get,set}_badarch_action()` to get/set the default action taken on a syscall for
+- `ScmpFilterContext::{get,set}_act_badarch()` to get/set the default action taken on a syscall for
 an architecture not in the filter.
 - `ScmpFilterContext::get_default_action()` to get the default action as specified in the call to
 `new_filter()` or `reset()`.
