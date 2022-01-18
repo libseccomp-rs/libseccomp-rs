@@ -1270,11 +1270,11 @@ impl ScmpFilterContext {
     /// ```
     /// # use libseccomp::*;
     /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
-    /// let action = ctx.get_default_action()?;
+    /// let action = ctx.get_act_default()?;
     /// assert_eq!(action, ScmpAction::Allow);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn get_default_action(&self) -> Result<ScmpAction> {
+    pub fn get_act_default(&self) -> Result<ScmpAction> {
         let ret = self.get_filter_attr(ScmpFilterAttr::ActDefault)?;
 
         ScmpAction::from_sys(ret)
@@ -1959,7 +1959,7 @@ mod tests {
         }
 
         // Test for ActDefault
-        let ret = ctx.get_default_action().unwrap();
+        let ret = ctx.get_act_default().unwrap();
         assert_eq!(ret, ScmpAction::KillThread);
     }
 
