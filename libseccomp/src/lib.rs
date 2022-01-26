@@ -1325,6 +1325,22 @@ impl ScmpFilterContext {
         self.get_ctl_nnp()
     }
 
+    /// Gets the current state of the [`ScmpFilterAttr::CtlLog`] attribute.
+    ///
+    /// This function returns `Ok(true)` if the [`ScmpFilterAttr::CtlLog`] attribute set to on the filter being
+    /// loaded, `Ok(false)` otherwise.
+    ///
+    /// # Errors
+    ///
+    /// If this function is called with an invalid filter, an issue is encountered
+    /// getting the current state, or the libseccomp API level is less than 3, an error will be returned.
+    pub fn get_ctl_log(&self) -> Result<bool> {
+        ensure_supported_api("get_ctl_log", 3, ScmpVersion::from((2, 4, 0)))?;
+        let ret = self.get_filter_attr(ScmpFilterAttr::CtlLog)?;
+
+        Ok(ret != 0)
+    }
+
     /// Sets a raw filter attribute value.
     ///
     /// The seccomp filter attributes are tunable values that affect how the library behaves
@@ -1404,6 +1420,29 @@ impl ScmpFilterContext {
     #[deprecated(since = "0.2.3", note = "Use ScmpFilterContext::set_ctl_nnp().")]
     pub fn set_no_new_privs_bit(&mut self, state: bool) -> Result<()> {
         self.set_ctl_nnp(state)
+    }
+
+    /// Sets the state of the [`ScmpFilterAttr::CtlLog`] attribute which will be applied on filter load.
+    ///
+    /// Settings this to on (`state` == `true`) means that the kernel should log all filter
+    /// actions taken except for the [`ScmpAction::Allow`] action.
+    /// The [`ScmpFilterAttr::CtlLog`] attribute is only usable when the libseccomp API level 3 or higher
+    /// is supported.
+    ///
+    /// Defaults to off (`state` == `false`).
+    ///
+    /// # Arguments
+    ///
+    /// * `state` - A state flag to specify whether the [`ScmpFilterAttr::CtlLog`] attribute should
+    /// be enabled
+    ///
+    /// # Errors
+    ///
+    /// If this function is called with an invalid filter, an issue is encountered
+    /// setting the attribute, or the libseccomp API level is less than 3, an error will be returned.
+    pub fn set_ctl_log(&mut self, state: bool) -> Result<()> {
+        ensure_supported_api("set_ctl_log", 3, ScmpVersion::from((2, 4, 0)))?;
+        self.set_filter_attr(ScmpFilterAttr::CtlLog, state.into())
     }
 
     /// Outputs PFC(Pseudo Filter Code)-formatted, human-readable dump of a filter context's rules to a file.
@@ -1575,8 +1614,6 @@ fn ensure_supported_version(msg: &str, expected: ScmpVersion) -> Result<()> {
 ///
 /// If the libseccomp API level and the libseccomp version being used are less than
 /// the specified version, an error will be returned.
-// This function will not be used if the libseccomp version is less than 2.5.0.
-#[allow(dead_code)]
 fn ensure_supported_api(msg: &str, min_level: u32, expected: ScmpVersion) -> Result<()> {
     let level = get_api()?;
 
@@ -1975,6 +2012,16 @@ mod tests {
         // Test for ActDefault
         let ret = ctx.get_act_default().unwrap();
         assert_eq!(ret, ScmpAction::KillThread);
+
+        // Test for CtlLog
+        if check_api(3, ScmpVersion::from((2, 4, 0))).unwrap() {
+            ctx.set_ctl_log(true).unwrap();
+            let ret = ctx.get_ctl_log().unwrap();
+            assert!(ret);
+        } else {
+            assert!(ctx.set_ctl_log(true).is_err());
+            assert!(ctx.get_ctl_log().is_err());
+        }
     }
 
     #[test]
