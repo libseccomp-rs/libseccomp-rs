@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 an architecture not in the filter.
 - `ScmpFilterContext::get_act_default()` to get the default action as specified in the call to
 `new_filter()` or `reset()`.
+- `ScmpFilterContext::get_ctl_nnp` (replaces `ScmpFilterContext::get_no_new_privs_bit`).
+- `ScmpFilterContext::set_ctl_nnp` (replaces `ScmpFilterContext::set_no_new_privs_bit`).
 - `reset_global_state()` to reset libseccomp's global state.
 - `derive(Hash)` for the most types
 - `ScmpSyscall` type
@@ -26,6 +28,8 @@ an architecture not in the filter.
 ### Deprecated
 - `get_syscall_from_name`, use `ScmpSyscall::from_name*()`
 - `get_syscall_name_from_arch`, use `ScmpSyscall::get_name*()`
+- `ScmpFilterContext::get_no_new_privs_bit`, use `ScmpFilterContext::get_ctl_nnp`.
+- `ScmpFilterContext::set_no_new_privs_bit`, use `ScmpFilterContext::set_ctl_nnp`.
 
 ### Removed
 

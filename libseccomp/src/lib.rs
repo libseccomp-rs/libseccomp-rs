@@ -1304,19 +1304,25 @@ impl ScmpFilterContext {
         ScmpAction::from_sys(ret)
     }
 
-    /// Gets the current state of the No New Privileges bit.
+    /// Gets the current state of the [`ScmpFilterAttr::CtlNnp`] attribute.
     ///
-    /// This function returns `Ok(true)` if the No New Privileges bit is set to on the filter being
+    /// This function returns `Ok(true)` if the [`ScmpFilterAttr::CtlNnp`] attribute is set to on the filter being
     /// loaded, `Ok(false)` otherwise.
     ///
     /// # Errors
     ///
     /// If this function is called with an invalid filter or an issue is
     /// encountered getting the current state, an error will be returned.
-    pub fn get_no_new_privs_bit(&self) -> Result<bool> {
+    pub fn get_ctl_nnp(&self) -> Result<bool> {
         let ret = self.get_filter_attr(ScmpFilterAttr::CtlNnp)?;
 
         Ok(ret != 0)
+    }
+
+    /// Deprecated alias for [`ScmpFilterContext::get_ctl_nnp()`].
+    #[deprecated(since = "0.2.3", note = "Use ScmpFilterContext::get_ctl_nnp().")]
+    pub fn get_no_new_privs_bit(&self) -> Result<bool> {
+        self.get_ctl_nnp()
     }
 
     /// Sets a raw filter attribute value.
@@ -1372,11 +1378,11 @@ impl ScmpFilterContext {
         self.set_filter_attr(ScmpFilterAttr::ActBadArch, action.to_sys())
     }
 
-    /// Sets the state of the No New Privileges bit which will be
-    /// applied on filter load.
+    /// Sets the state of the [`ScmpFilterAttr::CtlNnp`] attribute which will be applied
+    /// on filter load.
     ///
-    /// Filters with No New Privileges set to on (`state` == `true`) can only be loaded
-    /// if the process has the CAP_SYS_ADMIN capability.
+    /// Filters with the [`ScmpFilterAttr::CtlNnp`] attribute set to on (`state` == `true`) can only
+    /// be loaded if the process has the CAP_SYS_ADMIN capability.
     /// Settings this to off (`state` == `false`) means that loading the seccomp filter
     /// into the kernel fill fail if the CAP_SYS_ADMIN is missing.
     ///
@@ -1384,14 +1390,20 @@ impl ScmpFilterContext {
     ///
     /// # Arguments
     ///
-    /// * `state` - A state flag to specify whether the NO_NEW_PRIVS functionality should be enabled
+    /// * `state` - A state flag to specify whether the [`ScmpFilterAttr::CtlNnp`] attribute should be enabled
     ///
     /// # Errors
     ///
     /// If this function is called with an invalid filter or an issue is
     /// encountered setting the attribute, an error will be returned.
-    pub fn set_no_new_privs_bit(&mut self, state: bool) -> Result<()> {
+    pub fn set_ctl_nnp(&mut self, state: bool) -> Result<()> {
         self.set_filter_attr(ScmpFilterAttr::CtlNnp, state.into())
+    }
+
+    /// Deprecated alias for [`ScmpFilterContext::set_ctl_nnp()`].
+    #[deprecated(since = "0.2.3", note = "Use ScmpFilterContext::set_ctl_nnp().")]
+    pub fn set_no_new_privs_bit(&mut self, state: bool) -> Result<()> {
+        self.set_ctl_nnp(state)
     }
 
     /// Outputs PFC(Pseudo Filter Code)-formatted, human-readable dump of a filter context's rules to a file.
@@ -1944,8 +1956,8 @@ mod tests {
         let mut ctx = ScmpFilterContext::new_filter(ScmpAction::KillThread).unwrap();
 
         // Test for CtlNnp
-        ctx.set_no_new_privs_bit(false).unwrap();
-        let ret = ctx.get_no_new_privs_bit().unwrap();
+        ctx.set_ctl_nnp(false).unwrap();
+        let ret = ctx.get_ctl_nnp().unwrap();
         assert!(!ret);
 
         // Test for ActBadArch
