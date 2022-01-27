@@ -16,6 +16,7 @@ an architecture not in the filter.
 - `ScmpFilterContext::set_ctl_nnp` (replaces `ScmpFilterContext::set_no_new_privs_bit`).
 - `ScmpFilterContext::{get,set}_ctl_log()` to get/set the state of the `ScmpFilterAttr::CtlLog`.
 - `ScmpFilterContext::{get,set}_ctl_ssb()` to get/set the state of the `ScmpFilterAttr::CtlSsb`.
+- `ScmpFilterContext::{get,set}_ctl_optimize()` to get/set the level of the `ScmpFilterAttr::CtlOptimize`.
 - `reset_global_state()` to reset libseccomp's global state.
 - `derive(Hash)` for the most types
 - `ScmpSyscall` type
