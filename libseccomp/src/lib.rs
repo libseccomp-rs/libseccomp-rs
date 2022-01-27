@@ -1359,6 +1359,24 @@ impl ScmpFilterContext {
         Ok(ret != 0)
     }
 
+    /// Gets the current optimization level of the [`ScmpFilterAttr::CtlOptimize`] attribute.
+    ///
+    /// See [`set_ctl_optimize()`](ScmpFilterContext::set_ctl_optimize) for more details about
+    /// the optimization level.
+    /// The [`ScmpFilterAttr::CtlOptimize`] attribute is only usable when the libseccomp API level 4 or higher
+    /// is supported.
+    ///
+    /// # Errors
+    ///
+    /// If this function is called with an invalid filter, an issue is encountered
+    /// getting the current state, or the libseccomp API level is less than 4, an error will be returned.
+    pub fn get_ctl_optimize(&self) -> Result<u32> {
+        ensure_supported_api("get_ctl_optimize", 4, ScmpVersion::from((2, 5, 0)))?;
+        let ret = self.get_filter_attr(ScmpFilterAttr::CtlOptimize)?;
+
+        Ok(ret)
+    }
+
     /// Sets a raw filter attribute value.
     ///
     /// The seccomp filter attributes are tunable values that affect how the library behaves
@@ -1483,6 +1501,35 @@ impl ScmpFilterContext {
     pub fn set_ctl_ssb(&mut self, state: bool) -> Result<()> {
         ensure_supported_api("set_ctl_ssb", 4, ScmpVersion::from((2, 5, 0)))?;
         self.set_filter_attr(ScmpFilterAttr::CtlSsb, state.into())
+    }
+
+    /// Sets the [`ScmpFilterAttr::CtlOptimize`] level which will be applied on filter load.
+    ///
+    /// By default the libseccomp generates a set of sequential "if" statements for each rule in the filter.
+    /// [`set_syscall_priority()`](ScmpFilterContext::set_syscall_priority) can be used to prioritize the
+    /// order for the default cause. The binary tree optimization sorts by syscall numbers and generates
+    /// consistent O(log n) filter traversal for every rule in the filter. The binary tree may be advantageous
+    /// for large filters. Note that [`set_syscall_priority()`](ScmpFilterContext::set_syscall_priority) is
+    /// ignored when `level` == `2`.
+    /// The [`ScmpFilterAttr::CtlOptimize`] attribute is only usable when the libseccomp API level 4 or higher
+    /// is supported.
+    ///
+    /// The different optimization levels are described below:
+    /// * `0` - Reserved value, not currently used.
+    /// * `1` - Rules sorted by priority and complexity (DEFAULT).
+    /// * `2` - Binary tree sorted by syscall number.
+    ///
+    /// # Arguments
+    ///
+    /// * `level` - The optimization level of the filter
+    ///
+    /// # Errors
+    ///
+    /// If this function is called with an invalid filter, an issue is encountered
+    /// setting the attribute, or the libseccomp API level is less than 4, an error will be returned.
+    pub fn set_ctl_optimize(&mut self, level: u32) -> Result<()> {
+        ensure_supported_api("set_ctl_optimize", 4, ScmpVersion::from((2, 5, 0)))?;
+        self.set_filter_attr(ScmpFilterAttr::CtlOptimize, level)
     }
 
     /// Outputs PFC(Pseudo Filter Code)-formatted, human-readable dump of a filter context's rules to a file.
@@ -2071,6 +2118,17 @@ mod tests {
         } else {
             assert!(ctx.set_ctl_ssb(true).is_err());
             assert!(ctx.get_ctl_ssb().is_err());
+        }
+
+        // Test for CtlOptimize
+        let opt_level = 2;
+        if check_api(4, ScmpVersion::from((2, 5, 0))).unwrap() {
+            ctx.set_ctl_optimize(opt_level).unwrap();
+            let ret = ctx.get_ctl_optimize().unwrap();
+            assert_eq!(ret, opt_level);
+        } else {
+            assert!(ctx.set_ctl_optimize(opt_level).is_err());
+            assert!(ctx.get_ctl_optimize().is_err());
         }
     }
 
