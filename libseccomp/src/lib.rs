@@ -1377,6 +1377,24 @@ impl ScmpFilterContext {
         Ok(ret)
     }
 
+    /// Gets the current state of the [`ScmpFilterAttr::ApiSysRawRc`] attribute.
+    ///
+    /// This function returns `Ok(true)` if the [`ScmpFilterAttr::ApiSysRawRc`] attribute set to on the filter
+    /// being loaded, `Ok(false)` otherwise.
+    /// The [`ScmpFilterAttr::ApiSysRawRc`] attribute is only usable when the libseccomp API level 4 or higher
+    /// is supported.
+    ///
+    /// # Errors
+    ///
+    /// If this function is called with an invalid filter, an issue is encountered
+    /// getting the current state, or the libseccomp API level is less than 4, an error will be returned.
+    pub fn get_api_sysrawrc(&self) -> Result<bool> {
+        ensure_supported_api("get_api_sysrawrc", 4, ScmpVersion::from((2, 5, 0)))?;
+        let ret = self.get_filter_attr(ScmpFilterAttr::ApiSysRawRc)?;
+
+        Ok(ret != 0)
+    }
+
     /// Sets a raw filter attribute value.
     ///
     /// The seccomp filter attributes are tunable values that affect how the library behaves
@@ -1530,6 +1548,29 @@ impl ScmpFilterContext {
     pub fn set_ctl_optimize(&mut self, level: u32) -> Result<()> {
         ensure_supported_api("set_ctl_optimize", 4, ScmpVersion::from((2, 5, 0)))?;
         self.set_filter_attr(ScmpFilterAttr::CtlOptimize, level)
+    }
+
+    /// Sets the state of the [`ScmpFilterAttr::ApiSysRawRc`] attribute which will be applied on filter load.
+    ///
+    /// Settings this to on (`state` == `true`) means that the libseccomp should pass system error codes
+    /// back to the caller instead of the default -ECANCELED.
+    /// The [`ScmpFilterAttr::ApiSysRawRc`] attribute is only usable when the libseccomp API level 4 or higher
+    /// is supported.
+    ///
+    /// Defaults to off (`state` == `false`).
+    ///
+    /// # Arguments
+    ///
+    /// * `state` - A state flag to specify whether the [`ScmpFilterAttr::ApiSysRawRc`] attribute should
+    /// be enabled
+    ///
+    /// # Errors
+    ///
+    /// If this function is called with an invalid filter, an issue is encountered
+    /// setting the attribute, or the libseccomp API level is less than 4, an error will be returned.
+    pub fn set_api_sysrawrc(&mut self, state: bool) -> Result<()> {
+        ensure_supported_api("set_api_sysrawrc", 4, ScmpVersion::from((2, 5, 0)))?;
+        self.set_filter_attr(ScmpFilterAttr::ApiSysRawRc, state.into())
     }
 
     /// Outputs PFC(Pseudo Filter Code)-formatted, human-readable dump of a filter context's rules to a file.
@@ -2129,6 +2170,16 @@ mod tests {
         } else {
             assert!(ctx.set_ctl_optimize(opt_level).is_err());
             assert!(ctx.get_ctl_optimize().is_err());
+        }
+
+        // Test for ApiSysRawRc
+        if check_api(4, ScmpVersion::from((2, 5, 0))).unwrap() {
+            ctx.set_api_sysrawrc(true).unwrap();
+            let ret = ctx.get_api_sysrawrc().unwrap();
+            assert!(ret);
+        } else {
+            assert!(ctx.set_api_sysrawrc(true).is_err());
+            assert!(ctx.get_api_sysrawrc().is_err());
         }
     }
 
