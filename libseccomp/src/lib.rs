@@ -1325,6 +1325,22 @@ impl ScmpFilterContext {
         self.get_ctl_nnp()
     }
 
+    /// Gets the current state of the [`ScmpFilterAttr::CtlTsync`] attribute.
+    ///
+    /// This function returns `Ok(true)` if the [`ScmpFilterAttr::CtlTsync`] attribute set to on the filter being
+    /// loaded, `Ok(false)` otherwise.
+    ///
+    /// # Errors
+    ///
+    /// If this function is called with an invalid filter, an issue is encountered
+    /// getting the current state, or the libseccomp API level is less than 2, an error will be returned.
+    pub fn get_ctl_tsync(&self) -> Result<bool> {
+        ensure_supported_api("get_ctl_tsync", 2, ScmpVersion::from((2, 2, 0)))?;
+        let ret = self.get_filter_attr(ScmpFilterAttr::CtlTsync)?;
+
+        Ok(ret != 0)
+    }
+
     /// Gets the current state of the [`ScmpFilterAttr::CtlLog`] attribute.
     ///
     /// This function returns `Ok(true)` if the [`ScmpFilterAttr::CtlLog`] attribute set to on the filter being
@@ -1474,6 +1490,32 @@ impl ScmpFilterContext {
     #[deprecated(since = "0.2.3", note = "Use ScmpFilterContext::set_ctl_nnp().")]
     pub fn set_no_new_privs_bit(&mut self, state: bool) -> Result<()> {
         self.set_ctl_nnp(state)
+    }
+
+    /// Sets the state of the [`ScmpFilterAttr::CtlTsync`] attribute which will be applied
+    /// on filter load.
+    ///
+    /// Settings this to on (`state` == `true`) means that the kernel should attempt to synchronize the filters
+    /// across all threads on [`ScmpFilterContext::load()`].
+    /// If the kernel is unable to synchronize all of the thread then the load operation will fail.
+    /// The [`ScmpFilterAttr::CtlTsync`] attribute is only usable when the libseccomp API level 2 or higher
+    /// is supported.
+    /// If the libseccomp API level is less than 6, the [`ScmpFilterAttr::CtlTsync`] attribute is unusable
+    /// with the userspace notification API simultaneously.
+    ///
+    /// Defaults to off (`state` == `false`).
+    ///
+    /// # Arguments
+    ///
+    /// * `state` - A state flag to specify whether the [`ScmpFilterAttr::CtlTsync`] attribute should be enabled
+    ///
+    /// # Errors
+    ///
+    /// If this function is called with an invalid filter, an issue is encountered
+    /// setting the attribute, or the libseccomp API level is less than 2, an error will be returned.
+    pub fn set_ctl_tsync(&mut self, state: bool) -> Result<()> {
+        ensure_supported_api("set_ctl_tsync", 2, ScmpVersion::from((2, 2, 0)))?;
+        self.set_filter_attr(ScmpFilterAttr::CtlTsync, state.into())
     }
 
     /// Sets the state of the [`ScmpFilterAttr::CtlLog`] attribute which will be applied on filter load.
@@ -2180,6 +2222,16 @@ mod tests {
         } else {
             assert!(ctx.set_api_sysrawrc(true).is_err());
             assert!(ctx.get_api_sysrawrc().is_err());
+        }
+
+        // Test for CtlTsync
+        if check_api(2, ScmpVersion::from((2, 2, 0))).unwrap() {
+            ctx.set_ctl_tsync(true).unwrap();
+            let ret = ctx.get_ctl_tsync().unwrap();
+            assert!(ret);
+        } else {
+            assert!(ctx.set_ctl_tsync(true).is_err());
+            assert!(ctx.get_ctl_tsync().is_err());
         }
     }
 
