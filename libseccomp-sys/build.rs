@@ -5,7 +5,7 @@
 
 use std::env;
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("cargo:rerun-if-env-changed=LIBSECCOMP_LIB_PATH");
     println!("cargo:rerun-if-env-changed=LIBSECCOMP_LINK_TYPE");
 
@@ -14,9 +14,14 @@ fn main() {
     }
 
     let link_type = match env::var("LIBSECCOMP_LINK_TYPE") {
-        Ok(v) => v, // static, framework, dylib
+        Ok(link_type) if link_type == "framework" => {
+            return Err("Seccomp is a Linux specific technology".into());
+        }
+        Ok(link_type) => link_type, // static or dylib
         Err(_) => String::from("dylib"),
     };
 
     println!("cargo:rustc-link-lib={}=seccomp", link_type);
+
+    Ok(())
 }
