@@ -5,10 +5,12 @@
 
 use std::{env, path};
 
-fn main() {
-    println!("cargo:rerun-if-env-changed=LIBSECCOMP_LIB_PATH");
+const LIBSECCOMP_LIB_PATH: &str = "LIBSECCOMP_LIB_PATH";
 
-    if let Ok(path) = env::var("LIBSECCOMP_LIB_PATH") {
+fn main() {
+    println!("cargo:rerun-if-env-changed={}", LIBSECCOMP_LIB_PATH);
+
+    if let Ok(path) = env::var(LIBSECCOMP_LIB_PATH) {
         println!("cargo:rustc-link-search=native={}", path);
         let pkgconfig = path::Path::new(&path).join("pkgconfig");
         env::set_var("PKG_CONFIG_PATH", pkgconfig);
