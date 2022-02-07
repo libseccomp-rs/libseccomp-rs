@@ -1624,7 +1624,11 @@ impl ScmpFilterContext {
 
     /// Gets a raw pointer of a seccomp filter.
     ///
-    /// This function return a raw pointer to the [`scmp_filter_ctx`].
+    /// This function returns a raw pointer to the [`scmp_filter_ctx`].
+    /// The caller must ensure that the filter outlives the pointer this function returns,
+    /// or else it will end up pointing to garbage.
+    /// You may only modify the filter referenced by the pointer with functions intended
+    /// for this (the once provided by [`libseccomp_sys`] crate).
     #[must_use]
     pub fn as_ptr(&self) -> scmp_filter_ctx {
         self.ctx.as_ptr()
