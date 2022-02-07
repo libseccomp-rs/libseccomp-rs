@@ -914,10 +914,7 @@ impl ScmpFilterContext {
     ///
     /// If merging the filters fails, an error will be returned.
     pub fn merge(&mut self, src: Self) -> Result<()> {
-        let ret = unsafe { seccomp_merge(self.ctx.as_ptr(), src.ctx.as_ptr()) };
-        if ret != 0 {
-            return Err(SeccompError::new(Errno(ret)));
-        }
+        cvt(unsafe { seccomp_merge(self.ctx.as_ptr(), src.ctx.as_ptr()) })?;
 
         // The src filter is already released.
         std::mem::forget(src);
@@ -957,16 +954,13 @@ impl ScmpFilterContext {
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn is_arch_present(&self, arch: ScmpArch) -> Result<bool> {
-        let ret = unsafe { seccomp_arch_exist(self.ctx.as_ptr(), arch.to_sys()) };
+        const NEG_EEXIST: i32 = -libc::EEXIST;
 
-        if ret != 0 {
-            if ret == -(libc::EEXIST as i32) {
-                return Ok(false);
-            }
-            return Err(SeccompError::new(Errno(ret)));
+        match unsafe { seccomp_arch_exist(self.ctx.as_ptr(), arch.to_sys()) } {
+            0 => Ok(true),
+            NEG_EEXIST => Ok(false),
+            errno => Err(SeccompError::new(Errno(errno))),
         }
-
-        Ok(true)
     }
 
     /// Adds an architecture to the filter.
@@ -1099,7 +1093,7 @@ impl ScmpFilterContext {
         syscall: S,
         comparators: &[ScmpArgCompare],
     ) -> Result<()> {
-        let ret = unsafe {
+        cvt(unsafe {
             seccomp_rule_add_array(
                 self.ctx.as_ptr(),
                 action.to_sys(),
@@ -1107,13 +1101,7 @@ impl ScmpFilterContext {
                 comparators.len() as u32,
                 comparators.as_ptr() as *const scmp_arg_cmp,
             )
-        };
-
-        if ret != 0 {
-            return Err(SeccompError::new(Errno(ret)));
-        }
-
-        Ok(())
+        })
     }
 
     /// Adds a single rule for an unconditional action on a syscall.
@@ -1173,7 +1161,7 @@ impl ScmpFilterContext {
         syscall: S,
         comparators: &[ScmpArgCompare],
     ) -> Result<()> {
-        let ret = unsafe {
+        cvt(unsafe {
             seccomp_rule_add_exact_array(
                 self.ctx.as_ptr(),
                 action.to_sys(),
@@ -1181,13 +1169,7 @@ impl ScmpFilterContext {
                 comparators.len() as u32,
                 comparators.as_ptr() as *const scmp_arg_cmp,
             )
-        };
-
-        if ret != 0 {
-            return Err(SeccompError::new(Errno(ret)));
-        }
-
-        Ok(())
+        })
     }
 
     /// Loads a filter context into the kernel.
@@ -1199,12 +1181,7 @@ impl ScmpFilterContext {
     /// If this function is called with an invalid filter or an issue is
     /// encountered loading the rule, an error will be returned.
     pub fn load(&self) -> Result<()> {
-        let ret = unsafe { seccomp_load(self.ctx.as_ptr()) };
-        if ret != 0 {
-            return Err(SeccompError::new(Errno(ret)));
-        }
-
-        Ok(())
+        cvt(unsafe { seccomp_load(self.ctx.as_ptr()) })
     }
 
     /// Sets a syscall's priority.
@@ -1224,14 +1201,9 @@ impl ScmpFilterContext {
     /// If this function is called with an invalid filter or the number of syscall
     /// is invalid, an error will be returned.
     pub fn set_syscall_priority<S: Syscall>(&mut self, syscall: S, priority: u8) -> Result<()> {
-        let ret = unsafe {
+        cvt(unsafe {
             seccomp_syscall_priority(self.ctx.as_ptr(), syscall.to_syscall_nr(), priority)
-        };
-        if ret != 0 {
-            return Err(SeccompError::new(Errno(ret)));
-        }
-
-        Ok(())
+        })
     }
 
     /// Gets a raw filter attribute value.
@@ -1250,10 +1222,7 @@ impl ScmpFilterContext {
     pub fn get_filter_attr(&self, attr: ScmpFilterAttr) -> Result<u32> {
         let mut attribute: u32 = 0;
 
-        let ret = unsafe { seccomp_attr_get(self.ctx.as_ptr(), attr.to_sys(), &mut attribute) };
-        if ret != 0 {
-            return Err(SeccompError::new(Errno(ret)));
-        }
+        cvt(unsafe { seccomp_attr_get(self.ctx.as_ptr(), attr.to_sys(), &mut attribute) })?;
 
         Ok(attribute)
     }
@@ -1430,12 +1399,7 @@ impl ScmpFilterContext {
     /// If this function is called with an invalid filter or an issue is
     /// encountered setting the attribute, an error will be returned.
     pub fn set_filter_attr(&mut self, attr: ScmpFilterAttr, value: u32) -> Result<()> {
-        let ret = unsafe { seccomp_attr_set(self.ctx.as_ptr(), attr.to_sys(), value) };
-        if ret != 0 {
-            return Err(SeccompError::new(Errno(ret)));
-        }
-
-        Ok(())
+        cvt(unsafe { seccomp_attr_set(self.ctx.as_ptr(), attr.to_sys(), value) })
     }
 
     /// Sets the default action taken when the loaded filter does not match the architecture
@@ -1626,12 +1590,7 @@ impl ScmpFilterContext {
     /// If this function is called with an invalid filter or  writing to the file fails,
     /// an error will be returned.
     pub fn export_pfc<T: AsRawFd>(&self, fd: &mut T) -> Result<()> {
-        let ret = unsafe { seccomp_export_pfc(self.ctx.as_ptr(), fd.as_raw_fd()) };
-        if ret != 0 {
-            return Err(SeccompError::new(Errno(ret)));
-        }
-
-        Ok(())
+        cvt(unsafe { seccomp_export_pfc(self.ctx.as_ptr(), fd.as_raw_fd()) })
     }
 
     /// Outputs BPF(Berkeley Packet Filter)-formatted, kernel-readable dump of a
@@ -1646,12 +1605,7 @@ impl ScmpFilterContext {
     /// If this function is called with an invalid filter or  writing to the file fails,
     /// an error will be returned.
     pub fn export_bpf<T: AsRawFd>(&self, fd: &mut T) -> Result<()> {
-        let ret = unsafe { seccomp_export_bpf(self.ctx.as_ptr(), fd.as_raw_fd()) };
-        if ret != 0 {
-            return Err(SeccompError::new(Errno(ret)));
-        }
-
-        Ok(())
+        cvt(unsafe { seccomp_export_bpf(self.ctx.as_ptr(), fd.as_raw_fd()) })
     }
 
     /// Resets a filter context, removing all its existing state.
@@ -1665,12 +1619,7 @@ impl ScmpFilterContext {
     /// If this function is called with an invalid filter or an issue is encountered
     /// resetting the filter, an error will be returned.
     pub fn reset(&mut self, action: ScmpAction) -> Result<()> {
-        let ret = unsafe { seccomp_reset(self.ctx.as_ptr(), action.to_sys()) };
-        if ret != 0 {
-            return Err(SeccompError::new(Errno(ret)));
-        }
-
-        Ok(())
+        cvt(unsafe { seccomp_reset(self.ctx.as_ptr(), action.to_sys()) })
     }
 
     /// Gets a raw pointer of a seccomp filter.
@@ -1872,12 +1821,7 @@ pub fn set_api(level: u32) -> Result<()> {
 /// If the linked libseccomp library is older than v2.5.1 this function will
 /// return an error.
 pub fn reset_global_state() -> Result<()> {
-    let ret = unsafe { seccomp_reset(std::ptr::null_mut(), 0) };
-    if ret != 0 {
-        return Err(SeccompError::new(Errno(ret)));
-    }
-
-    Ok(())
+    cvt(unsafe { seccomp_reset(std::ptr::null_mut(), 0) })
 }
 
 /// Retrieves the name of a syscall from its number for a given architecture.
@@ -1916,6 +1860,14 @@ pub fn get_syscall_name_from_arch(arch: ScmpArch, syscall: i32) -> Result<String
 #[deprecated(since = "0.2.3", note = "Use ScmpSyscall::from_name* instead.")]
 pub fn get_syscall_from_name(name: &str, arch: Option<ScmpArch>) -> Result<i32> {
     Ok(ScmpSyscall::from_name_by_arch(name, arch.unwrap_or(ScmpArch::Native))?.to_sys())
+}
+
+fn cvt(ret: i32) -> Result<()> {
+    if ret == 0 {
+        Ok(())
+    } else {
+        Err(SeccompError::new(Errno(ret)))
+    }
 }
 
 #[cfg(test)]

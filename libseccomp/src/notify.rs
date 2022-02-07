@@ -3,6 +3,7 @@
 // Copyright 2021 Sony Group Corporation
 //
 
+use super::cvt;
 use crate::error::ErrorKind::*;
 use crate::error::{Result, SeccompError};
 use crate::{ensure_supported_api, ScmpArch, ScmpFilterContext, ScmpVersion};
@@ -138,10 +139,7 @@ impl ScmpNotifReq {
         let mut req_ptr: *mut seccomp_notif = std::ptr::null_mut();
 
         // We only use the request here; the response is unused.
-        let ret = unsafe { seccomp_notify_alloc(&mut req_ptr, std::ptr::null_mut()) };
-        if ret != 0 {
-            return Err(SeccompError::new(Errno(ret)));
-        }
+        cvt(unsafe { seccomp_notify_alloc(&mut req_ptr, std::ptr::null_mut()) })?;
 
         loop {
             let ret = unsafe { seccomp_notify_receive(fd, req_ptr) };
@@ -233,10 +231,7 @@ impl ScmpNotifResp {
         let mut resp_ptr: *mut seccomp_notif_resp = std::ptr::null_mut();
 
         // We only use the response here; the request is unused.
-        let ret = unsafe { seccomp_notify_alloc(std::ptr::null_mut(), &mut resp_ptr) };
-        if ret != 0 {
-            return Err(SeccompError::new(Errno(ret)));
-        }
+        cvt(unsafe { seccomp_notify_alloc(std::ptr::null_mut(), &mut resp_ptr) })?;
 
         unsafe { self.to_sys(resp_ptr) };
 
