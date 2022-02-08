@@ -8,3 +8,12 @@ repository = "https://github.com/libseccomp-rs/libseccomp-rs"
 categories = ["seccomp", "api-bindings"]
 edition = "2018"
 readme = "README.md"
+
+[features]
+# Allows downloading and building libseccomp at build time.
+bundled = ["cc"]
+
+[build-dependencies]
+# Used to get compiler information to set CC and CFLAGS env variables when
+# compiling bundled libseccomp.
+cc = { version = "1.0.72", optional = true }

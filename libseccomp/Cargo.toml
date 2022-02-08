@@ -14,6 +14,10 @@ readme = "../README.md"
 libc = "0.2.108"
 libseccomp-sys = { version = "0.2.1", path = "../libseccomp-sys" }
 
+[features]
+# Allows downloading and building libseccomp at build time.
+bundled = ["libseccomp-sys/bundled"]
+
 [build-dependencies]
 pkg-config = "0.3.19"
 

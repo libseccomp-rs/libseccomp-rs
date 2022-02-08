@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Added
+- "bundled" feature to allow downloading and building libseccomp at build time.
 
 ### Changed
 
