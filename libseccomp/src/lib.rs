@@ -1431,8 +1431,6 @@ impl ScmpFilterContext {
     /// Sets the state of the [`ScmpFilterAttr::CtlNnp`] attribute which will be applied
     /// on filter load.
     ///
-    /// Filters with the [`ScmpFilterAttr::CtlNnp`] attribute set to on (`state` == `true`) can only
-    /// be loaded if the process has the CAP_SYS_ADMIN capability.
     /// Settings this to off (`state` == `false`) means that loading the seccomp filter
     /// into the kernel fill fail if the CAP_SYS_ADMIN is missing.
     ///
