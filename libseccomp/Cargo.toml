@@ -1,6 +1,6 @@
 [package]
 name = "libseccomp"
-version = "0.2.2"
+version = "0.2.3"
 authors = ["Manabu Sugimoto <Manabu.Sugimoto@sony.com>"]
 license = "MIT OR Apache-2.0"
 description = "Rust Language Bindings for the libseccomp Library"
@@ -12,7 +12,7 @@ readme = "../README.md"
 
 [dependencies]
 libc = "0.2.108"
-libseccomp-sys = { version = "0.2.0", path = "../libseccomp-sys" }
+libseccomp-sys = { version = "0.2.1", path = "../libseccomp-sys" }
 
 [build-dependencies]
 pkg-config = "0.3.19"
