@@ -22,7 +22,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // If bundled feature is enabled, build the library and return any errors.
     #[cfg(feature = "bundled")]
     {
+        // Download (if necessary) and build libseccomp
         let lib_dir = build_bundled::build()?;
+        // Then emit flags to tell cargo to statically link it.
         build_linked::link(Some(&lib_dir), Some("static"))
     }
     #[cfg(not(feature = "bundled"))]
@@ -213,13 +215,13 @@ mod build_linked {
         lib_path: Option<&Path>,
         lib_link_type: Option<&str>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        // If the lib path is set via environment variable, use that to tell cargo where to find
-        // libseccomp.
-        // Otherwise, use the passed path if it's set from the build step.
-        if let Ok(path) = env::var(LIBSECCOMP_LIB_PATH) {
-            println!("cargo:rustc-link-search=native={}", path);
-        } else if let Some(path) = lib_path {
+        // Use the passed path if it's set from the build step.
+        // Otherwise, if the lib path is set via environment variable, use that to tell cargo where
+        // to find libseccomp.
+        if let Some(path) = lib_path {
             println!("cargo:rustc-link-search=native={}", path.to_str().unwrap());
+        } else if let Ok(path) = env::var(LIBSECCOMP_LIB_PATH) {
+            println!("cargo:rustc-link-search=native={}", path);
         }
 
         let link_type = match env::var(LIBSECCOMP_LINK_TYPE) {

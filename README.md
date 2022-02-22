@@ -108,6 +108,15 @@ Now, add the following to your `Cargo.toml` to start building the libseccomp cra
 libseccomp = "0.2.3"
 ```
 
+### Building libseccomp with the `bundled` feature
+
+By enabling the bundled feature (see below), libseccomp-rs will automatically download, build, and link libseccomp for you. See the README for libseccomp-sys for more information.
+
+```toml
+[dependencies]
+libseccomp = { version = "0.2.3", features = ["bundled"] }
+```
+
 ## Testing the crate
 The libseccomp crate provides a number of unit tests.
 If you want to run the standard regression tests, you can execute the following command.
