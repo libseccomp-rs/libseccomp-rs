@@ -14,8 +14,15 @@ Therefore most users should not need to interact with this crate directly.
 
 ## Optional features
 
-* `bundled`: Downloads and builds libseccomp for you. See below for version info. Additionally, several environment variables are available that affect the bundled feature - `LIBSECCOMP_LIB_PATH`, `LIBSECCOMP_LINK_TYPE`, `LIBSECCOMP_SRC_PATH`. See [build.rs](https://github.com/libseccomp-rs/libseccomp-rs/blob/main/libseccomp-sys/build.rs) for more information on how they're used.
+* `bundled`: Downloads, builds, and links the libseccomp library **statically**
+  for you. Regarding the installed libseccomp version, see below for version
+information. For more information on how this feature works, see the [README
+for the libseccomp
+crate](https://github.com/libseccomp-rs/libseccomp-rs#building-and-statically-linking-the-libseccomp-library-with-the-bundled-feature).
+
 
 ## Version information
 
-See the file [versions.rs](https://github.com/libseccomp-rs/libseccomp-rs/blob/main/libseccomp-sys/versions.rs). Other versions may be built by using the environment variables mentioned above.
+See the file
+[versions.rs](https://github.com/libseccomp-rs/libseccomp-rs/blob/main/libseccomp-sys/versions.rs).
+Other versions may be built by using the environment variables mentioned above.

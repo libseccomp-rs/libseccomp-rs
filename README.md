@@ -108,14 +108,31 @@ Now, add the following to your `Cargo.toml` to start building the libseccomp cra
 libseccomp = "0.2.3"
 ```
 
-### Building libseccomp with the `bundled` feature
+### Building and statically linking the libseccomp library with the `bundled` feature
 
-By enabling the bundled feature (see below), libseccomp-rs will automatically download, build, and link libseccomp for you. See the README for libseccomp-sys for more information.
+By enabling the bundled feature (see below), libseccomp-rs will automatically
+download, build, and statically link libseccomp for you. See the README for
+libseccomp-sys for more information.
 
 ```toml
 [dependencies]
 libseccomp = { version = "0.2.3", features = ["bundled"] }
 ```
+
+The bundled feature downloads and builds the libseccomp sources according to
+the file
+[versions.rs](https://github.com/libseccomp-rs/libseccomp-rs/blob/main/libseccomp-sys/versions.rs)
+by default if the `LIBSECCOMP_SRC_PATH` environment variable is not set. If you
+want to use libseccomp source code you have locally on your system, set the
+`LIBSECCOMP_SRC_PATH` to specify the source path as follows.
+
+```shell
+$ export LIBSECCOMP_SRC_PATH="the path of the directory containing the libseccomp sources"
+```
+
+> **Note**: If you want to link the libseccomp library dynamically, you should not enable this feature.
+
+
 
 ## Testing the crate
 The libseccomp crate provides a number of unit tests.
