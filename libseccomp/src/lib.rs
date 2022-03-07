@@ -948,7 +948,6 @@ impl ScmpFilterContext {
     /// ```
     /// # use libseccomp::*;
     /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
-    /// assert!(!ctx.is_arch_present(ScmpArch::Aarch64)?);
     /// ctx.add_arch(ScmpArch::Aarch64)?;
     /// assert!(ctx.is_arch_present(ScmpArch::Aarch64)?);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
