@@ -9,6 +9,43 @@ use libseccomp_sys::*;
 use std::ffi::{CStr, CString};
 use std::fmt;
 
+#[cfg(feature = "const-syscall")]
+cfg_if::cfg_if! {
+    if #[cfg(target_arch = "x86_64")] {
+        mod x86_64;
+        use x86_64::SYSCALLS;
+    } else if #[cfg(target_arch = "aarch64")] {
+        mod aarch64;
+        use aarch64::SYSCALLS;
+    } else if #[cfg(target_arch = "arm")] {
+        mod arm;
+        use arm::SYSCALLS;
+    } else if #[cfg(target_arch = "mips")] {
+        mod mips;
+        use mips::SYSCALLS;
+    } else if #[cfg(target_arch = "mips64")] {
+        mod mips64;
+        use mips64::SYSCALLS;
+    } else if #[cfg(target_arch = "powerpc")] {
+        mod powerpc;
+        use powerpc::SYSCALLS;
+    } else if #[cfg(target_arch = "powerpc64")] {
+        mod powerpc64;
+        use powerpc64::SYSCALLS;
+    } else if #[cfg(target_arch = "riscv64")] {
+        mod riscv64;
+        use riscv64::SYSCALLS;
+    } else if #[cfg(target_arch = "s390x")] {
+        mod s390x;
+        use s390x::SYSCALLS;
+    } else if #[cfg(target_arch = "x86")] {
+        mod x86;
+        use x86::SYSCALLS;
+    } else {
+        compile_error!("Looks like your target_arch is not supported by libseccomp.");
+    }
+}
+
 /// Represents a syscall number.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct ScmpSyscall {
@@ -20,6 +57,41 @@ impl ScmpSyscall {
     }
 
     pub(crate) fn from_sys(nr: i32) -> Self {
+        Self { nr }
+    }
+
+    /// Resolves a syscall name to `ScmpSyscall`.
+    ///
+    /// This function returns a `ScmpSyscall` that can be passed to
+    /// [`add_rule`](crate::ScmpFilterContext::add_rule) like functions.
+    /// Or `ScmpSyscall::from(libseccomp_sys::__NR_SCMP_ERROR)` if name is unknown.
+    ///
+    /// Unlike [`from_name`](Self::from_name) this function does not any FFI call
+    /// and can therefore be `const`.
+    ///
+    /// # Arguments
+    ///
+    /// * `name` - The name of a syscall
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use libseccomp::*;
+    /// let syscall = ScmpSyscall::new("chroot");
+    /// ```
+    #[cfg(feature = "const-syscall")]
+    pub const fn new(name: &str) -> Self {
+        let mut i = 0;
+        let nr = loop {
+            if i >= SYSCALLS.len() {
+                break libseccomp_sys::__NR_SCMP_ERROR;
+            }
+            if strcmp(SYSCALLS[i].0, name) {
+                break SYSCALLS[i].1;
+            }
+            i += 1;
+        };
+
         Self { nr }
     }
 
@@ -233,4 +305,25 @@ impl fmt::Display for ScmpSyscall {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.nr)
     }
+}
+
+/// Compare two strings
+///
+/// This is a helper function because `&str == &str` is not `const` yet.
+///
+/// This function returns the same as `lhs == rhs`.
+#[cfg(feature = "const-syscall")]
+const fn strcmp(lhs: &str, rhs: &str) -> bool {
+    if lhs.len() != rhs.len() {
+        return false;
+    }
+    let (lhs, rhs) = (lhs.as_bytes(), rhs.as_bytes());
+    let mut i = 0;
+    while i < lhs.len() && i < rhs.len() {
+        if lhs[i] != rhs[i] {
+            return false;
+        }
+        i += 1;
+    }
+    true
 }

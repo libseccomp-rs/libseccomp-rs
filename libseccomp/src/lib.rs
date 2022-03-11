@@ -45,6 +45,10 @@
 //!     Ok(())
 //! }
 //! ```
+//!
+//! # Features
+//!
+//! - `const-syscall`: Allow creating of `ScmpSyscall` in a `const`-context.
 
 #![warn(rust_2018_idioms)]
 #![deny(missing_debug_implementations)]

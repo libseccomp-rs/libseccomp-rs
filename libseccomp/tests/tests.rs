@@ -1,6 +1,9 @@
 use libseccomp::*;
 use std::io::{stdout, Error};
 
+#[cfg(feature = "const-syscall")]
+mod known_syscall_names;
+
 macro_rules! syscall_assert {
     ($e1: expr, $e2: expr) => {
         let mut errno: i32 = 0;
@@ -221,6 +224,21 @@ fn test_get_syscall_from_name() {
     assert_eq!(
         get_syscall_from_name("openat", Some(ScmpArch::Aarch64)).unwrap(),
         ScmpSyscall::from_name_by_arch("openat", ScmpArch::Aarch64).unwrap(),
+    );
+}
+
+#[test]
+#[cfg(feature = "const-syscall")]
+fn test_syscall_new() {
+    for name in known_syscall_names::KNOWN_SYSCALL_NAMES {
+        if let Ok(nr) = ScmpSyscall::from_name(name) {
+            assert_eq!(ScmpSyscall::new(name), nr);
+        }
+    }
+    assert_eq!(ScmpSyscall::new(""), libseccomp_sys::__NR_SCMP_ERROR);
+    assert_eq!(
+        ScmpSyscall::new("unkown_syscall"),
+        libseccomp_sys::__NR_SCMP_ERROR,
     );
 }
 

@@ -22,12 +22,15 @@ release:
 debug:
 	RUSTFLAGS="--deny warnings" cargo build
 
+debug-all:
+	RUSTFLAGS="--deny warnings" cargo build --all-features
+
 #
 # Test
 #
 
 test:
-	cargo test -- --color always --nocapture --test-threads 1
+	cargo test --all-features -- --color always --nocapture --test-threads 1
 
 check: fmt clippy test
 
