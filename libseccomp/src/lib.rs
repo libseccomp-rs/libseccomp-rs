@@ -708,7 +708,8 @@ impl ScmpSyscall {
 
     /// Resolves a syscall name to `ScmpSyscall`.
     ///
-    /// NOTE: This functions is probably not what you want.
+    /// NOTE: If you call this function with a foreign architecture token and pass the result
+    /// to [`add_rule*`](ScmpFilterContext::add_rule) functions you get unexpected results.
     ///
     /// This function returns a `ScmpSyscall` for the specified architecture.
     ///
