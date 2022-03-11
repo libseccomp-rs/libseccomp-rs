@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `impl fmt::Display for ScmpSyscall`
 - `impl PartialEq<i32> for ScmpSyscall` and `impl PartialEq<ScmpSyscall> for i32`
 - `SeccompError::errno` + `SeccompErrno` to query the errno returned by the libseccomp API.
+- `const fn ScmpSyscall::new`
 
 ### Changed
 - Re-export `notify` module with private so that users can use the more convenient

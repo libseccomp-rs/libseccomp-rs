@@ -45,6 +45,10 @@
 //!     Ok(())
 //! }
 //! ```
+//!
+//! # Features
+//!
+//! - `const-syscall`: Allow creating of `ScmpSyscall` in a `const`-context.
 
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
