@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `SeccompError::errno` + `SeccompErrno` to query the errno returned by the libseccomp API.
 - `ScmpNotifResp::new_val()`, `ScmpNotifResp::new_error()` and `ScmpNotifResp::new_continue()`
 - `ScmpNotifRespFlags`
+- `const fn ScmpSyscall::new` (behind `const-syscall` feature)
 
 ### Changed
 - Re-export `notify` module with private so that users can use the more convenient

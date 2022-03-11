@@ -41,6 +41,10 @@ jobs:
           echo "LD_LIBRARY_PATH=${{ env.LIBSECCOMP_LIB_PATH }}" >> $GITHUB_ENV
       - name: Build crate
         run: make debug
+      - name: Build crate with all features
+        run: |
+          make clean
+          make debug-all
       - name: Run test
         run: make test
 
@@ -71,6 +75,12 @@ jobs:
         run: cargo build --target ${{ matrix.target }}
       - name: Run test
         run: cargo test --target ${{ matrix.target }} -- --nocapture --test-threads 1
+      - name: Build crate with all features
+        run: |
+          cargo clean
+          cargo build --target ${{ matrix.target }} --all-features
+      - name: Run test
+        run: cargo test --target ${{ matrix.target }} --all-features -- --nocapture --test-threads 1
 
   cross:
     name: Cross Compilation
@@ -118,7 +128,7 @@ jobs:
       - name: Install codespell
         run: pip install codespell
       - name: Run codespell
-        run: codespell --ignore-words-list crate
+        run: codespell --skip './libseccomp/tests/known_syscall_names.rs,./libseccomp/src/syscall/*.rs' --ignore-words-list crate
 
   readme:
     name: Readme Check
