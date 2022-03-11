@@ -157,6 +157,11 @@ fn test_filter_reset() {
 }
 
 #[test]
+fn test_syscall_i32() {
+    assert_eq!(4_i32, ScmpSyscall::from(4).into());
+}
+
+#[test]
 fn test_get_syscall_name_from_arch() {
     let name = ScmpSyscall::from(5)
         .get_name_by_arch(ScmpArch::Arm)

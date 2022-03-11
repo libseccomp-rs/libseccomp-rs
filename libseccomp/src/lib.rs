@@ -847,6 +847,16 @@ impl From<i32> for ScmpSyscall {
         Self::from_sys(nr)
     }
 }
+impl From<ScmpSyscall> for i32 {
+    /// Gets the syscall number of a syscall.
+    ///
+    /// # Arguments
+    ///
+    /// * `syscall` - The syscall
+    fn from(syscall: ScmpSyscall) -> i32 {
+        syscall.nr
+    }
+}
 
 mod private {
     pub trait Sealed {}
