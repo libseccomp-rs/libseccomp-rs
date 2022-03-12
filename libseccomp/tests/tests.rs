@@ -183,18 +183,14 @@ fn test_get_syscall_name_from_arch() {
 
 #[test]
 fn test_get_syscall_from_name() {
-    let num = ScmpSyscall::from_name("open").unwrap().to_syscall_nr();
     println!(
         "test_get_syscall_from_name: Got syscall number of open on native arch as {}",
-        num
+        ScmpSyscall::from_name("open").unwrap()
     );
 
-    let num = ScmpSyscall::from_name_by_arch("open", ScmpArch::Arm)
-        .unwrap()
-        .to_syscall_nr();
     println!(
         "test_get_syscall_from_name: Got syscall number of open on ARM arch as {}",
-        num
+        ScmpSyscall::from_name_by_arch("open", ScmpArch::Arm).unwrap()
     );
 }
 

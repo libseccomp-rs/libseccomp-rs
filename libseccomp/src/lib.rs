@@ -873,28 +873,6 @@ impl fmt::Display for ScmpSyscall {
     }
 }
 
-mod private {
-    pub trait Sealed {}
-
-    impl Sealed for super::ScmpSyscall {}
-    impl Sealed for i32 {}
-}
-
-pub trait Syscall: private::Sealed {
-    fn to_syscall_nr(self) -> i32;
-}
-impl Syscall for ScmpSyscall {
-    fn to_syscall_nr(self) -> i32 {
-        self.to_sys()
-    }
-}
-
-impl Syscall for i32 {
-    fn to_syscall_nr(self) -> i32 {
-        self
-    }
-}
-
 /// **Represents a filter context in the libseccomp.**
 #[derive(Debug)]
 pub struct ScmpFilterContext {
@@ -1077,7 +1055,7 @@ impl ScmpFilterContext {
     /// ctx.add_rule(ScmpAction::Errno(libc::EPERM), syscall)?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn add_rule<S: Syscall>(&mut self, action: ScmpAction, syscall: S) -> Result<()> {
+    pub fn add_rule<S: Into<ScmpSyscall>>(&mut self, action: ScmpAction, syscall: S) -> Result<()> {
         self.add_rule_conditional(action, syscall, &[])
     }
 
@@ -1112,7 +1090,7 @@ impl ScmpFilterContext {
     /// )?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn add_rule_conditional<S: Syscall>(
+    pub fn add_rule_conditional<S: Into<ScmpSyscall>>(
         &mut self,
         action: ScmpAction,
         syscall: S,
@@ -1122,7 +1100,7 @@ impl ScmpFilterContext {
             seccomp_rule_add_array(
                 self.ctx.as_ptr(),
                 action.to_sys(),
-                syscall.to_syscall_nr(),
+                syscall.into().to_sys(),
                 comparators.len() as u32,
                 comparators.as_ptr() as *const scmp_arg_cmp,
             )
@@ -1145,7 +1123,11 @@ impl ScmpFilterContext {
     ///
     /// If this function is called with an invalid filter or an issue is
     /// encountered adding the rule, an error will be returned.
-    pub fn add_rule_exact<S: Syscall>(&mut self, action: ScmpAction, syscall: S) -> Result<()> {
+    pub fn add_rule_exact<S: Into<ScmpSyscall>>(
+        &mut self,
+        action: ScmpAction,
+        syscall: S,
+    ) -> Result<()> {
         self.add_rule_conditional_exact(action, syscall, &[])
     }
 
@@ -1180,7 +1162,7 @@ impl ScmpFilterContext {
     /// )?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn add_rule_conditional_exact<S: Syscall>(
+    pub fn add_rule_conditional_exact<S: Into<ScmpSyscall>>(
         &mut self,
         action: ScmpAction,
         syscall: S,
@@ -1190,7 +1172,7 @@ impl ScmpFilterContext {
             seccomp_rule_add_exact_array(
                 self.ctx.as_ptr(),
                 action.to_sys(),
-                syscall.to_syscall_nr(),
+                syscall.into().to_sys(),
                 comparators.len() as u32,
                 comparators.as_ptr() as *const scmp_arg_cmp,
             )
@@ -1225,9 +1207,13 @@ impl ScmpFilterContext {
     ///
     /// If this function is called with an invalid filter or the number of syscall
     /// is invalid, an error will be returned.
-    pub fn set_syscall_priority<S: Syscall>(&mut self, syscall: S, priority: u8) -> Result<()> {
+    pub fn set_syscall_priority<S: Into<ScmpSyscall>>(
+        &mut self,
+        syscall: S,
+        priority: u8,
+    ) -> Result<()> {
         cvt(unsafe {
-            seccomp_syscall_priority(self.ctx.as_ptr(), syscall.to_syscall_nr(), priority)
+            seccomp_syscall_priority(self.ctx.as_ptr(), syscall.into().to_sys(), priority)
         })
     }
 

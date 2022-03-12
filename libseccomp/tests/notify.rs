@@ -2,9 +2,7 @@
 
 use libc::{dup3, O_CLOEXEC};
 use libseccomp::notify::*;
-use libseccomp::{
-    check_api, ScmpAction, ScmpArch, ScmpFilterContext, ScmpSyscall, ScmpVersion, Syscall,
-};
+use libseccomp::{check_api, ScmpAction, ScmpArch, ScmpFilterContext, ScmpSyscall, ScmpVersion};
 use std::thread;
 
 macro_rules! skip_if_not_supported {
@@ -18,7 +16,7 @@ macro_rules! skip_if_not_supported {
 
 #[derive(Debug)]
 struct TestData {
-    syscall: i32,
+    syscall: ScmpSyscall,
     args: Vec<u64>,
     arch: ScmpArch,
     resp_val: i64,
@@ -32,7 +30,7 @@ fn test_user_notification() {
     skip_if_not_supported!();
 
     let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow).unwrap();
-    let syscall = ScmpSyscall::from_name("dup3").unwrap().to_syscall_nr();
+    let syscall = ScmpSyscall::from_name("dup3").unwrap();
     let arch = ScmpArch::native().unwrap();
 
     ctx.add_arch(arch).unwrap();
