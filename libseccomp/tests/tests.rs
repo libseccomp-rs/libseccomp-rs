@@ -191,6 +191,11 @@ fn test_get_syscall_from_name() {
 }
 
 #[test]
+fn test_display_syscall() {
+    assert_eq!(format!("{}", ScmpSyscall::from(4)), "4");
+}
+
+#[test]
 fn test_arch_functions() {
     let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow).unwrap();
     ctx.add_arch(ScmpArch::X86).unwrap();
