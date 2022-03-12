@@ -857,6 +857,11 @@ impl From<ScmpSyscall> for i32 {
         syscall.nr
     }
 }
+impl fmt::Display for ScmpSyscall {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.nr)
+    }
+}
 
 mod private {
     pub trait Sealed {}
