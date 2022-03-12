@@ -857,6 +857,16 @@ impl From<ScmpSyscall> for i32 {
         syscall.nr
     }
 }
+impl PartialEq<i32> for ScmpSyscall {
+    fn eq(&self, other: &i32) -> bool {
+        self.nr == *other
+    }
+}
+impl PartialEq<ScmpSyscall> for i32 {
+    fn eq(&self, other: &ScmpSyscall) -> bool {
+        *self == other.nr
+    }
+}
 impl fmt::Display for ScmpSyscall {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.nr)
