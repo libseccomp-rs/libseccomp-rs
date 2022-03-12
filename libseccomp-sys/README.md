@@ -12,6 +12,17 @@ These low-level, mostly `unsafe` bindings are then used by the [libseccomp crate
 which wraps them in a nice to use, mostly safe API.
 Therefore most users should not need to interact with this crate directly.
 
+## Optional features
+
+* `bundled`: Downloads, builds, and links the libseccomp library **statically**
+  for you. Regarding the installed libseccomp version, see below for version
+information. For more information on how this feature works, see the [README
+for the libseccomp
+crate](https://github.com/libseccomp-rs/libseccomp-rs#building-and-statically-linking-the-libseccomp-library-with-the-bundled-feature).
+
+
 ## Version information
 
-Currently, the libseccomp-sys supports libseccomp version 2.5.3.
+See the file
+[versions.rs](https://github.com/libseccomp-rs/libseccomp-rs/blob/main/libseccomp-sys/versions.rs).
+Other versions may be built by using the environment variables mentioned above.

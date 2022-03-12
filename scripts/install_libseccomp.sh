@@ -31,8 +31,8 @@ function build_and_install_gperf() {
     ./configure --prefix="${gperf_install_dir}"
     make
     make install
-    export PATH=$PATH:"${gperf_install_dir}"/bin
     popd
+    export PATH=$PATH:"${gperf_install_dir}"/bin
     echo "Gperf installed successfully"
 }
 
@@ -104,7 +104,9 @@ function main() {
 
     pushd "${WORK_DIR}"
     # gperf is required for building the libseccomp.
-    build_and_install_gperf
+	if ! command -v gperf 1>/dev/null; then
+		build_and_install_gperf
+	fi
     build_and_install_libseccomp
     popd
 }

@@ -13,13 +13,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Install upstream libseccomp
-        run: sudo ./scripts/install_libseccomp.sh
+        run: |
+          sudo apt-get install gperf
+          sudo ./scripts/install_libseccomp.sh
       - name: Prepare for rustfmt and clippy
         run: rustup component add rustfmt clippy
       - name: Run rustfmt
         run: make fmt
       - name: Run clippy
         run: make clippy
+
+  test-install-script:
+    name: Test script to build and install gperf and libseccomp
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install upstream libseccomp
+        run: sudo ./scripts/install_libseccomp.sh
 
   test:
     name: Unit Tests
@@ -36,6 +47,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Install upstream libseccomp
         run: |
+          sudo apt-get install gperf
           install_dir=$(dirname ${{ env.LIBSECCOMP_LIB_PATH }})
           sudo ./scripts/install_libseccomp.sh -v ${{ matrix.libseccomp-version }} -i ${install_dir}
           echo "LD_LIBRARY_PATH=${{ env.LIBSECCOMP_LIB_PATH }}" >> $GITHUB_ENV
@@ -65,12 +77,37 @@ jobs:
         run: sudo apt-get install musl-tools
       - name: Install upstream libseccomp
         run: |
+          sudo apt-get install gperf
           install_dir=$(dirname ${{ env.LIBSECCOMP_LIB_PATH }})
           sudo ./scripts/install_libseccomp.sh -m -v ${{ matrix.libseccomp-version }} -i ${install_dir}
       - name: Build crate
         run: cargo build --target ${{ matrix.target }}
       - name: Run test
         run: cargo test --target ${{ matrix.target }} -- --nocapture --test-threads 1
+
+  static-link-bundled:
+    # If we didn't target musl, we would have to use ldd or some other tool to
+    # manually check that seccomp isn't linked dynamically in a test program.
+    name: Statically Linking with musl and the bundled feature
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - x86_64-unknown-linux-musl
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install Rust toolchain
+        run: rustup target add ${{ matrix.target }}
+      - name: Install musl gcc
+        run: sudo apt-get install musl-tools
+      - name: Install gperf
+        run: sudo apt-get install gperf
+      - name: Build crate
+        run: cargo build --features bundled --target ${{ matrix.target }}
+      - name: Run test
+        run: cargo test --features bundled --target ${{ matrix.target }} -- --nocapture --test-threads 1
 
   doc:
     name: Documentation Check
@@ -94,7 +131,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Install upstream libseccomp
-        run: sudo ./scripts/install_libseccomp.sh
+        run: |
+          sudo apt-get install gperf
+          sudo ./scripts/install_libseccomp.sh
       - name: Run cargo tarpaulin
         uses: actions-rs/tarpaulin@v0.1
         with:

@@ -22,10 +22,15 @@ fn main() {
         env::set_var("PKG_CONFIG_ALLOW_CROSS", "1");
     }
 
-    if pkg_config::Config::new()
-        .atleast_version("2.5.0")
-        .probe("libseccomp")
-        .is_ok()
+    // The bundled version of libseccomp will always be > 2.5.
+    // NOTE: We are relying here on the fact that || short-circuits in rust, so that we don't call
+    // pkg_config::Config::probe if the bundled feature is enabled, because probe will output cargo
+    // build flags to link libseccomp dynamically if it's found.
+    if cfg!(feature = "bundled")
+        || pkg_config::Config::new()
+            .atleast_version("2.5.0")
+            .probe("libseccomp")
+            .is_ok()
     {
         println!("cargo:rustc-cfg=libseccomp_v2_5");
     }
