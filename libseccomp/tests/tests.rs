@@ -158,7 +158,15 @@ fn test_filter_reset() {
 
 #[test]
 fn test_syscall_i32() {
-    assert_eq!(4_i32, ScmpSyscall::from(4).into());
+    assert_eq!(4_i32, i32::from(ScmpSyscall::from(4)));
+}
+
+#[test]
+fn test_syscall_eq_i32() {
+    assert_eq!(ScmpSyscall::from(4), 4);
+    assert_eq!(4, ScmpSyscall::from(4));
+    assert_ne!(ScmpSyscall::from(4), 5);
+    assert_ne!(4, ScmpSyscall::from(5));
 }
 
 #[test]
