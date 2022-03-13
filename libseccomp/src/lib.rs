@@ -49,14 +49,14 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
 pub mod error;
-#[cfg(any(libseccomp_v2_5, doc))]
-pub mod notify;
 
 mod action;
 mod arch;
 mod arg_compare;
 mod compare_op;
 mod filter_attr;
+#[cfg(any(libseccomp_v2_5, doc))]
+mod notify;
 mod version;
 
 use error::ErrorKind::*;
@@ -72,6 +72,8 @@ pub use arch::ScmpArch;
 pub use arg_compare::ScmpArgCompare;
 pub use compare_op::ScmpCompareOp;
 pub use filter_attr::ScmpFilterAttr;
+#[cfg(any(libseccomp_v2_5, doc))]
+pub use notify::*;
 pub use version::ScmpVersion;
 
 /// Represents a syscall number.
