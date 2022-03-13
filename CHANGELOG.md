@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `impl PartialEq<i32> for ScmpSyscall` and `impl PartialEq<ScmpSyscall> for i32`
 
 ### Changed
+- Re-export `notify` module with private so that users can use the more convenient
+structure (**Incompatible change**).
 
 ### Removed
 - `Syscall` trait

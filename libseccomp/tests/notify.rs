@@ -1,8 +1,7 @@
 #![cfg(libseccomp_v2_5)]
 
 use libc::{dup3, O_CLOEXEC};
-use libseccomp::notify::*;
-use libseccomp::{check_api, ScmpAction, ScmpArch, ScmpFilterContext, ScmpSyscall, ScmpVersion};
+use libseccomp::*;
 use std::thread;
 
 macro_rules! skip_if_not_supported {
