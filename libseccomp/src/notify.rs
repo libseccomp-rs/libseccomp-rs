@@ -4,9 +4,10 @@
 //
 
 use super::cvt;
+use crate::api::ensure_supported_api;
 use crate::error::ErrorKind::*;
 use crate::error::{Result, SeccompError};
-use crate::{ensure_supported_api, ScmpArch, ScmpFilterContext, ScmpVersion};
+use crate::{ScmpArch, ScmpFilterContext, ScmpVersion};
 use libseccomp_sys::*;
 use std::os::unix::io::RawFd;
 
@@ -58,7 +59,7 @@ impl ScmpFilterContext {
     pub fn get_notify_fd(&self) -> Result<ScmpFd> {
         notify_supported()?;
 
-        let ret = unsafe { seccomp_notify_fd(self.ctx.as_ptr()) };
+        let ret = unsafe { seccomp_notify_fd(self.as_ptr()) };
         if ret < 0 {
             return Err(SeccompError::new(Errno(ret)));
         }
