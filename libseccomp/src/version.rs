@@ -62,3 +62,66 @@ impl fmt::Display for ScmpVersion {
         write!(f, "{}.{}.{}", self.major, self.minor, self.micro)
     }
 }
+
+/// Checks that the libseccomp version being used is equal to or greater than
+/// the specified version.
+///
+/// This function returns `Ok(true)` if the libseccomp version is equal to
+/// or greater than the specified version, `Ok(false)` otherwise.
+///
+/// # Arguments
+///
+/// * `expected` - The libseccomp version you want to check
+///
+/// # Errors
+///
+/// If an issue is encountered getting the current version, an error will be returned.
+pub fn check_version(expected: ScmpVersion) -> Result<bool> {
+    let current = ScmpVersion::current()?;
+
+    if current.major == expected.major
+        && (current.minor > expected.minor
+            || (current.minor == expected.minor && current.micro >= expected.micro))
+    {
+        Ok(true)
+    } else {
+        Ok(false)
+    }
+}
+
+/// Ensures that the libseccomp version is equal to or greater than the
+/// specified version.
+///
+/// # Arguments
+///
+/// * `msg` - An arbitrary non-empty operation description, used as a part
+/// of the error message returned.
+/// * `expected` - The libseccomp version you want to check
+///
+/// # Errors
+///
+/// If the libseccomp version being used is less than the specified version,
+/// an error will be returned.
+// This function will not be used if the libseccomp version is less than 2.5.0.
+pub(crate) fn ensure_supported_version(msg: &str, expected: ScmpVersion) -> Result<()> {
+    if check_version(expected)? {
+        Ok(())
+    } else {
+        let current = ScmpVersion::current()?;
+        Err(SeccompError::new(Common(format!(
+            "{} requires libseccomp >= {} (current version: {})",
+            msg, expected, current,
+        ))))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_ensure_supported_version() {
+        assert!(ensure_supported_version("test", ScmpVersion::from((2, 4, 0))).is_ok());
+        assert!(ensure_supported_version("test", ScmpVersion::from((100, 100, 100))).is_err());
+    }
+}
