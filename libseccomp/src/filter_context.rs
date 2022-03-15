@@ -34,6 +34,15 @@ impl ScmpFilterContext {
     /// # Errors
     ///
     /// If the filter context can not be created, an error will be returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use libseccomp::*;
+    /// let mut ctx =
+    ///     ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     pub fn new_filter(default_action: ScmpAction) -> Result<ScmpFilterContext> {
         let ctx_ptr = unsafe { seccomp_init(default_action.to_sys()) };
         let ctx = NonNull::new(ctx_ptr)
@@ -56,6 +65,19 @@ impl ScmpFilterContext {
     /// # Errors
     ///
     /// If merging the filters fails, an error will be returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use libseccomp::*;
+    /// let mut ctx1 = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let mut ctx2 = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// ctx2.add_arch(ScmpArch::Aarch64)?;
+    /// ctx2.remove_arch(ScmpArch::X8664)?;
+    /// ctx1.merge(ctx2)?;
+    /// assert!(ctx1.is_arch_present(ScmpArch::Aarch64)?);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     pub fn merge(&mut self, src: Self) -> Result<()> {
         cvt(unsafe { seccomp_merge(self.ctx.as_ptr(), src.ctx.as_ptr()) })?;
 
@@ -262,6 +284,16 @@ impl ScmpFilterContext {
     ///
     /// If this function is called with an invalid filter or an issue is
     /// encountered adding the rule, an error will be returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use libseccomp::*;
+    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let syscall = ScmpSyscall::from_name("dup3")?;
+    /// ctx.add_rule_exact(ScmpAction::KillThread, syscall)?;
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     pub fn add_rule_exact<S: Into<ScmpSyscall>>(
         &mut self,
         action: ScmpAction,
@@ -326,6 +358,17 @@ impl ScmpFilterContext {
     ///
     /// If this function is called with an invalid filter or an issue is
     /// encountered loading the rule, an error will be returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use libseccomp::*;
+    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let syscall = ScmpSyscall::from_name("dup3")?;
+    /// ctx.add_rule(ScmpAction::KillThread, syscall)?;
+    /// ctx.load()?;
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     pub fn load(&self) -> Result<()> {
         cvt(unsafe { seccomp_load(self.ctx.as_ptr()) })
     }
@@ -346,6 +389,16 @@ impl ScmpFilterContext {
     ///
     /// If this function is called with an invalid filter or the number of syscall
     /// is invalid, an error will be returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use libseccomp::*;
+    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let syscall = ScmpSyscall::from_name("open")?;
+    /// ctx.set_syscall_priority(syscall, 100)?;
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     pub fn set_syscall_priority<S: Into<ScmpSyscall>>(
         &mut self,
         syscall: S,
@@ -369,6 +422,14 @@ impl ScmpFilterContext {
     ///
     /// If this function is called with an invalid filter or an issue is
     /// encountered retrieving the attribute, an error will be returned.
+    ///
+    /// # Examples
+    /// ```
+    /// # use libseccomp::*;
+    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// assert_eq!(ctx.get_filter_attr(ScmpFilterAttr::CtlNnp)?,1);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     pub fn get_filter_attr(&self, attr: ScmpFilterAttr) -> Result<u32> {
         let mut attribute: u32 = 0;
 
@@ -766,6 +827,15 @@ impl ScmpFilterContext {
     ///
     /// If this function is called with an invalid filter or an issue is encountered
     /// resetting the filter, an error will be returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use libseccomp::*;
+    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// ctx.reset(ScmpAction::KillThread)?;
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     pub fn reset(&mut self, action: ScmpAction) -> Result<()> {
         cvt(unsafe { seccomp_reset(self.ctx.as_ptr(), action.to_sys()) })
     }
