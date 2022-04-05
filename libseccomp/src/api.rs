@@ -27,6 +27,14 @@ use libseccomp_sys::*;
 ///
 /// If the API level can not be detected due to the library being older than v2.4.0,
 /// an error will be returned.
+///
+/// # Examples
+///
+/// ```
+/// # use libseccomp::*;
+/// set_api(1)?;
+/// # Ok::<(), Box<dyn std::error::Error>>(())
+/// ```
 pub fn set_api(level: u32) -> Result<()> {
     cvt(unsafe { seccomp_api_set(level) })?;
 
@@ -41,6 +49,15 @@ pub fn set_api(level: u32) -> Result<()> {
 ///
 /// This function corresponds to
 /// [`seccomp_api_get`](https://www.man7.org/linux/man-pages/man3/seccomp_api_get.3.html).
+///
+/// # Examples
+///
+/// ```
+/// # use libseccomp::*;
+/// set_api(1)?;
+/// assert_eq!(get_api(), 1);
+/// # Ok::<(), Box<dyn std::error::Error>>(())
+/// ```
 pub fn get_api() -> u32 {
     unsafe { seccomp_api_get() }
 }
@@ -61,6 +78,14 @@ pub fn get_api() -> u32 {
 ///
 /// If an issue is encountered getting the current API level or version,
 /// an error will be returned.
+///
+/// # Examples
+///
+/// ```
+/// # use libseccomp::*;
+/// assert!(check_api(3, ScmpVersion::from((2, 4, 0)))?);
+/// # Ok::<(), Box<dyn std::error::Error>>(())
+/// ```
 pub fn check_api(min_level: u32, expected: ScmpVersion) -> Result<bool> {
     let level = get_api();
 

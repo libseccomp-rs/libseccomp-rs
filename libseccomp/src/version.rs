@@ -76,6 +76,14 @@ impl fmt::Display for ScmpVersion {
 /// # Errors
 ///
 /// If an issue is encountered getting the current version, an error will be returned.
+///
+/// # Examples
+///
+/// ```
+/// # use libseccomp::*;
+/// check_version(ScmpVersion::from((2, 4, 0)))?;
+/// # Ok::<(), Box<dyn std::error::Error>>(())
+/// ```
 pub fn check_version(expected: ScmpVersion) -> Result<bool> {
     let current = ScmpVersion::current()?;
 
