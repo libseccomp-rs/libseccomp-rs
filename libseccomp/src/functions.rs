@@ -24,6 +24,16 @@ use libseccomp_sys::*;
 ///
 /// If the linked libseccomp library is older than v2.5.1 this function will
 /// return an error.
+///
+/// # Examples
+///
+/// ```
+/// # use libseccomp::*;
+/// # if check_version(ScmpVersion::from((2, 5, 1)))? {
+/// reset_global_state()?;
+/// # }
+/// # Ok::<(), Box<dyn std::error::Error>>(())
+/// ```
 pub fn reset_global_state() -> Result<()> {
     cvt(unsafe { seccomp_reset(std::ptr::null_mut(), 0) })
 }
