@@ -427,7 +427,7 @@ impl ScmpFilterContext {
     /// ```
     /// # use libseccomp::*;
     /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
-    /// assert!(ctx.get_filter_attr(ScmpFilterAttr::CtlNnp)? != 0);
+    /// assert_ne!(ctx.get_filter_attr(ScmpFilterAttr::CtlNnp)?, 0);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn get_filter_attr(&self, attr: ScmpFilterAttr) -> Result<u32> {
