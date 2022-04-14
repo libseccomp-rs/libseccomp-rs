@@ -52,6 +52,9 @@ impl ScmpFilterContext {
     ///
     /// This function returns a raw file descriptor for the userspace notification.
     ///
+    /// This function corresponds to
+    /// [`seccomp_notify_fd`](https://man7.org/linux/man-pages/man3/seccomp_notify_fd.3.html).
+    ///
     /// # Errors
     ///
     /// If an issue is encountered getting the file descriptor,
@@ -125,6 +128,9 @@ impl ScmpNotifReq {
     /// normally called within a polling loop.
     ///
     /// This function returns a userspace notification request.
+    ///
+    /// This function corresponds to
+    /// [`seccomp_notify_receive`](https://man7.org/linux/man-pages/man3/seccomp_notify_receive.3.html).
     ///
     /// # Arguments
     ///
@@ -218,6 +224,9 @@ impl ScmpNotifResp {
     /// The response ID must match that of the corresponding notification retrieved
     /// via [`ScmpNotifReq::receive()`].
     ///
+    /// This function corresponds to
+    /// [`seccomp_notify_respond`](https://man7.org/linux/man-pages/man3/seccomp_notify_respond.3.html).
+    ///
     /// # Arguments
     ///
     /// * `fd` - A file descriptor for the userspace notification
@@ -261,6 +270,9 @@ impl ScmpNotifResp {
 /// A return value of `Ok` means the notification is still valid.
 /// Otherwise the notification is not valid. This can be used to mitigate
 /// time-of-check-time-of-use (TOCTOU) attacks as described in seccomp_notify_id_valid(2).
+///
+/// This function corresponds to
+/// [`seccomp_notify_id_valid`](https://man7.org/linux/man-pages/man3/seccomp_notify_id_valid.3.html).
 ///
 /// # Arguments
 ///

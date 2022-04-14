@@ -22,6 +22,9 @@ impl ScmpVersion {
     /// This function returns `ScmpVersion` that represents the currently
     /// loaded libseccomp version.
     ///
+    /// This function corresponds to
+    /// [`seccomp_version`](https://man7.org/linux/man-pages/man3/seccomp_version.3.html).
+    ///
     /// # Errors
     ///
     /// If this function encounters an issue while getting the version,
