@@ -17,6 +17,9 @@ use libseccomp_sys::*;
 /// the libseccomp library after a `fork()`/`clone()` to ensure the API level
 /// and user notification state is properly reset.
 ///
+/// This function corresponds to
+/// [`seccomp_reset`](https://man7.org/linux/man-pages/man3/seccomp_reset.3.html).
+///
 /// # Errors
 ///
 /// If the linked libseccomp library is older than v2.5.1 this function will

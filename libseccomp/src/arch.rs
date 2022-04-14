@@ -109,6 +109,9 @@ impl ScmpArch {
 
     /// Returns the system's native architecture.
     ///
+    /// This function corresponds to
+    /// [`seccomp_arch_native`](https://man7.org/linux/man-pages/man3/seccomp_arch_native.3.html).
+    ///
     /// # Errors
     ///
     /// If this function encounters an issue while getting the native architecture,

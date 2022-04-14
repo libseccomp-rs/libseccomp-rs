@@ -27,6 +27,9 @@ impl ScmpFilterContext {
     ///
     /// This function returns a valid filter context.
     ///
+    /// This function corresponds to
+    /// [`seccomp_init`](https://man7.org/linux/man-pages/man3/seccomp_init.3.html).
+    ///
     /// # Arguments
     ///
     /// * `default_action` - A default action to be taken for syscalls which match no rules in the filter
@@ -48,6 +51,9 @@ impl ScmpFilterContext {
     /// attribute values and no overlapping architectures.
     /// If successful, the `src` seccomp filter is released and all internal memory
     /// associated with the filter is freed.
+    ///
+    /// This function corresponds to
+    /// [`seccomp_merge`](https://man7.org/linux/man-pages/man3/seccomp_merge.3.html).
     ///
     /// # Arguments
     ///
@@ -76,6 +82,9 @@ impl ScmpFilterContext {
     ///
     /// This function returns `Ok(true)` if the architecture is present in the filter,
     /// `Ok(false)` otherwise.
+    ///
+    /// This function corresponds to
+    /// [`seccomp_arch_exist`](https://man7.org/linux/man-pages/man3/seccomp_arch_exist.3.html).
     ///
     /// # Arguments
     ///
@@ -106,6 +115,9 @@ impl ScmpFilterContext {
     }
 
     /// Adds an architecture to the filter.
+    ///
+    /// This function corresponds to
+    /// [`seccomp_arch_add`](https://man7.org/linux/man-pages/man3/seccomp_arch_add.3.html).
     ///
     /// # Arguments
     ///
@@ -138,6 +150,9 @@ impl ScmpFilterContext {
     }
 
     /// Removes an architecture from the filter.
+    ///
+    /// This function corresponds to
+    /// [`seccomp_arch_remove`](https://man7.org/linux/man-pages/man3/seccomp_arch_remove.3.html).
     ///
     /// # Arguments
     ///
@@ -175,6 +190,9 @@ impl ScmpFilterContext {
     /// If the specified rule needs to be rewritten due to architecture specifics,
     /// it will be rewritten without notification.
     ///
+    /// This function corresponds to
+    /// [`seccomp_rule_add`](https://man7.org/linux/man-pages/man3/seccomp_rule_add.3.html).
+    ///
     /// # Arguments
     ///
     /// * `action` - An action to be taken on the call being made
@@ -204,6 +222,9 @@ impl ScmpFilterContext {
     /// it will be rewritten without notification.
     /// Comparators are AND'd together (i.e. all must match for the rule to match).
     /// You can only compare each argument once in a single rule.
+    ///
+    /// This function corresponds to
+    /// [`seccomp_rule_add_array`](https://man7.org/linux/man-pages/man3/seccomp_rule_add_array.3.html).
     ///
     /// # Arguments
     ///
@@ -253,6 +274,9 @@ impl ScmpFilterContext {
     /// If the specified rule can not be represented on the architecture,
     /// the function will fail.
     ///
+    /// This function corresponds to
+    /// [`seccomp_rule_add_exact`](https://man7.org/linux/man-pages/man3/seccomp_rule_add_exact.3.html).
+    ///
     /// # Arguments
     ///
     /// * `action` - An action to be taken on the call being made
@@ -276,6 +300,9 @@ impl ScmpFilterContext {
     /// behave differently on different architectures.
     /// If the specified rule can not be represented on the architecture,
     /// the function will fail.
+    ///
+    /// This function corresponds to
+    /// [`seccomp_rule_add_exact_array`](https://man7.org/linux/man-pages/man3/seccomp_rule_add_exact_array.3.html).
     ///
     /// # Arguments
     ///
@@ -322,6 +349,9 @@ impl ScmpFilterContext {
     ///
     /// If the function succeeds, the new filter will be active when the function returns.
     ///
+    /// This function corresponds to
+    /// [`seccomp_load`](https://man7.org/linux/man-pages/man3/seccomp_load.3.html).
+    ///
     /// # Errors
     ///
     /// If this function is called with an invalid filter or an issue is
@@ -335,6 +365,9 @@ impl ScmpFilterContext {
     /// This provides a priority hint to the seccomp filter generator in the libseccomp
     /// such that higher priority syscalls are placed earlier in the seccomp filter code
     /// so that they incur less overhead at the expense of lower priority syscalls.
+    ///
+    /// This function corresponds to
+    /// [`seccomp_syscall_priority`](https://man7.org/linux/man-pages/man3/seccomp_syscall_priority.3.html).
     ///
     /// # Arguments
     ///
@@ -361,6 +394,9 @@ impl ScmpFilterContext {
     /// The seccomp filter attributes are tunable values that affect how the library behaves
     /// when generating and loading the seccomp filter into the kernel.
     ///
+    /// This function corresponds to
+    /// [`seccomp_attr_get`](https://man7.org/linux/man-pages/man3/seccomp_attr_get.3.html).
+    ///
     /// # Arguments
     ///
     /// * `attr` - A seccomp filter attribute
@@ -379,6 +415,9 @@ impl ScmpFilterContext {
 
     /// Gets the default action as specified in the call to
     /// [`new_filter()`](ScmpFilterContext::new_filter) or [`reset()`](ScmpFilterContext::reset).
+    ///
+    /// This function corresponds to
+    /// [`seccomp_attr_get`](https://man7.org/linux/man-pages/man3/seccomp_attr_get.3.html).
     ///
     /// # Errors
     ///
@@ -402,6 +441,9 @@ impl ScmpFilterContext {
 
     /// Gets the default action taken when the loaded filter does not match the architecture
     /// of the executing application.
+    ///
+    /// This function corresponds to
+    /// [`seccomp_attr_get`](https://man7.org/linux/man-pages/man3/seccomp_attr_get.3.html).
     ///
     /// # Errors
     ///
@@ -428,6 +470,9 @@ impl ScmpFilterContext {
     /// This function returns `Ok(true)` if the [`ScmpFilterAttr::CtlNnp`] attribute is set to on the filter being
     /// loaded, `Ok(false)` otherwise.
     ///
+    /// This function corresponds to
+    /// [`seccomp_attr_get`](https://man7.org/linux/man-pages/man3/seccomp_attr_get.3.html).
+    ///
     /// # Errors
     ///
     /// If this function is called with an invalid filter or an issue is
@@ -449,6 +494,9 @@ impl ScmpFilterContext {
     /// This function returns `Ok(true)` if the [`ScmpFilterAttr::CtlTsync`] attribute set to on the filter being
     /// loaded, `Ok(false)` otherwise.
     ///
+    /// This function corresponds to
+    /// [`seccomp_attr_get`](https://man7.org/linux/man-pages/man3/seccomp_attr_get.3.html).
+    ///
     /// # Errors
     ///
     /// If this function is called with an invalid filter, an issue is encountered
@@ -464,6 +512,9 @@ impl ScmpFilterContext {
     ///
     /// This function returns `Ok(true)` if the [`ScmpFilterAttr::CtlLog`] attribute set to on the filter being
     /// loaded, `Ok(false)` otherwise.
+    ///
+    /// This function corresponds to
+    /// [`seccomp_attr_get`](https://man7.org/linux/man-pages/man3/seccomp_attr_get.3.html).
     ///
     /// # Errors
     ///
@@ -483,6 +534,9 @@ impl ScmpFilterContext {
     /// The [`ScmpFilterAttr::CtlSsb`] attribute is only usable when the libseccomp API level 4 or higher
     /// is supported.
     ///
+    /// This function corresponds to
+    /// [`seccomp_attr_get`](https://man7.org/linux/man-pages/man3/seccomp_attr_get.3.html).
+    ///
     /// # Errors
     ///
     /// If this function is called with an invalid filter, an issue is encountered
@@ -500,6 +554,9 @@ impl ScmpFilterContext {
     /// the optimization level.
     /// The [`ScmpFilterAttr::CtlOptimize`] attribute is only usable when the libseccomp API level 4 or higher
     /// is supported.
+    ///
+    /// This function corresponds to
+    /// [`seccomp_attr_get`](https://man7.org/linux/man-pages/man3/seccomp_attr_get.3.html).
     ///
     /// # Errors
     ///
@@ -519,6 +576,9 @@ impl ScmpFilterContext {
     /// The [`ScmpFilterAttr::ApiSysRawRc`] attribute is only usable when the libseccomp API level 4 or higher
     /// is supported.
     ///
+    /// This function corresponds to
+    /// [`seccomp_attr_get`](https://man7.org/linux/man-pages/man3/seccomp_attr_get.3.html).
+    ///
     /// # Errors
     ///
     /// If this function is called with an invalid filter, an issue is encountered
@@ -534,6 +594,9 @@ impl ScmpFilterContext {
     ///
     /// The seccomp filter attributes are tunable values that affect how the library behaves
     /// when generating and loading the seccomp filter into the kernel.
+    ///
+    /// This function corresponds to
+    /// [`seccomp_attr_set`](https://man7.org/linux/man-pages/man3/seccomp_attr_set.3.html).
     ///
     /// # Arguments
     ///
@@ -556,6 +619,9 @@ impl ScmpFilterContext {
     /// of the executing application.
     ///
     /// Defaults to on (`action` == [`ScmpAction::KillThread`]).
+    ///
+    /// This function corresponds to
+    /// [`seccomp_attr_set`](https://man7.org/linux/man-pages/man3/seccomp_attr_set.3.html).
     ///
     /// # Arguments
     ///
@@ -585,6 +651,9 @@ impl ScmpFilterContext {
     /// into the kernel fill fail if the CAP_SYS_ADMIN is missing.
     ///
     /// Defaults to on (`state` == `true`).
+    ///
+    /// This function corresponds to
+    /// [`seccomp_attr_set`](https://man7.org/linux/man-pages/man3/seccomp_attr_set.3.html).
     ///
     /// # Arguments
     ///
@@ -617,6 +686,9 @@ impl ScmpFilterContext {
     ///
     /// Defaults to off (`state` == `false`).
     ///
+    /// This function corresponds to
+    /// [`seccomp_attr_set`](https://man7.org/linux/man-pages/man3/seccomp_attr_set.3.html).
+    ///
     /// # Arguments
     ///
     /// * `state` - A state flag to specify whether the [`ScmpFilterAttr::CtlTsync`] attribute should be enabled
@@ -639,6 +711,9 @@ impl ScmpFilterContext {
     ///
     /// Defaults to off (`state` == `false`).
     ///
+    /// This function corresponds to
+    /// [`seccomp_attr_set`](https://man7.org/linux/man-pages/man3/seccomp_attr_set.3.html).
+    ///
     /// # Arguments
     ///
     /// * `state` - A state flag to specify whether the [`ScmpFilterAttr::CtlLog`] attribute should
@@ -660,6 +735,9 @@ impl ScmpFilterContext {
     /// is supported.
     ///
     /// Defaults to off (`state` == `false`).
+    ///
+    /// This function corresponds to
+    /// [`seccomp_attr_set`](https://man7.org/linux/man-pages/man3/seccomp_attr_set.3.html).
     ///
     /// # Arguments
     ///
@@ -691,6 +769,9 @@ impl ScmpFilterContext {
     /// * `1` - Rules sorted by priority and complexity (DEFAULT).
     /// * `2` - Binary tree sorted by syscall number.
     ///
+    /// This function corresponds to
+    /// [`seccomp_attr_set`](https://man7.org/linux/man-pages/man3/seccomp_attr_set.3.html).
+    ///
     /// # Arguments
     ///
     /// * `level` - The optimization level of the filter
@@ -713,6 +794,9 @@ impl ScmpFilterContext {
     ///
     /// Defaults to off (`state` == `false`).
     ///
+    /// This function corresponds to
+    /// [`seccomp_attr_set`](https://man7.org/linux/man-pages/man3/seccomp_attr_set.3.html).
+    ///
     /// # Arguments
     ///
     /// * `state` - A state flag to specify whether the [`ScmpFilterAttr::ApiSysRawRc`] attribute should
@@ -729,6 +813,9 @@ impl ScmpFilterContext {
 
     /// Outputs PFC(Pseudo Filter Code)-formatted, human-readable dump of a filter context's rules to a file.
     ///
+    /// This function corresponds to
+    /// [`seccomp_export_pfc`](https://man7.org/linux/man-pages/man3/seccomp_export_pfc.3.html).
+    ///
     /// # Arguments
     ///
     /// * `fd` - A file descriptor to write to (must be open for writing)
@@ -744,6 +831,9 @@ impl ScmpFilterContext {
     /// Outputs BPF(Berkeley Packet Filter)-formatted, kernel-readable dump of a
     /// filter context's rules to a file.
     ///
+    /// This function corresponds to
+    /// [`seccomp_export_bpf`](https://man7.org/linux/man-pages/man3/seccomp_export_bpf.3.html).
+    ///
     /// # Arguments
     ///
     /// * `fd` - A file descriptor to write to (must be open for writing)
@@ -757,6 +847,9 @@ impl ScmpFilterContext {
     }
 
     /// Resets a filter context, removing all its existing state.
+    ///
+    /// This function corresponds to
+    /// [`seccomp_reset`](https://man7.org/linux/man-pages/man3/seccomp_reset.3.html).
     ///
     /// # Arguments
     ///
@@ -787,6 +880,9 @@ impl Drop for ScmpFilterContext {
     /// Releases a filter context, freeing its memory.
     ///
     /// After calling this function, the given filter is no longer valid and cannot be used.
+    ///
+    /// This function corresponds to
+    /// [`seccomp_release`](https://man7.org/linux/man-pages/man3/seccomp_release.3.html).
     fn drop(&mut self) {
         unsafe { seccomp_release(self.ctx.as_ptr()) }
     }

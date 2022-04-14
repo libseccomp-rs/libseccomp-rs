@@ -133,6 +133,8 @@ We use the following format for doc comments of a function:
 /// Description of the return value on success.
 /// (Start from "This function returns...")
 ///
+/// Link to the documentation of the underlying libseccomp function.
+///
 /// # Arguments (if the function has arguments)
 ///
 /// * `arg` - Descripition of the argument

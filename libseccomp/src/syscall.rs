@@ -29,6 +29,9 @@ impl ScmpSyscall {
     /// This function returns a `ScmpSyscall` that can be passed to
     /// [`add_rule`](crate::ScmpFilterContext::add_rule) like functions.
     ///
+    /// This function corresponds to
+    /// [`seccomp_syscall_resolve_name`](https://man7.org/linux/man-pages/man3/seccomp_syscall_resolve_name.3.html).
+    ///
     /// # Arguments
     ///
     /// * `name` - The name of a syscall
@@ -55,6 +58,9 @@ impl ScmpSyscall {
     /// to [`add_rule*`](crate::ScmpFilterContext::add_rule) functions you get unexpected results.
     ///
     /// This function returns a `ScmpSyscall` for the specified architecture.
+    ///
+    /// This function corresponds to
+    /// [`seccomp_syscall_resolve_name_arch`](https://man7.org/linux/man-pages/man3/seccomp_syscall_resolve_name_arch.3.html).
     ///
     /// # Arguments
     ///
@@ -91,6 +97,9 @@ impl ScmpSyscall {
     /// This function returns a `ScmpSyscall` for the specified architecture
     /// rewritten if necessary.
     ///
+    /// This function corresponds to
+    /// [`seccomp_syscall_resolve_name_rewrite`](https://man7.org/linux/man-pages/man3/seccomp_syscall_resolve_name_rewrite.3.html).
+    ///
     /// # Arguments
     ///
     /// * `name` - The name of a syscall
@@ -125,6 +134,9 @@ impl ScmpSyscall {
     ///
     /// This function returns a string containing the name of the syscall.
     ///
+    /// This function corresponds to
+    /// [`seccomp_syscall_resolve_num_arch`](https://man7.org/linux/man-pages/man3/seccomp_syscall_resolve_num_arch.3.html).
+    ///
     /// # Errors
     ///
     /// If the syscall is unrecognized or an issue is encountered getting the
@@ -144,6 +156,9 @@ impl ScmpSyscall {
     /// Resolves this `ScmpSyscall` to it's name for a given architecture.
     ///
     /// This function returns a string containing the name of the syscall.
+    ///
+    /// This function corresponds to
+    /// [`seccomp_syscall_resolve_num_arch`](https://man7.org/linux/man-pages/man3/seccomp_syscall_resolve_num_arch.3.html).
     ///
     /// # Arguments
     ///
