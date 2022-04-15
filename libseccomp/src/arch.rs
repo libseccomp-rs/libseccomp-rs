@@ -134,9 +134,9 @@ impl FromStr for ScmpArch {
     ///
     /// * `arch` - A string architecture, e.g. `SCMP_ARCH_*`.
     ///
-    /// See the [seccomp_arch_add(3)] man page for details on valid architecture values.
+    /// See the [`seccomp_arch_add(3)`] man page for details on valid architecture values.
     ///
-    /// [seccomp_arch_add(3)]: https://www.man7.org/linux/man-pages/man3/seccomp_arch_add.3.html
+    /// [`seccomp_arch_add(3)`]: https://www.man7.org/linux/man-pages/man3/seccomp_arch_add.3.html
     ///
     /// # Errors
     ///

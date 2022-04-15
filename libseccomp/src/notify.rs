@@ -260,7 +260,9 @@ impl ScmpNotifResp {
 ///
 /// A return value of `Ok` means the notification is still valid.
 /// Otherwise the notification is not valid. This can be used to mitigate
-/// time-of-check-time-of-use (TOCTOU) attacks as described in seccomp_notify_id_valid(2).
+/// time-of-check-time-of-use (TOCTOU) attacks as described in [`seccomp_notify_id_valid(2)`].
+///
+/// [`seccomp_notify_id_valid(2)`]: https://man7.org/linux/man-pages/man3/seccomp_notify_id_valid.3.html
 ///
 /// # Arguments
 ///

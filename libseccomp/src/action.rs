@@ -67,9 +67,9 @@ impl ScmpAction {
     ///
     /// * `action` - A string action, e.g. `SCMP_ACT_*`.
     ///
-    /// See the [seccomp_rule_add(3)] man page for details on valid action values.
+    /// See the [`seccomp_rule_add(3)`] man page for details on valid action values.
     ///
-    /// [seccomp_rule_add(3)]: https://www.man7.org/linux/man-pages/man3/seccomp_rule_add.3.html
+    /// [`seccomp_rule_add(3)`]: https://www.man7.org/linux/man-pages/man3/seccomp_rule_add.3.html
     ///
     /// # Errors
     ///
@@ -78,8 +78,7 @@ impl ScmpAction {
     pub fn from_str(action: &str, val: Option<i32>) -> Result<Self> {
         match action {
             "SCMP_ACT_KILL_PROCESS" => Ok(Self::KillProcess),
-            "SCMP_ACT_KILL_THREAD" => Ok(Self::KillThread),
-            "SCMP_ACT_KILL" => Ok(Self::KillThread),
+            "SCMP_ACT_KILL_THREAD" | "SCMP_ACT_KILL" => Ok(Self::KillThread),
             "SCMP_ACT_TRAP" => Ok(Self::Trap),
             "SCMP_ACT_NOTIFY" => Ok(Self::Notify),
             "SCMP_ACT_ERRNO" => match val {

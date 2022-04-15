@@ -55,9 +55,9 @@ impl FromStr for ScmpCompareOp {
     ///
     /// * `cmp_op` - A string comparison operator, e.g. `SCMP_CMP_*`.
     ///
-    /// See the [seccomp_rule_add(3)] man page for details on valid comparison operator values.
+    /// See the [`seccomp_rule_add(3)`] man page for details on valid comparison operator values.
     ///
-    /// [seccomp_rule_add(3)]: https://www.man7.org/linux/man-pages/man3/seccomp_rule_add.3.html
+    /// [`seccomp_rule_add(3)`]: https://www.man7.org/linux/man-pages/man3/seccomp_rule_add.3.html
     ///
     /// # Errors
     ///
