@@ -37,12 +37,12 @@ impl ScmpFilterContext {
     /// # Errors
     ///
     /// If the filter context can not be created, an error will be returned.
-    pub fn new_filter(default_action: ScmpAction) -> Result<ScmpFilterContext> {
+    pub fn new_filter(default_action: ScmpAction) -> Result<Self> {
         let ctx_ptr = unsafe { seccomp_init(default_action.to_sys()) };
         let ctx = NonNull::new(ctx_ptr)
             .ok_or_else(|| SeccompError::new(Common("Could not create new filter".to_string())))?;
 
-        Ok(ScmpFilterContext { ctx })
+        Ok(Self { ctx })
     }
 
     /// Merges two filters.
@@ -262,7 +262,7 @@ impl ScmpFilterContext {
                 action.to_sys(),
                 syscall.into().to_sys(),
                 comparators.len() as u32,
-                comparators.as_ptr() as *const scmp_arg_cmp,
+                comparators.as_ptr().cast::<scmp_arg_cmp>(),
             )
         })
     }
@@ -340,7 +340,7 @@ impl ScmpFilterContext {
                 action.to_sys(),
                 syscall.into().to_sys(),
                 comparators.len() as u32,
-                comparators.as_ptr() as *const scmp_arg_cmp,
+                comparators.as_ptr().cast::<scmp_arg_cmp>(),
             )
         })
     }
@@ -603,9 +603,9 @@ impl ScmpFilterContext {
     /// * `attr` - A seccomp filter attribute
     /// * `value` - A value of or the parameter of the attribute
     ///
-    /// See the [seccomp_attr_set(3)] man page for details on available attribute values.
+    /// See the [`seccomp_attr_set(3)`] man page for details on available attribute values.
     ///
-    /// [seccomp_attr_set(3)]: https://www.man7.org/linux/man-pages/man3/seccomp_attr_set.3.html
+    /// [`seccomp_attr_set(3)`]: https://www.man7.org/linux/man-pages/man3/seccomp_attr_set.3.html
     ///
     /// # Errors
     ///
@@ -648,7 +648,7 @@ impl ScmpFilterContext {
     /// on filter load.
     ///
     /// Settings this to off (`state` == `false`) means that loading the seccomp filter
-    /// into the kernel fill fail if the CAP_SYS_ADMIN is missing.
+    /// into the kernel fill fail if the `CAP_SYS_ADMIN` is missing.
     ///
     /// Defaults to on (`state` == `true`).
     ///

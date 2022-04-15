@@ -70,9 +70,9 @@ impl FromStr for ScmpFilterAttr {
     ///
     /// * `attr` - A string filter attribute, e.g. `SCMP_FLTATR_*`.
     ///
-    /// See the [seccomp_attr_set(3)] man page for details on valid filter attribute values.
+    /// See the [`seccomp_attr_set(3)`] man page for details on valid filter attribute values.
     ///
-    /// [seccomp_attr_set(3)]: https://www.man7.org/linux/man-pages/man3/seccomp_attr_set.3.html
+    /// [`seccomp_attr_set(3)`]: https://www.man7.org/linux/man-pages/man3/seccomp_attr_set.3.html
     ///
     /// # Errors
     ///

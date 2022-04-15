@@ -12,9 +12,9 @@ use libseccomp_sys::*;
 /// Sets the API level forcibly.
 ///
 /// General use of this function is strongly discouraged.
-/// See the [seccomp_api_get(3)] man page for details on available API levels.
+/// See the [`seccomp_api_get(3)`] man page for details on available API levels.
 ///
-/// [seccomp_api_get(3)]: https://www.man7.org/linux/man-pages/man3/seccomp_api_get.3.html
+/// [`seccomp_api_get(3)`]: https://www.man7.org/linux/man-pages/man3/seccomp_api_get.3.html
 ///
 /// This function corresponds to
 /// [`seccomp_api_set`](https://www.man7.org/linux/man-pages/man3/seccomp_api_set.3.html).
@@ -41,9 +41,9 @@ pub fn set_api(level: u32) -> Result<()> {
 /// Gets the API level supported by the system.
 ///
 /// This function returns a positive int containing the API level.
-/// See the [seccomp_api_get(3)] man page for details on available API levels.
+/// See the [`seccomp_api_get(3)`] man page for details on available API levels.
 ///
-/// [seccomp_api_get(3)]: https://www.man7.org/linux/man-pages/man3/seccomp_api_get.3.html
+/// [`seccomp_api_get(3)`]: https://www.man7.org/linux/man-pages/man3/seccomp_api_get.3.html
 ///
 /// This function corresponds to
 /// [`seccomp_api_get`](https://www.man7.org/linux/man-pages/man3/seccomp_api_get.3.html).
