@@ -30,7 +30,7 @@ fn test_user_notification() {
 
     let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow).unwrap();
     let syscall = ScmpSyscall::from_name("dup3").unwrap();
-    let arch = ScmpArch::native().unwrap();
+    let arch = ScmpArch::native();
 
     ctx.add_arch(arch).unwrap();
     ctx.add_rule(ScmpAction::Notify, syscall).unwrap();

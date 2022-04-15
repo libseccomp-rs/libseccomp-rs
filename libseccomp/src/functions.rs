@@ -71,9 +71,3 @@ pub fn get_syscall_from_name(name: &str, arch: Option<ScmpArch>) -> Result<i32> 
 pub fn get_library_version() -> Result<ScmpVersion> {
     ScmpVersion::current()
 }
-
-/// Deprecated alias for [`ScmpArch::native()`].
-#[deprecated(since = "0.2.0", note = "Use ScmpArch::native().")]
-pub fn get_native_arch() -> Result<ScmpArch> {
-    ScmpArch::native()
-}

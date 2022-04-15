@@ -112,19 +112,11 @@ impl ScmpArch {
     /// This function corresponds to
     /// [`seccomp_arch_native`](https://man7.org/linux/man-pages/man3/seccomp_arch_native.3.html).
     ///
-    /// # Errors
+    /// # Panics
     ///
-    /// If this function encounters an issue while getting the native architecture,
-    /// an error will be returned.
-    pub fn native() -> Result<Self> {
-        let ret = unsafe { seccomp_arch_native() };
-
-        match Self::from_sys(ret) {
-            Ok(v) => Ok(v),
-            Err(_) => Err(SeccompError::new(Common(
-                "Could not get native architecture".to_string(),
-            ))),
-        }
+    /// This function panics if it can not get the native architecture.
+    pub fn native() -> Self {
+        Self::from_sys(unsafe { seccomp_arch_native() }).expect("Could not get native architecture")
     }
 }
 

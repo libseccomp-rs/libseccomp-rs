@@ -4,13 +4,14 @@
 //
 
 use crate::api::ensure_supported_api;
-use crate::error::ErrorKind::*;
 use crate::error::{Result, SeccompError};
 use libseccomp_sys::*;
 use std::os::unix::io::AsRawFd;
 use std::ptr::NonNull;
 
 use crate::*;
+
+const MINUS_EEXIST: i32 = -libc::EEXIST;
 
 /// **Represents a filter context in the libseccomp.**
 #[derive(Debug)]
@@ -40,7 +41,7 @@ impl ScmpFilterContext {
     pub fn new_filter(default_action: ScmpAction) -> Result<Self> {
         let ctx_ptr = unsafe { seccomp_init(default_action.to_sys()) };
         let ctx = NonNull::new(ctx_ptr)
-            .ok_or_else(|| SeccompError::new(Common("Could not create new filter".to_string())))?;
+            .ok_or_else(|| SeccompError::with_msg("Could not create new filter"))?;
 
         Ok(Self { ctx })
     }
@@ -105,16 +106,18 @@ impl ScmpFilterContext {
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn is_arch_present(&self, arch: ScmpArch) -> Result<bool> {
-        const NEG_EEXIST: i32 = -libc::EEXIST;
-
         match unsafe { seccomp_arch_exist(self.ctx.as_ptr(), arch.to_sys()) } {
             0 => Ok(true),
-            NEG_EEXIST => Ok(false),
-            errno => Err(SeccompError::new(Errno(errno))),
+            MINUS_EEXIST => Ok(false),
+            errno => Err(SeccompError::from_errno(errno)),
         }
     }
 
     /// Adds an architecture to the filter.
+    ///
+    /// This function returns `Ok(true)` if the architecture was added to the
+    /// filter and `Ok(false)` if the architecture was already present in the
+    /// filter.
     ///
     /// This function corresponds to
     /// [`seccomp_arch_add`](https://man7.org/linux/man-pages/man3/seccomp_arch_add.3.html).
@@ -136,20 +139,19 @@ impl ScmpFilterContext {
     /// ctx.add_arch(ScmpArch::X86)?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn add_arch(&mut self, arch: ScmpArch) -> Result<()> {
-        let ret = unsafe { seccomp_arch_add(self.ctx.as_ptr(), arch.to_sys()) };
-
-        // Libseccomp returns -EEXIST if the specified architecture is already
-        // present. Succeed silently in this case, as it's not fatal, and the
-        // architecture is present already.
-        if ret != 0 && ret != -(libc::EEXIST as i32) {
-            return Err(SeccompError::new(Errno(ret)));
+    pub fn add_arch(&mut self, arch: ScmpArch) -> Result<bool> {
+        match unsafe { seccomp_arch_add(self.ctx.as_ptr(), arch.to_sys()) } {
+            0 => Ok(true),
+            MINUS_EEXIST => Ok(false),
+            errno => Err(SeccompError::from_errno(errno)),
         }
-
-        Ok(())
     }
 
     /// Removes an architecture from the filter.
+    ///
+    /// This function returns `Ok(true)` if the architecture was removed from
+    /// the filter and `Ok(false)` if the architecture wasn't present in the
+    /// filter.
     ///
     /// This function corresponds to
     /// [`seccomp_arch_remove`](https://man7.org/linux/man-pages/man3/seccomp_arch_remove.3.html).
@@ -172,17 +174,12 @@ impl ScmpFilterContext {
     /// ctx.remove_arch(ScmpArch::X86)?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn remove_arch(&mut self, arch: ScmpArch) -> Result<()> {
-        let ret = unsafe { seccomp_arch_remove(self.ctx.as_ptr(), arch.to_sys()) };
-
-        // Similar to add_arch, -EEXIST is returned if the arch is not present
-        // Succeed silently in that case, this is not fatal and the architecture
-        // is not present in the filter after remove_arch
-        if ret != 0 && ret != -(libc::EEXIST as i32) {
-            return Err(SeccompError::new(Errno(ret)));
+    pub fn remove_arch(&mut self, arch: ScmpArch) -> Result<bool> {
+        match unsafe { seccomp_arch_remove(self.ctx.as_ptr(), arch.to_sys()) } {
+            0 => Ok(true),
+            MINUS_EEXIST => Ok(false),
+            errno => Err(SeccompError::from_errno(errno)),
         }
-
-        Ok(())
     }
 
     /// Adds a single rule for an unconditional action on a syscall.
