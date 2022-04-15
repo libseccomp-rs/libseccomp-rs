@@ -6,35 +6,69 @@
 use std::borrow::Cow;
 use std::error::Error;
 use std::fmt;
+use std::ops::Deref;
 
-// Errno message
-const EACCES: &str = "Setting the attribute with the given value is not allowed";
-const ECANCELED: &str = "There was a system failure beyond the control of libseccomp";
-const EDOM: &str = "Architecture specific failure";
-const EEXIST: &str = "Failure regrading the existence of argument";
-const EFAULT: &str = "Internal libseccomp failure";
-const EINVAL: &str = "Invalid input to the libseccomp API";
-const ENOENT: &str = "No matching entry found";
-const ENOMEM: &str = "Unable to allocate enough memory to perform the requested operation";
-const EOPNOTSUPP: &str = "The library doesn't support the particular operation";
-const ERANGE: &str = "Provided buffer is too small";
-const ESRCH: &str = "Unable to load the filter due to thread issues";
+pub(crate) type Result<T> = std::result::Result<T, SeccompError>;
 
 // ParseError message
 const PARSE_ERROR: &str = "Parse error by invalid argument";
 
+/// Errnos returned by the libseccomp API.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[non_exhaustive]
+// https://github.com/seccomp/libseccomp/blob/3c0dedd45713d7928c459b6523b78f4cfd435269/src/api.c#L60
+pub enum SeccompErrno {
+    EACCES,
+    ECANCELED,
+    EDOM,
+    EEXIST,
+    EFAULT,
+    EINVAL,
+    ENOENT,
+    ENOMEM,
+    EOPNOTSUPP,
+    ERANGE,
+    ESRCH,
+}
+
+impl SeccompErrno {
+    fn strerror(&self) -> &'static str {
+        use SeccompErrno::*;
+
+        match self {
+            EACCES => "The library doesn't permit the particular operation",
+            ECANCELED => "There was a system failure beyond the control of libseccomp",
+            EDOM => "Architecture/ABI specific failure",
+            EEXIST => "Failure regrading the existence of argument",
+            EFAULT => "Internal libseccomp failure",
+            EINVAL => "Invalid input to the libseccomp API",
+            ENOENT => "No matching entry found",
+            ENOMEM => "Unable to allocate enough memory to perform the requested operation",
+            EOPNOTSUPP => "The library doesn't support the particular operation",
+            ERANGE => "Provided buffer is too small",
+            ESRCH => "Unable to load the filter due to thread issues",
+        }
+    }
+}
+
+impl fmt::Display for SeccompErrno {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str(self.strerror())
+    }
+}
+
 /// A list specifying different categories of error.
 #[derive(Debug, PartialEq, Eq, Hash)]
 #[non_exhaustive]
-pub enum ErrorKind {
+pub(crate) enum ErrorKind {
     /// An error that represents error code on failure of the libseccomp API.
-    Errno(i32),
+    Errno(SeccompErrno),
     /// A parse error occurred while trying to convert a value.
     ParseError,
     /// A lower-level error that is caused by an error from a lower-level module.
     Source,
     /// A custom error that does not fall under any other error kind.
-    Common(String),
+    Common(Cow<'static, str>),
 }
 
 /// The error type for libseccomp operations.
@@ -44,23 +78,78 @@ pub struct SeccompError {
 }
 
 impl SeccompError {
-    fn msg(&self) -> Cow<'static, str> {
+    pub(crate) fn new(kind: ErrorKind) -> Self {
+        Self { kind, source: None }
+    }
+
+    pub(crate) fn with_source<E>(kind: ErrorKind, source: E) -> Self
+    where
+        E: Error + Send + Sync + 'static,
+    {
+        Self {
+            kind,
+            source: Some(Box::new(source)),
+        }
+    }
+
+    pub(crate) fn with_msg<M>(msg: M) -> Self
+    where
+        M: Into<Cow<'static, str>>,
+    {
+        Self {
+            kind: ErrorKind::Common(msg.into()),
+            source: None,
+        }
+    }
+
+    #[allow(dead_code)]
+    pub(crate) fn with_msg_and_source<M, E>(msg: M, source: E) -> Self
+    where
+        M: Into<Cow<'static, str>>,
+        E: Error + Send + Sync + 'static,
+    {
+        Self {
+            kind: ErrorKind::Common(msg.into()),
+            source: Some(Box::new(source)),
+        }
+    }
+
+    pub(crate) fn from_errno(raw_errno: i32) -> Self {
+        let seccomp_errno = match -raw_errno {
+            libc::EACCES => SeccompErrno::EACCES,
+            libc::ECANCELED => SeccompErrno::ECANCELED,
+            libc::EDOM => SeccompErrno::EDOM,
+            libc::EEXIST => SeccompErrno::EEXIST,
+            libc::EFAULT => SeccompErrno::EFAULT,
+            libc::EINVAL => SeccompErrno::EINVAL,
+            libc::ENOENT => SeccompErrno::ENOENT,
+            libc::ENOMEM => SeccompErrno::ENOMEM,
+            libc::EOPNOTSUPP => SeccompErrno::EOPNOTSUPP,
+            libc::ERANGE => SeccompErrno::ERANGE,
+            libc::ESRCH => SeccompErrno::ESRCH,
+            _ => {
+                return Self::with_msg(format!(
+                    "libseccomp-rs error: errno {} not handled.",
+                    raw_errno,
+                ))
+            }
+        };
+        Self::new(ErrorKind::Errno(seccomp_errno))
+    }
+
+    /// Query the errno returned by the libseccomp API.
+    pub fn errno(&self) -> Option<SeccompErrno> {
+        if let ErrorKind::Errno(errno) = self.kind {
+            Some(errno)
+        } else {
+            None
+        }
+    }
+
+    fn msg(&self) -> Cow<'_, str> {
         match &self.kind {
-            ErrorKind::Errno(e) => match -(*e) {
-                libc::EACCES => EACCES.into(),
-                libc::ECANCELED => ECANCELED.into(),
-                libc::EDOM => EDOM.into(),
-                libc::EEXIST => EEXIST.into(),
-                libc::EFAULT => EFAULT.into(),
-                libc::EINVAL => EINVAL.into(),
-                libc::ENOENT => ENOENT.into(),
-                libc::ENOMEM => ENOMEM.into(),
-                libc::EOPNOTSUPP => EOPNOTSUPP.into(),
-                libc::ERANGE => ERANGE.into(),
-                libc::ESRCH => ESRCH.into(),
-                errno => format!("Unknown error({})", errno).into(),
-            },
-            ErrorKind::Common(s) => s.clone().into(),
+            ErrorKind::Errno(e) => e.strerror().into(),
+            ErrorKind::Common(s) => s.deref().into(),
             ErrorKind::ParseError => PARSE_ERROR.into(),
             ErrorKind::Source => self.source.as_ref().unwrap().to_string().into(),
         }
@@ -122,24 +211,6 @@ impl_seccomperror_from!(std::ffi::NulError);
 impl_seccomperror_from!(std::num::TryFromIntError);
 impl_seccomperror_from!(std::str::Utf8Error);
 
-impl SeccompError {
-    pub(crate) fn new(kind: ErrorKind) -> Self {
-        Self { kind, source: None }
-    }
-
-    pub(crate) fn with_source<E>(kind: ErrorKind, source: E) -> Self
-    where
-        E: 'static + Send + Sync + Error,
-    {
-        Self {
-            kind,
-            source: Some(Box::new(source)),
-        }
-    }
-}
-
-pub type Result<T> = ::std::result::Result<T, SeccompError>;
-
 #[cfg(test)]
 mod tests {
     use super::ErrorKind::*;
@@ -155,28 +226,58 @@ mod tests {
         let null_err = CString::new(TEST_NULL_STR).unwrap_err();
 
         // Errno
-        assert_eq!(SeccompError::new(Errno(-libc::EACCES)).msg(), EACCES);
-        assert_eq!(SeccompError::new(Errno(-libc::ECANCELED)).msg(), ECANCELED);
-        assert_eq!(SeccompError::new(Errno(-libc::EDOM)).msg(), EDOM);
-        assert_eq!(SeccompError::new(Errno(-libc::EEXIST)).msg(), EEXIST);
-        assert_eq!(SeccompError::new(Errno(-libc::EFAULT)).msg(), EFAULT);
-        assert_eq!(SeccompError::new(Errno(-libc::EINVAL)).msg(), EINVAL);
-        assert_eq!(SeccompError::new(Errno(-libc::ENOENT)).msg(), ENOENT);
-        assert_eq!(SeccompError::new(Errno(-libc::ENOMEM)).msg(), ENOMEM);
         assert_eq!(
-            SeccompError::new(Errno(-libc::EOPNOTSUPP)).msg(),
-            EOPNOTSUPP
+            SeccompError::from_errno(-libc::EACCES).msg(),
+            SeccompErrno::EACCES.strerror()
         );
-        assert_eq!(SeccompError::new(Errno(-libc::ERANGE)).msg(), ERANGE);
-        assert_eq!(SeccompError::new(Errno(-libc::ESRCH)).msg(), ESRCH);
         assert_eq!(
-            SeccompError::new(Errno(-libc::EPIPE)).msg(),
-            format!("Unknown error({})", libc::EPIPE)
+            SeccompError::from_errno(-libc::ECANCELED).msg(),
+            SeccompErrno::ECANCELED.strerror()
+        );
+        assert_eq!(
+            SeccompError::from_errno(-libc::EDOM).msg(),
+            SeccompErrno::EDOM.strerror()
+        );
+        assert_eq!(
+            SeccompError::from_errno(-libc::EEXIST).msg(),
+            SeccompErrno::EEXIST.strerror()
+        );
+        assert_eq!(
+            SeccompError::from_errno(-libc::EFAULT).msg(),
+            SeccompErrno::EFAULT.strerror()
+        );
+        assert_eq!(
+            SeccompError::from_errno(-libc::EINVAL).msg(),
+            SeccompErrno::EINVAL.strerror()
+        );
+        assert_eq!(
+            SeccompError::from_errno(-libc::ENOENT).msg(),
+            SeccompErrno::ENOENT.strerror()
+        );
+        assert_eq!(
+            SeccompError::from_errno(-libc::ENOMEM).msg(),
+            SeccompErrno::ENOMEM.strerror()
+        );
+        assert_eq!(
+            SeccompError::new(Errno(SeccompErrno::EOPNOTSUPP)).msg(),
+            SeccompErrno::EOPNOTSUPP.strerror(),
+        );
+        assert_eq!(
+            SeccompError::from_errno(-libc::ERANGE).msg(),
+            SeccompErrno::ERANGE.strerror()
+        );
+        assert_eq!(
+            SeccompError::from_errno(-libc::ESRCH).msg(),
+            SeccompErrno::ESRCH.strerror()
+        );
+        assert_eq!(
+            SeccompError::from_errno(-libc::EPIPE).msg(),
+            format!("libseccomp-rs error: errno {} not handled.", -libc::EPIPE)
         );
 
         // Common
         assert_eq!(
-            SeccompError::new(Common(TEST_ERR_MSG.to_string())).msg(),
+            SeccompError::new(Common(TEST_ERR_MSG.into())).msg(),
             TEST_ERR_MSG
         );
 
@@ -194,10 +295,14 @@ mod tests {
     fn test_source() {
         let null_err = CString::new(TEST_NULL_STR).unwrap_err();
 
-        assert!(SeccompError::new(Errno(-libc::EACCES)).source().is_none());
-        assert!(SeccompError::with_source(Errno(-libc::EACCES), null_err)
+        assert!(SeccompError::new(Errno(SeccompErrno::EACCES))
             .source()
-            .is_some());
+            .is_none());
+        assert!(
+            SeccompError::with_source(Errno(SeccompErrno::EACCES), null_err)
+                .source()
+                .is_some()
+        );
     }
 
     #[test]
@@ -215,28 +320,32 @@ mod tests {
 
         // Errno without source
         assert_eq!(
-            format!("{}", SeccompError::new(Errno(-libc::EACCES))),
-            EACCES
+            format!("{}", SeccompError::new(Errno(SeccompErrno::EACCES))),
+            SeccompErrno::EACCES.strerror()
         );
         // Errno with source
         assert_eq!(
             format!(
                 "{}",
-                SeccompError::with_source(Errno(-libc::EACCES), null_err.clone())
+                SeccompError::with_source(Errno(SeccompErrno::EACCES), null_err.clone())
             ),
-            format!("{} caused by: {}", EACCES, NULL_ERR_MSG)
+            format!(
+                "{} caused by: {}",
+                SeccompErrno::EACCES.strerror(),
+                NULL_ERR_MSG
+            )
         );
 
         // Common without source
         assert_eq!(
-            format!("{}", SeccompError::new(Common(TEST_ERR_MSG.to_string()))),
+            format!("{}", SeccompError::new(Common(TEST_ERR_MSG.into()))),
             TEST_ERR_MSG
         );
         // Common with source
         assert_eq!(
             format!(
                 "{}",
-                SeccompError::with_source(Common(TEST_ERR_MSG.to_string()), null_err.clone())
+                SeccompError::with_source(Common(TEST_ERR_MSG.into()), null_err.clone())
             ),
             format!("{} caused by: {}", TEST_ERR_MSG, NULL_ERR_MSG)
         );
@@ -265,25 +374,25 @@ mod tests {
 
         // Errno without source
         assert_eq!(
-            format!("{:?}", SeccompError::new(Errno(-libc::EACCES)),),
+            format!("{:?}", SeccompError::new(Errno(SeccompErrno::EACCES))),
             format!(
                 "Error {{ kind: Errno({}), source: {}, message: \"{}\" }}",
-                -libc::EACCES,
+                "EACCES",
                 "None",
-                EACCES
+                SeccompErrno::EACCES.strerror()
             )
         );
         // Errno with source
         assert_eq!(
             format!(
                 "{:?}",
-                SeccompError::with_source(Errno(-libc::EACCES), null_err),
+                SeccompError::with_source(Errno(SeccompErrno::EACCES), null_err),
             ),
             format!(
                 "Error {{ kind: Errno({}), source: {}, message: \"{}\" }}",
-                -libc::EACCES,
+                "EACCES",
                 "Some(NulError(1, [102, 0, 111, 111]))",
-                EACCES
+                SeccompErrno::EACCES.strerror()
             )
         );
     }

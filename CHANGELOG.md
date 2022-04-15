@@ -10,13 +10,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `impl From<ScmpSyscall> for i32`
 - `impl fmt::Display for ScmpSyscall`
 - `impl PartialEq<i32> for ScmpSyscall` and `impl PartialEq<ScmpSyscall> for i32`
+- `SeccompError::errno` + `SeccompErrno` to query the errno returned by the libseccomp API.
 
 ### Changed
 - Re-export `notify` module with private so that users can use the more convenient
 structure (**Incompatible change**).
+- `add_arch`/`remove_arch` return `Ok(false)` if the architecture was already
+present/not present in the filter and `Ok(true)` if the architecture was really
+added/removed (**Incompatible change**).
+- `get_api` returns `u32` instead `Result<u32>` (**Incompatible change**).
+- `ScmpArch::native()` panics instead of returning an error (**Incompatible change**).
 
 ### Removed
 - `Syscall` trait
+- `get_native_arch()`
+- `enum error::ErrorKind`
+- `type error::Result`
 
 ### Fixed
 - `scmp_cmp!`: `allow(unused_parens)` in `$mask`

@@ -3,7 +3,6 @@
 // Copyright 2021 Sony Group Corporation
 //
 
-use crate::error::ErrorKind::*;
 use crate::error::{Result, SeccompError};
 use crate::ScmpArch;
 use libseccomp_sys::*;
@@ -83,10 +82,10 @@ impl ScmpSyscall {
         let name_c = CString::new(name)?;
         let nr = unsafe { seccomp_syscall_resolve_name_arch(arch.to_sys(), name_c.as_ptr()) };
         if nr == __NR_SCMP_ERROR {
-            return Err(SeccompError::new(Common(format!(
+            return Err(SeccompError::with_msg(format!(
                 "Could not resolve syscall name {}",
                 name
-            ))));
+            )));
         }
 
         Ok(Self { nr })
@@ -121,10 +120,10 @@ impl ScmpSyscall {
         let name_c = CString::new(name)?;
         let nr = unsafe { seccomp_syscall_resolve_name_rewrite(arch.to_sys(), name_c.as_ptr()) };
         if nr == __NR_SCMP_ERROR {
-            return Err(SeccompError::new(Common(format!(
+            return Err(SeccompError::with_msg(format!(
                 "Could not resolve syscall name {}",
                 name
-            ))));
+            )));
         }
 
         Ok(Self { nr })
@@ -183,10 +182,10 @@ impl ScmpSyscall {
     pub fn get_name_by_arch(self, arch: ScmpArch) -> Result<String> {
         let ret = unsafe { seccomp_syscall_resolve_num_arch(arch.to_sys(), self.to_sys()) };
         if ret.is_null() {
-            return Err(SeccompError::new(Common(format!(
+            return Err(SeccompError::with_msg(format!(
                 "Could not resolve syscall number {}",
                 self.nr
-            ))));
+            )));
         }
 
         let name = unsafe { CStr::from_ptr(ret) }.to_str()?.to_string();

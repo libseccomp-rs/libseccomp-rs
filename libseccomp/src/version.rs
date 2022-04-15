@@ -3,7 +3,6 @@
 // Copyright 2021 Sony Group Corporation
 //
 
-use crate::error::ErrorKind::*;
 use crate::error::{Result, SeccompError};
 use libseccomp_sys::*;
 use std::fmt;
@@ -37,9 +36,7 @@ impl ScmpVersion {
                 micro: version.micro,
             })
         } else {
-            Err(SeccompError::new(Common(
-                "Could not get seccomp version".to_string(),
-            )))
+            Err(SeccompError::with_msg("Could not get libseccomp version"))
         }
     }
 }
@@ -111,10 +108,10 @@ pub(crate) fn ensure_supported_version(msg: &str, expected: ScmpVersion) -> Resu
         Ok(())
     } else {
         let current = ScmpVersion::current()?;
-        Err(SeccompError::new(Common(format!(
+        Err(SeccompError::with_msg(format!(
             "{} requires libseccomp >= {} (current version: {})",
             msg, expected, current,
-        ))))
+        )))
     }
 }
 

@@ -35,23 +35,21 @@ fn test_get_library_version() {
 }
 
 #[test]
-#[allow(deprecated)]
-fn test_get_native_arch() {
-    let ret = ScmpArch::native().unwrap();
-    assert_eq!(ret, get_native_arch().unwrap());
+fn test_scmparch_native() {
+    let ret = ScmpArch::native();
     println!("test_get_native_arch: native arch is {:?}", ret);
 }
 
 #[test]
 fn test_get_api() {
-    let ret = get_api().unwrap();
+    let ret = get_api();
     println!("test_get_api: Got API level of {}", ret);
 }
 
 #[test]
 fn test_set_api() {
     set_api(1).unwrap();
-    assert_eq!(get_api().unwrap(), 1);
+    assert_eq!(get_api(), 1);
 
     assert!(set_api(1000).is_err());
 }
@@ -247,7 +245,7 @@ fn test_arch_functions() {
 fn test_merge_filters() {
     let mut ctx1 = ScmpFilterContext::new_filter(ScmpAction::Allow).unwrap();
     let mut ctx2 = ScmpFilterContext::new_filter(ScmpAction::Allow).unwrap();
-    let native_arch = ScmpArch::native().unwrap();
+    let native_arch = ScmpArch::native();
     let mut prospective_arch = ScmpArch::Aarch64;
 
     if native_arch == ScmpArch::Aarch64 {

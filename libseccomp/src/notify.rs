@@ -5,7 +5,6 @@
 
 use super::cvt;
 use crate::api::ensure_supported_api;
-use crate::error::ErrorKind::*;
 use crate::error::{Result, SeccompError};
 use crate::{ScmpArch, ScmpFilterContext, ScmpVersion};
 use libseccomp_sys::*;
@@ -64,7 +63,7 @@ impl ScmpFilterContext {
 
         let ret = unsafe { seccomp_notify_fd(self.as_ptr()) };
         if ret < 0 {
-            return Err(SeccompError::new(Errno(ret)));
+            return Err(SeccompError::from_errno(ret));
         }
 
         Ok(ret)
@@ -158,7 +157,7 @@ impl ScmpNotifReq {
                 continue;
             } else {
                 unsafe { seccomp_notify_free(req_ptr, std::ptr::null_mut()) };
-                return Err(SeccompError::new(Errno(ret)));
+                return Err(SeccompError::from_errno(ret));
             }
         }
 
@@ -255,7 +254,7 @@ impl ScmpNotifResp {
                 continue;
             } else {
                 unsafe { seccomp_notify_free(std::ptr::null_mut(), resp_ptr) };
-                return Err(SeccompError::new(Errno(ret)));
+                return Err(SeccompError::from_errno(ret));
             }
         }
 
@@ -296,7 +295,7 @@ pub fn notify_id_valid(fd: ScmpFd, id: u64) -> Result<()> {
         } else if errno == libc::EINTR {
             continue;
         } else {
-            return Err(SeccompError::new(Errno(ret)));
+            return Err(SeccompError::from_errno(ret));
         }
     }
 

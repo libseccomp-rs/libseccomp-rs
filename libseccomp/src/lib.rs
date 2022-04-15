@@ -63,7 +63,6 @@ mod notify;
 mod syscall;
 mod version;
 
-use error::ErrorKind::*;
 use error::{Result, SeccompError};
 
 pub use action::ScmpAction;
@@ -83,6 +82,6 @@ fn cvt(ret: i32) -> Result<()> {
     if ret == 0 {
         Ok(())
     } else {
-        Err(SeccompError::new(Errno(ret)))
+        Err(SeccompError::from_errno(ret))
     }
 }
