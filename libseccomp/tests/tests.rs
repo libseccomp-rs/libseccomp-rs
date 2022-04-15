@@ -50,11 +50,10 @@ fn test_get_api() {
 
 #[test]
 fn test_set_api() {
-    let expected_api = 1;
-    set_api(expected_api).unwrap();
+    set_api(1).unwrap();
+    assert_eq!(get_api().unwrap(), 1);
 
-    let api = get_api().unwrap();
-    assert_eq!(expected_api, api);
+    assert!(set_api(1000).is_err());
 }
 
 #[test]
@@ -68,6 +67,7 @@ fn test_set_syscall_priority() {
 }
 
 #[test]
+#[allow(deprecated)]
 fn test_filter_attributes() {
     let mut ctx = ScmpFilterContext::new_filter(ScmpAction::KillThread).unwrap();
 
@@ -75,6 +75,9 @@ fn test_filter_attributes() {
     ctx.set_ctl_nnp(false).unwrap();
     let ret = ctx.get_ctl_nnp().unwrap();
     assert!(!ret);
+
+    ctx.set_no_new_privs_bit(true).unwrap();
+    assert!(ctx.get_no_new_privs_bit().unwrap());
 
     // Test for ActBadArch
     let test_actions = [
@@ -170,27 +173,56 @@ fn test_syscall_eq_i32() {
 }
 
 #[test]
+#[allow(deprecated)]
 fn test_get_syscall_name_from_arch() {
-    let name = ScmpSyscall::from(5)
-        .get_name_by_arch(ScmpArch::Arm)
-        .unwrap();
+    assert_eq!(
+        "openat",
+        ScmpSyscall::from(56)
+            .get_name_by_arch(ScmpArch::Aarch64)
+            .unwrap()
+    );
 
-    println!(
-        "test_get_syscall_from_name: Got syscall name of 5 on ARM arch as {}",
-        name
+    assert!(ScmpSyscall::from(10_000).get_name().is_err());
+    assert!(ScmpSyscall::from(-1).get_name().is_err());
+
+    assert_eq!(
+        get_syscall_name_from_arch(ScmpArch::Native, 5).unwrap(),
+        ScmpSyscall::from(5).get_name().unwrap(),
+    );
+
+    assert_eq!(
+        get_syscall_name_from_arch(ScmpArch::Aarch64, 5).unwrap(),
+        ScmpSyscall::from(5)
+            .get_name_by_arch(ScmpArch::Aarch64)
+            .unwrap(),
     );
 }
 
 #[test]
+#[allow(deprecated)]
 fn test_get_syscall_from_name() {
-    println!(
-        "test_get_syscall_from_name: Got syscall number of open on native arch as {}",
-        ScmpSyscall::from_name("open").unwrap()
+    assert_eq!(
+        ScmpSyscall::from_name_by_arch("openat", ScmpArch::Aarch64).unwrap(),
+        56,
     );
 
-    println!(
-        "test_get_syscall_from_name: Got syscall number of open on ARM arch as {}",
-        ScmpSyscall::from_name_by_arch("open", ScmpArch::Arm).unwrap()
+    assert_eq!(
+        ScmpSyscall::from_name_by_arch_rewrite("socket", ScmpArch::X86).unwrap(),
+        102,
+    );
+
+    assert!(ScmpSyscall::from_name("no_syscall").is_err());
+    assert!(ScmpSyscall::from_name("null\0byte").is_err());
+    assert!(ScmpSyscall::from_name_by_arch_rewrite("no_syscall", ScmpArch::X32).is_err());
+    assert!(ScmpSyscall::from_name_by_arch_rewrite("null\0byte", ScmpArch::X32).is_err());
+
+    assert_eq!(
+        get_syscall_from_name("openat", None).unwrap(),
+        ScmpSyscall::from_name("openat").unwrap(),
+    );
+    assert_eq!(
+        get_syscall_from_name("openat", Some(ScmpArch::Aarch64)).unwrap(),
+        ScmpSyscall::from_name_by_arch("openat", ScmpArch::Aarch64).unwrap(),
     );
 }
 
