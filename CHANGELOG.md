@@ -18,6 +18,9 @@ structure (**Incompatible change**).
 ### Removed
 - `Syscall` trait
 
+### Fixed
+- `scmp_cmp!`: `allow(unused_parens)` in `$mask`
+
 ## 0.2.3 - 2022-02-14
 ### Added
 - `"SCMP_ARCH_MIPS64N32"` to `ScmpArch::from_str()`.
