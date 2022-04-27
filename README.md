@@ -119,41 +119,8 @@ $ make test
 ## How to contribute
 Anyone is welcome to join and contribute code, documentation, and use cases.
 
-- Change or add something
-- Make sure you're using the latest stable version of Rust
-- Run `make check` to guarantee code style conformance
-- Open a pull request in Github
-
-We use the following format for doc comments of a function:
-```
-/// Brief summary of the function on one line. (Start from "verb-s")
-///
-/// Detailed description of the function. (if you have)
-///
-/// Description of the return value on success.
-/// (Start from "This function returns...")
-///
-/// Link to the documentation of the underlying libseccomp function.
-///
-/// # Arguments (if the function has arguments)
-///
-/// * `arg` - Descripition of the argument
-///
-/// # Errors (if the function returns `Result`)
-///
-///  If this function encounters..., an error will be returned.
-///
-/// # Panics (if the function can `panic`)
-///
-///  Panics if...
-///
-/// # Examples (if you want to show the example)
-///
-/// ```
-/// Example codes
-/// ```
-pub fn foo() {
-```
+For details on how to contribute to the libseccomp-rs project, please see the
+[contributing document](https://github.com/libseccomp-rs/libseccomp-rs/blob/main/CONTRIBUTING.md).
 
 ## License
 This crate is licensed under:
