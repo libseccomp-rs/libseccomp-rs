@@ -91,7 +91,7 @@ pub struct seccomp_notif {
 /// > `SECCOMP_IOCTL_NOTIF_SEND` from earlier filters, essentially allowing all
 /// > such filtered syscalls to be executed by sending the response
 /// > `SECCOMP_USER_NOTIF_FLAG_CONTINUE`. Note that `SECCOMP_RET_TRACE` can equally
-/// > be overriden by `SECCOMP_USER_NOTIF_FLAG_CONTINUE`.
+/// > be overridden by `SECCOMP_USER_NOTIF_FLAG_CONTINUE`.
 pub const SECCOMP_USER_NOTIF_FLAG_CONTINUE: u32 = 1;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -630,12 +630,12 @@ extern "C" {
     /// the given fd.  Returns zero on success, negative values on failure.
     pub fn seccomp_export_pfc(ctx: const_scmp_filter_ctx, fd: c_int) -> c_int;
 
-    /// Generate seccomp Berkley Packet Filter (BPF) code and export it to a file
+    /// Generate seccomp Berkeley Packet Filter (BPF) code and export it to a file
     ///
     /// - `ctx`: the filter context
     /// - `fd`: the destination fd
     ///
-    /// This function generates seccomp Berkley Packer Filter (BPF) code and writes
+    /// This function generates seccomp Berkeley Packer Filter (BPF) code and writes
     /// it to the given fd.  Returns zero on success, negative values on failure.
     pub fn seccomp_export_bpf(ctx: const_scmp_filter_ctx, fd: c_int) -> c_int;
 }
