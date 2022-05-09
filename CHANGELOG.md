@@ -20,6 +20,7 @@ present/not present in the filter and `Ok(true)` if the architecture was really
 added/removed (**Incompatible change**).
 - `get_api` returns `u32` instead `Result<u32>` (**Incompatible change**).
 - `ScmpArch::native()` panics instead of returning an error (**Incompatible change**).
+- `ScmpNotifData.syscall` is now `ScmpSyscall` instead of `i32` (**Incompatible change**).
 
 ### Removed
 - `Syscall` trait
