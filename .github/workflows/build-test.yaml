@@ -83,6 +83,17 @@ jobs:
       - name: Generate documentations
         run: cargo doc --no-deps
 
+  codespell:
+    name: Check Spelling
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install codespell
+        run: pip install codespell
+      - name: Run codespell
+        run: codespell --ignore-words-list crate
+
   coverage:
     name: Code Coverage
     runs-on: ubuntu-latest
