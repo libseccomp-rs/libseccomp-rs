@@ -6,7 +6,7 @@
 use super::cvt;
 use crate::api::ensure_supported_api;
 use crate::error::{Result, SeccompError};
-use crate::{ScmpArch, ScmpFilterContext, ScmpVersion};
+use crate::{ScmpArch, ScmpFilterContext, ScmpSyscall, ScmpVersion};
 use libseccomp_sys::*;
 use std::os::unix::io::RawFd;
 
@@ -74,7 +74,7 @@ impl ScmpFilterContext {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct ScmpNotifData {
     /// The syscall number
-    pub syscall: i32,
+    pub syscall: ScmpSyscall,
     /// The filter architecture
     pub arch: ScmpArch,
     /// Address of the instruction that triggered a notification
@@ -86,7 +86,7 @@ pub struct ScmpNotifData {
 impl ScmpNotifData {
     fn from_sys(data: seccomp_data) -> Result<Self> {
         Ok(Self {
-            syscall: data.nr,
+            syscall: ScmpSyscall::from(data.nr),
             arch: ScmpArch::from_sys(data.arch)?,
             instr_pointer: data.instruction_pointer,
             args: data.args,
