@@ -7,7 +7,9 @@ use super::cvt;
 use crate::api::ensure_supported_api;
 use crate::error::{Result, SeccompError};
 use crate::{ScmpArch, ScmpFilterContext, ScmpSyscall, ScmpVersion};
+use bitflags::bitflags;
 use libseccomp_sys::*;
+use std::ops::BitOr;
 use std::os::unix::io::RawFd;
 
 fn get_errno() -> i32 {
@@ -33,11 +35,32 @@ fn notify_supported() -> Result<()> {
 /// Represents a file descriptor used for the userspace notification.
 pub type ScmpFd = RawFd;
 
+bitflags! {
+    /// Userspace notification response flags
+    pub struct ScmpNotifRespFlags: u32 {
+        /// Tells the kernel to continue executing the system call that triggered the
+        /// notification. Must only be used when the notification response's error and value is 0.
+        const CONTINUE = SECCOMP_USER_NOTIF_FLAG_CONTINUE;
+    }
+}
+impl ScmpNotifRespFlags {
+    /// Convert from underlying bit representation, preserving all bits (even those not corresponding to a defined flag).
+    // https://github.com/bitflags/bitflags/issues/263
+    #[must_use]
+    pub fn from_bits_preserve(bits: u32) -> Self {
+        Self { bits }
+    }
+}
+
 /// Userspace notification response flag
 ///
 /// Tells the kernel to continue executing the system call that triggered the
 /// notification. Must only be used when the notification response's error is 0.
-pub const NOTIF_FLAG_CONTINUE: u32 = SECCOMP_USER_NOTIF_FLAG_CONTINUE;
+#[deprecated(
+    since = "0.3.0",
+    note = "Use ScmpNotifRespFlags::CONTINUE or ScmpNotifRespFlags::CONTINUE.bits"
+)]
+pub const NOTIF_FLAG_CONTINUE: u32 = ScmpNotifRespFlags::CONTINUE.bits;
 
 impl ScmpFilterContext {
     /// Gets a file descriptor for the userspace notification associated with the
@@ -202,6 +225,10 @@ impl ScmpNotifResp {
 
     /// Creates `ScmpNotifResp` from the specified arguments.
     ///
+    /// It is recommended to use the convenient functions [`new_val`](ScmpNotifResp::new_val),
+    /// [`new_error`](ScmpNotifResp::new_error) and [`new_continue`](ScmpNotifResp::new_continue)
+    /// rather than this function.
+    ///
     /// # Arguments
     ///
     /// * `id` - Notification ID
@@ -215,6 +242,75 @@ impl ScmpNotifResp {
             val,
             error,
             flags,
+        }
+    }
+
+    /// Creates `ScmpNotifResp` for a spoofed success response.
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - Notification ID
+    /// * `val` - Return value for the syscall that created the notification
+    /// * `flags` - Reserved for future use, specify as `ScmpNotifRespFlags::empty()`.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// let resp = ScmpNotifResp::new_val(req.id, val, ScmpNotifRespFlags::empty());
+    /// ```
+    #[must_use]
+    pub fn new_val(id: u64, val: i64, flags: ScmpNotifRespFlags) -> Self {
+        Self {
+            id,
+            val,
+            error: 0,
+            flags: flags.bits,
+        }
+    }
+
+    /// Creates `ScmpNotifResp` for a spoofed error response.
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - Notification ID
+    /// * `error` - An *negative* error code
+    /// * `flags` - Reserved for future use, specify as `ScmpNotifRespFlags::empty()`.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// let resp = ScmpNotifResp::new_error(req.id, error, ScmpNotifRespFlags::empty());
+    /// ```
+    #[must_use]
+    pub fn new_error(id: u64, error: i32, flags: ScmpNotifRespFlags) -> Self {
+        debug_assert!(error.is_negative());
+        Self {
+            id,
+            val: 0,
+            error,
+            flags: flags.bits,
+        }
+    }
+
+    /// Creates `ScmpNotifResp` which continues the syscall execution.
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - Notification ID
+    /// * `flags` - Reserved for future use, specify as `ScmpNotifRespFlags::empty()`.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// let resp = ScmpNotifResp::new_continue(req.id, ScmpNotifRespFlags::empty());
+    /// ```
+    #[must_use]
+    pub fn new_continue(id: u64, flags: ScmpNotifRespFlags) -> Self {
+        Self {
+            id,
+            val: 0,
+            error: 0,
+            flags: ScmpNotifRespFlags::CONTINUE.bitor(flags).bits,
         }
     }
 

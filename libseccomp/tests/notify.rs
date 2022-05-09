@@ -60,7 +60,7 @@ fn test_user_notification() {
             arch,
             resp_val: 0,
             resp_err: 0,
-            resp_flags: NOTIF_FLAG_CONTINUE,
+            resp_flags: ScmpNotifRespFlags::CONTINUE.bits(),
             expected_val: 100,
         },
     ];
@@ -110,6 +110,37 @@ fn test_user_notification() {
 }
 
 #[test]
+fn test_resp_new() {
+    assert_eq!(
+        ScmpNotifResp::new_val(1234, 1, ScmpNotifRespFlags::empty()),
+        ScmpNotifResp {
+            id: 1234,
+            val: 1,
+            error: 0,
+            flags: 0,
+        },
+    );
+    assert_eq!(
+        ScmpNotifResp::new_error(1234, -2, ScmpNotifRespFlags::empty()),
+        ScmpNotifResp {
+            id: 1234,
+            val: 0,
+            error: -2,
+            flags: 0,
+        },
+    );
+    assert_eq!(
+        ScmpNotifResp::new_continue(1234, ScmpNotifRespFlags::empty()),
+        ScmpNotifResp {
+            id: 1234,
+            val: 0,
+            error: 0,
+            flags: ScmpNotifRespFlags::CONTINUE.bits(),
+        },
+    );
+}
+
+#[test]
 fn test_error() {
     skip_if_not_supported!();
 
@@ -120,4 +151,12 @@ fn test_error() {
     assert!(ScmpNotifReq::receive(0).is_err());
     assert!(resp.respond(0).is_err());
     assert!(notify_id_valid(0, 0).is_err());
+}
+
+#[test]
+fn resp_flags_from_bits_preserve() {
+    assert_eq!(
+        ScmpNotifRespFlags::from_bits_preserve(u32::MAX).bits(),
+        u32::MAX
+    );
 }
