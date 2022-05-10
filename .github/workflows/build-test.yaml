@@ -22,7 +22,7 @@ jobs:
         run: make clippy
 
   test:
-    name: Unit Tests
+    name: Unit Tests on x86_64
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -45,7 +45,7 @@ jobs:
         run: make test
 
   static-link-musl:
-    name: Statically Linking with musl
+    name: Statically Linking with musl on x86_64
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -71,6 +71,40 @@ jobs:
         run: cargo build --target ${{ matrix.target }}
       - name: Run test
         run: cargo test --target ${{ matrix.target }} -- --nocapture --test-threads 1
+
+  aarch64-test:
+    name: Build on aarch64
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        libseccomp-version: [2.5.3]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Build crate and run test
+        uses: uraimo/run-on-arch-action@v2
+        id: runcmd
+        with:
+          arch: aarch64
+          distro: ubuntu_latest
+          githubToken: ${{ github.token }}
+          env: |
+            LIBSECCOMP_LINK_TYPE: dylib
+            LIBSECCOMP_LIB_PATH: /usr/local/libseccomp/lib
+          install: |
+            echo "Install dependencies"
+            apt-get update -y
+            apt-get install -y curl gcc g++ make
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          run: |
+            echo "Install upstream libseccomp"
+            install_dir=$(dirname ${LIBSECCOMP_LIB_PATH})
+            ./scripts/install_libseccomp.sh -v ${{ matrix.libseccomp-version }} -i ${install_dir}
+            export LD_LIBRARY_PATH=${LIBSECCOMP_LIB_PATH}
+            export PATH="${PATH}:${HOME}/.cargo/bin"
+            echo "Build crate on `uname -a`"
+            make debug
 
   doc:
     name: Documentation Check
