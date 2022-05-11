@@ -105,7 +105,17 @@ mod tests {
 
     #[test]
     fn test_ensure_supported_api() {
-        assert!(ensure_supported_api("test", 3, ScmpVersion::from((2, 4, 0))).is_ok());
+        if ensure_supported_api("test", 3, ScmpVersion::from((2, 4, 0))).is_err() {
+            let ret = get_api();
+            println!("#########################");
+            println!("test_get_api: Got API level of {}", ret);
+            let ret = ScmpVersion::current().unwrap();
+            println!(
+                "test_get_library_version: {}.{}.{}",
+                ret.major, ret.minor, ret.micro
+            );
+            println!("#########################");
+        }
         assert!(ensure_supported_api("test", 100, ScmpVersion::from((2, 4, 0))).is_err());
     }
 }
