@@ -18,16 +18,27 @@ const PARSE_ERROR: &str = "Parse error by invalid argument";
 #[non_exhaustive]
 // https://github.com/seccomp/libseccomp/blob/3c0dedd45713d7928c459b6523b78f4cfd435269/src/api.c#L60
 pub enum SeccompErrno {
+    /// The library doesn't permit the particular operation.
     EACCES,
+    /// There was a system failure beyond the control of libseccomp.
     ECANCELED,
+    /// Architecture/ABI specific failure.
     EDOM,
+    /// Failure regrading the existence of argument.
     EEXIST,
+    /// Internal libseccomp failure.
     EFAULT,
+    /// Invalid input to the libseccomp API.
     EINVAL,
+    /// No matching entry found.
     ENOENT,
+    /// Unable to allocate enough memory to perform the requested operation.
     ENOMEM,
+    /// The library doesn't support the particular operation.
     EOPNOTSUPP,
+    /// Provided buffer is too small.
     ERANGE,
+    /// Unable to load the filter due to thread issues.
     ESRCH,
 }
 
@@ -52,7 +63,7 @@ impl SeccompErrno {
 }
 
 impl fmt::Display for SeccompErrno {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(self.strerror())
     }
 }
@@ -157,7 +168,7 @@ impl SeccompError {
 }
 
 impl fmt::Display for SeccompError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let msg = self.msg();
 
         match &self.source {
@@ -172,7 +183,7 @@ impl fmt::Display for SeccompError {
 }
 
 impl fmt::Debug for SeccompError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Error")
             .field("kind", &self.kind)
             .field("source", &self.source)
@@ -365,7 +376,7 @@ mod tests {
         assert_eq!(
             format!("{}", SeccompError::with_source(ErrorKind::Source, null_err)),
             NULL_ERR_MSG
-        )
+        );
     }
 
     #[test]

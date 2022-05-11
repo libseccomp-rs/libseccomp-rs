@@ -217,10 +217,12 @@ pub struct ScmpNotifResp {
 
 impl ScmpNotifResp {
     unsafe fn to_sys(self, resp: *mut seccomp_notif_resp) {
-        (*resp).id = self.id;
-        (*resp).val = self.val;
-        (*resp).error = self.error;
-        (*resp).flags = self.flags;
+        unsafe {
+            (*resp).id = self.id;
+            (*resp).val = self.val;
+            (*resp).error = self.error;
+            (*resp).flags = self.flags;
+        }
     }
 
     /// Creates `ScmpNotifResp` from the specified arguments.

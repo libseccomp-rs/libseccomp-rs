@@ -10,8 +10,11 @@ use std::fmt;
 /// Represents the version information of the libseccomp library.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct ScmpVersion {
+    /// The major version
     pub major: u32,
+    /// The minor version
     pub minor: u32,
+    /// The micro version
     pub micro: u32,
 }
 
@@ -58,7 +61,7 @@ impl From<(u32, u32, u32)> for ScmpVersion {
 }
 
 impl fmt::Display for ScmpVersion {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}.{}.{}", self.major, self.minor, self.micro)
     }
 }
