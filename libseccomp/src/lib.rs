@@ -46,8 +46,18 @@
 //! }
 //! ```
 
+#![warn(rust_2018_idioms)]
+#![deny(missing_debug_implementations)]
+#![deny(missing_docs)]
+#![deny(unsafe_op_in_unsafe_fn)]
+#![warn(clippy::inefficient_to_string)]
+#![warn(clippy::string_to_string)]
+#![warn(clippy::semicolon_if_nothing_returned)]
+#![warn(clippy::clone_on_ref_ptr)]
+#![warn(clippy::unwrap_in_result)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
+/// Errors
 pub mod error;
 
 mod action;
