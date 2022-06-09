@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `impl fmt::Display for ScmpSyscall`
 - `impl PartialEq<i32> for ScmpSyscall` and `impl PartialEq<ScmpSyscall> for i32`
 - `SeccompError::errno` + `SeccompErrno` to query the errno returned by the libseccomp API.
+- `ScmpNotifResp::new_val()`, `ScmpNotifResp::new_error()` and `ScmpNotifResp::new_continue()`
+- `ScmpNotifRespFlags`
 
 ### Changed
 - Re-export `notify` module with private so that users can use the more convenient
@@ -21,6 +23,9 @@ added/removed (**Incompatible change**).
 - `get_api` returns `u32` instead `Result<u32>` (**Incompatible change**).
 - `ScmpArch::native()` panics instead of returning an error (**Incompatible change**).
 - `ScmpNotifData.syscall` is now `ScmpSyscall` instead of `i32` (**Incompatible change**).
+
+### Deprecated
+- `NOTIF_FLAG_CONTINUE` use `ScmpNotifRespFlags::CONTINUE.bits()` instead.
 
 ### Removed
 - `Syscall` trait
