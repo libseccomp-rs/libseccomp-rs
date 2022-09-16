@@ -284,7 +284,7 @@ extern "C" {
     ///   - support for the [`SCMP_ACT_LOG`] action
     ///   - support for the [`SCMP_ACT_KILL_PROCESS`] action
     /// - 4
-    ///   - support for the [`SCMP_FLTATR_CTL_SSB`](scmp_filter_attr::SCMP_FLTATR_CTL_SSB) filter attrbute
+    ///   - support for the [`SCMP_FLTATR_CTL_SSB`](scmp_filter_attr::SCMP_FLTATR_CTL_SSB) filter attribute
     /// - 5
     ///   - support for the [`SCMP_ACT_NOTIFY`] action and notify APIs
     /// - 6
