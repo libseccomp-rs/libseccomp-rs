@@ -72,6 +72,32 @@ jobs:
       - name: Run test
         run: cargo test --target ${{ matrix.target }} -- --nocapture --test-threads 1
 
+  cross:
+    name: Cross Compilation
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - i686-unknown-linux-gnu
+          - aarch64-unknown-linux-gnu
+          - arm-unknown-linux-gnueabihf
+          - mips-unknown-linux-gnu
+          - mips64-unknown-linux-gnuabi64
+          - powerpc-unknown-linux-gnu
+          - powerpc64-unknown-linux-gnu
+          - riscv64gc-unknown-linux-gnu
+          - s390x-unknown-linux-gnu
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install libseccomp
+        run: sudo apt-get install libseccomp-dev
+      - name: Install Rust toolchain
+        run: rustup target add ${{ matrix.target }}
+      - name: Build crate
+        run: cargo build --target ${{ matrix.target }} --all-features
+
   doc:
     name: Documentation Check
     runs-on: ubuntu-latest
