@@ -78,10 +78,15 @@ impl ScmpFilterContext {
     /// # use libseccomp::*;
     /// let mut ctx1 = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
     /// let mut ctx2 = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
-    /// ctx2.add_arch(ScmpArch::Aarch64)?;
-    /// ctx2.remove_arch(ScmpArch::X8664)?;
+    /// if !ctx1.is_arch_present(ScmpArch::X8664)? {
+    ///     ctx1.add_arch(ScmpArch::X8664)?;
+    ///     ctx1.remove_arch(ScmpArch::Native)?;
+    /// }
+    /// if !ctx2.is_arch_present(ScmpArch::Aarch64)? {
+    ///     ctx2.add_arch(ScmpArch::Aarch64)?;
+    ///     ctx2.remove_arch(ScmpArch::Native)?;
+    /// }
     /// ctx1.merge(ctx2)?;
-    /// assert!(ctx1.is_arch_present(ScmpArch::Aarch64)?);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn merge(&mut self, src: Self) -> Result<()> {
