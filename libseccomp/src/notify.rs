@@ -72,6 +72,8 @@ impl ScmpFilterContext {
     /// associated with the filter (see [`ScmpNotifReq::receive()`],
     /// [`ScmpNotifResp::respond()`], and [`notify_id_valid()`]).
     ///
+    /// **Note**: This file descriptor is shared between all threads.
+    ///
     /// This function returns a raw file descriptor for the userspace notification.
     ///
     /// This function corresponds to
