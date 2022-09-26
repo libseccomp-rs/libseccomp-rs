@@ -97,6 +97,7 @@ impl ScmpFilterContext {
 
 /// Describes the system call context that triggered a notification.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[non_exhaustive]
 pub struct ScmpNotifData {
     /// The syscall number
     pub syscall: ScmpSyscall,
@@ -121,6 +122,7 @@ impl ScmpNotifData {
 
 /// Represents a userspace notification request.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[non_exhaustive]
 pub struct ScmpNotifReq {
     /// Notification ID
     pub id: u64,
@@ -202,6 +204,7 @@ impl ScmpNotifReq {
 
 /// Represents a userspace notification response.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[non_exhaustive]
 pub struct ScmpNotifResp {
     /// Notification ID (must match the corresponding `ScmpNotifReq` ID)
     pub id: u64,

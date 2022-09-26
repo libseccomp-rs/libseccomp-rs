@@ -113,30 +113,15 @@ fn test_user_notification() {
 fn test_resp_new() {
     assert_eq!(
         ScmpNotifResp::new_val(1234, 1, ScmpNotifRespFlags::empty()),
-        ScmpNotifResp {
-            id: 1234,
-            val: 1,
-            error: 0,
-            flags: 0,
-        },
+        ScmpNotifResp::new(1234, 1, 0, 0),
     );
     assert_eq!(
         ScmpNotifResp::new_error(1234, -2, ScmpNotifRespFlags::empty()),
-        ScmpNotifResp {
-            id: 1234,
-            val: 0,
-            error: -2,
-            flags: 0,
-        },
+        ScmpNotifResp::new(1234, 0, -2, 0),
     );
     assert_eq!(
         ScmpNotifResp::new_continue(1234, ScmpNotifRespFlags::empty()),
-        ScmpNotifResp {
-            id: 1234,
-            val: 0,
-            error: 0,
-            flags: ScmpNotifRespFlags::CONTINUE.bits(),
-        },
+        ScmpNotifResp::new(1234, 0, 0, ScmpNotifRespFlags::CONTINUE.bits()),
     );
 }
 
