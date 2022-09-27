@@ -380,6 +380,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(not(any(msrv_compat_1_52, msrv_compat_1_53)))]
     fn test_debug() {
         let null_err = CString::new(TEST_NULL_STR).unwrap_err();
 
