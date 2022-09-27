@@ -99,7 +99,7 @@ mod tests {
 
     #[test]
     fn test_parse_filter_attr() {
-        let test_data = [
+        let test_data = &[
             ("SCMP_FLTATR_ACT_DEFAULT", ScmpFilterAttr::ActDefault),
             ("SCMP_FLTATR_ACT_BADARCH", ScmpFilterAttr::ActBadArch),
             ("SCMP_FLTATR_CTL_NNP", ScmpFilterAttr::CtlNnp),

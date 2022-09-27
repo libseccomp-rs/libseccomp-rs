@@ -169,7 +169,7 @@ mod tests {
 
     #[test]
     fn test_parse_arch() {
-        let test_data = [
+        let test_data = &[
             ("SCMP_ARCH_NATIVE", ScmpArch::Native),
             ("SCMP_ARCH_X86", ScmpArch::X86),
             ("SCMP_ARCH_X86_64", ScmpArch::X8664),
