@@ -82,7 +82,7 @@ mod tests {
 
     #[test]
     fn test_parse_compare_op() {
-        let test_data = [
+        let test_data = &[
             ("SCMP_CMP_NE", ScmpCompareOp::NotEqual),
             ("SCMP_CMP_LT", ScmpCompareOp::Less),
             ("SCMP_CMP_LE", ScmpCompareOp::LessOrEqual),

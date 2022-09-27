@@ -102,7 +102,7 @@ mod tests {
 
     #[test]
     fn test_parse_action() {
-        let test_data = [
+        let test_data = &[
             ("SCMP_ACT_KILL_PROCESS", ScmpAction::KillProcess),
             ("SCMP_ACT_KILL_THREAD", ScmpAction::KillThread),
             ("SCMP_ACT_KILL", ScmpAction::KillThread),
