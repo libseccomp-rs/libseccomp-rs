@@ -1,5 +1,7 @@
 use libseccomp::*;
+use std::fs::File;
 use std::io::{stdout, Error};
+use std::os::unix::io::FromRawFd;
 
 #[cfg(feature = "const-syscall")]
 mod known_syscall_names;
@@ -86,7 +88,8 @@ fn test_filter_attributes() {
         ScmpAction::Errno(libc::EACCES),
         ScmpAction::Trace(10),
     ];
-    for action in test_actions {
+    // msrv_compat_1_53: array_into_iter_impl
+    for &action in &test_actions {
         ctx.set_act_badarch(action).unwrap();
         let ret = ctx.get_act_badarch().unwrap();
         assert_eq!(ret, action);
@@ -287,11 +290,13 @@ fn test_merge_filters() {
 fn test_export_functions() {
     let ctx = ScmpFilterContext::new_filter(ScmpAction::Allow).unwrap();
 
+    let mut invalid_fd: File = unsafe { std::fs::File::from_raw_fd(-2) };
+
     assert!(ctx.export_bpf(&mut stdout()).is_ok());
-    assert!(ctx.export_bpf(&mut -1).is_err());
+    assert!(ctx.export_bpf(&mut invalid_fd).is_err());
 
     assert!(ctx.export_pfc(&mut stdout()).is_ok());
-    assert!(ctx.export_pfc(&mut -1).is_err());
+    assert!(ctx.export_pfc(&mut invalid_fd).is_err());
 }
 
 #[test]
