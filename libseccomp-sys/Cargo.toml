@@ -7,4 +7,5 @@ description = "Raw FFI Bindings for the libseccomp Library"
 repository = "https://github.com/libseccomp-rs/libseccomp-rs"
 categories = ["seccomp", "api-bindings"]
 edition = "2018"
+rust-version = "1.46"
 readme = "README.md"
