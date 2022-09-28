@@ -148,15 +148,16 @@ macro_rules! scmp_cmp {
             $datum,
         )
     };
-    ($_:tt $arg:tt & $mask:tt == $datum:expr) => {{
-        #[allow(unused_parens)]
-        let mask = $mask;
+    ($_:tt $arg:tt & $mask:tt == $datum:expr) => {
         $crate::ScmpArgCompare::new(
             $crate::__private_scmp_cmp_arg!($arg),
-            $crate::ScmpCompareOp::MaskedEqual(mask),
+            $crate::ScmpCompareOp::MaskedEqual(
+                #[allow(unused_parens)]
+                $mask,
+            ),
             $datum,
         )
-    }};
+    };
 }
 
 #[cfg(test)]
