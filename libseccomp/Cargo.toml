@@ -1,6 +1,6 @@
 [package]
 name = "libseccomp"
-version = "0.2.3"
+version = "0.3.0"
 authors = ["Manabu Sugimoto <Manabu.Sugimoto@sony.com>"]
 license = "MIT OR Apache-2.0"
 description = "Rust Language Bindings for the libseccomp Library"
