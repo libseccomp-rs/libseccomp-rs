@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Added
+
+### Changed
+
+### Removed
+
+## 0.3.0 - 2022-10-01
+### Added
 - `impl From<ScmpSyscall> for i32`
 - `impl fmt::Display for ScmpSyscall`
 - `impl PartialEq<i32> for ScmpSyscall` and `impl PartialEq<ScmpSyscall> for i32`
