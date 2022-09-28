@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: Apache-2.0 or MIT
+//
+
 pub const SYSCALLS: &[(&str, i32)] = &[
     ("_llseek", -10026),
     ("_newselect", 5022),
