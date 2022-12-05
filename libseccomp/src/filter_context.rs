@@ -357,7 +357,7 @@ impl ScmpFilterContext {
     /// ctx.add_rule_conditional_exact(
     ///     ScmpAction::Errno(libc::EPERM),
     ///     syscall,
-    ///     &[scmp_cmp!($arg1 != libc::AF_UNIX as u64)],
+    ///     &[scmp_cmp!($arg0 != libc::AF_UNIX as u64)],
     /// )?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
