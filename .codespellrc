@@ -1,0 +1,3 @@
+[codespell]
+skip = .git/*,./libseccomp/tests/known_syscall_names.rs,./libseccomp/src/syscall/*.rs
+ignore-words-list = crate
