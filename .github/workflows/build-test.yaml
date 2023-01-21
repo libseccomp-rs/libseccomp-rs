@@ -7,7 +7,7 @@ on:
     types: [opened, reopened, edited, synchronize]
 
 env:
-  msrv: 1.46.0
+  msrv: 1.46
 
 jobs:
   validate:
@@ -118,14 +118,12 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Install Rust ${{ env.msrv }}
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: ${{ env.msrv }}
-          override: true
+        run: rustup default ${{ env.msrv }}
       - name: Install upstream libseccomp
         run: sudo ./scripts/install_libseccomp.sh
       - name: Build crate with all target and features
         run: |
+          cargo -vV
           cargo clean
           cargo build --all-targets --all-features
       - name: Run test
@@ -137,18 +135,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        rust: [1.52.0, 1.53.0]
+        rust: [1.52, 1.53]
     steps:
       - uses: actions/checkout@v3
       - name: Install Rust ${{ matrix.rust }}
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: ${{ matrix.rust }}
-          override: true
+        run: rustup default ${{ matrix.rust }}
       - name: Install upstream libseccomp
         run: sudo ./scripts/install_libseccomp.sh
       - name: Build crate with all target and features
         run: |
+          cargo -vV
           cargo clean
           cargo build --all-targets --all-features
       - name: Run test
