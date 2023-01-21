@@ -174,7 +174,7 @@ jobs:
       - name: Install codespell
         run: pip install codespell
       - name: Run codespell
-        run: codespell --skip './libseccomp/tests/known_syscall_names.rs,./libseccomp/src/syscall/*.rs' --ignore-words-list crate
+        run: codespell
 
   readme:
     name: Readme Check
