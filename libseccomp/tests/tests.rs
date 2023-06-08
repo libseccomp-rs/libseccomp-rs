@@ -131,7 +131,7 @@ fn test_filter_attributes() {
     }
 
     // Test for ApiSysRawRc
-    if check_api(4, ScmpVersion::from((2, 5, 0))).unwrap() {
+    if check_version(ScmpVersion::from((2, 5, 0))).unwrap() {
         ctx.set_api_sysrawrc(true).unwrap();
         let ret = ctx.get_api_sysrawrc().unwrap();
         assert!(ret);

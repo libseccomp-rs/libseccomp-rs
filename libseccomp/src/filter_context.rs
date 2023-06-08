@@ -5,6 +5,7 @@
 
 use crate::api::ensure_supported_api;
 use crate::error::{Result, SeccompError};
+use crate::version::ensure_supported_version;
 use libseccomp_sys::*;
 use std::os::unix::io::AsRawFd;
 use std::ptr::NonNull;
@@ -690,7 +691,7 @@ impl ScmpFilterContext {
     ///
     /// This function returns `Ok(true)` if the [`ScmpFilterAttr::ApiSysRawRc`] attribute set to on the filter
     /// being loaded, `Ok(false)` otherwise.
-    /// The [`ScmpFilterAttr::ApiSysRawRc`] attribute is only usable when the libseccomp API level 4 or higher
+    /// The [`ScmpFilterAttr::ApiSysRawRc`] attribute is only usable when the libseccomp version 2.5.0 or higher
     /// is supported.
     ///
     /// This function corresponds to
@@ -699,21 +700,21 @@ impl ScmpFilterContext {
     /// # Errors
     ///
     /// If this function is called with an invalid filter, an issue is encountered
-    /// getting the current state, or the libseccomp API level is less than 4, an error will be returned.
+    /// getting the current state, or the libseccomp version is less than 2.5.0, an error will be returned.
     ///
     /// # Examples
     ///
     /// ```
     /// # use libseccomp::*;
     /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
-    /// # if check_api(4, ScmpVersion::from((2, 5, 0)))? {
+    /// # if check_version(ScmpVersion::from((2, 5, 0)))? {
     /// ctx.set_api_sysrawrc(true)?;
     /// assert!(ctx.get_api_sysrawrc()?);
     /// # }
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn get_api_sysrawrc(&self) -> Result<bool> {
-        ensure_supported_api("get_api_sysrawrc", 4, ScmpVersion::from((2, 5, 0)))?;
+        ensure_supported_version("get_api_sysrawrc", ScmpVersion::from((2, 5, 0)))?;
         let ret = self.get_filter_attr(ScmpFilterAttr::ApiSysRawRc)?;
 
         Ok(ret != 0)
@@ -967,7 +968,7 @@ impl ScmpFilterContext {
     ///
     /// Settings this to on (`state` == `true`) means that the libseccomp should pass system error codes
     /// back to the caller instead of the default -ECANCELED.
-    /// The [`ScmpFilterAttr::ApiSysRawRc`] attribute is only usable when the libseccomp API level 4 or higher
+    /// The [`ScmpFilterAttr::ApiSysRawRc`] attribute is only usable when the libseccomp version 2.5.0 or higher
     /// is supported.
     ///
     /// Defaults to off (`state` == `false`).
@@ -983,20 +984,20 @@ impl ScmpFilterContext {
     /// # Errors
     ///
     /// If this function is called with an invalid filter, an issue is encountered
-    /// setting the attribute, or the libseccomp API level is less than 4, an error will be returned.
+    /// setting the attribute, or the libseccomp version is less than 2.5.0, an error will be returned.
     ///
     /// # Examples
     ///
     /// ```
     /// # use libseccomp::*;
     /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
-    /// # if check_api(4, ScmpVersion::from((2, 5, 0)))? {
+    /// # if check_version(ScmpVersion::from((2, 5, 0)))? {
     /// ctx.set_api_sysrawrc(true)?;
     /// # }
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_api_sysrawrc(&mut self, state: bool) -> Result<()> {
-        ensure_supported_api("set_api_sysrawrc", 4, ScmpVersion::from((2, 5, 0)))?;
+        ensure_supported_version("set_api_sysrawrc", ScmpVersion::from((2, 5, 0)))?;
         self.set_filter_attr(ScmpFilterAttr::ApiSysRawRc, state.into())
     }
 
