@@ -658,7 +658,7 @@ impl ScmpFilterContext {
     ///
     /// See [`set_ctl_optimize()`](ScmpFilterContext::set_ctl_optimize) for more details about
     /// the optimization level.
-    /// The [`ScmpFilterAttr::CtlOptimize`] attribute is only usable when the libseccomp API level 4 or higher
+    /// The [`ScmpFilterAttr::CtlOptimize`] attribute is only usable when the libseccomp version 2.5.0 or higher
     /// is supported.
     ///
     /// This function corresponds to
@@ -667,21 +667,21 @@ impl ScmpFilterContext {
     /// # Errors
     ///
     /// If this function is called with an invalid filter, an issue is encountered
-    /// getting the current state, or the libseccomp API level is less than 4, an error will be returned.
+    /// getting the current state, or the libseccomp version is less than 2.5.0, an error will be returned.
     ///
     /// # Examples
     ///
     /// ```
     /// # use libseccomp::*;
     /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
-    /// # if check_api(4, ScmpVersion::from((2, 5, 0)))? {
+    /// # if check_version(ScmpVersion::from((2, 5, 0)))? {
     /// ctx.set_ctl_optimize(2)?;
     /// assert_eq!(ctx.get_ctl_optimize()?, 2);
     /// # }
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn get_ctl_optimize(&self) -> Result<u32> {
-        ensure_supported_api("get_ctl_optimize", 4, ScmpVersion::from((2, 5, 0)))?;
+        ensure_supported_version("get_ctl_optimize", ScmpVersion::from((2, 5, 0)))?;
         let ret = self.get_filter_attr(ScmpFilterAttr::CtlOptimize)?;
 
         Ok(ret)
@@ -929,7 +929,7 @@ impl ScmpFilterContext {
     /// consistent O(log n) filter traversal for every rule in the filter. The binary tree may be advantageous
     /// for large filters. Note that [`set_syscall_priority()`](ScmpFilterContext::set_syscall_priority) is
     /// ignored when `level` == `2`.
-    /// The [`ScmpFilterAttr::CtlOptimize`] attribute is only usable when the libseccomp API level 4 or higher
+    /// The [`ScmpFilterAttr::CtlOptimize`] attribute is only usable when the libseccomp version 2.5.0 or higher
     /// is supported.
     ///
     /// The different optimization levels are described below:
@@ -947,20 +947,20 @@ impl ScmpFilterContext {
     /// # Errors
     ///
     /// If this function is called with an invalid filter, an issue is encountered
-    /// setting the attribute, or the libseccomp API level is less than 4, an error will be returned.
+    /// setting the attribute, or the libseccomp version is less than 2.5.0, an error will be returned.
     ///
     /// # Examples
     ///
     /// ```
     /// # use libseccomp::*;
     /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
-    /// # if check_api(4, ScmpVersion::from((2, 5, 0)))? {
+    /// # if check_version(ScmpVersion::from((2, 5, 0)))? {
     /// ctx.set_ctl_optimize(2)?;
     /// # }
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_ctl_optimize(&mut self, level: u32) -> Result<()> {
-        ensure_supported_api("set_ctl_optimize", 4, ScmpVersion::from((2, 5, 0)))?;
+        ensure_supported_version("set_ctl_optimize", ScmpVersion::from((2, 5, 0)))?;
         self.set_filter_attr(ScmpFilterAttr::CtlOptimize, level)
     }
 
