@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - `get_api_sysrawrc` and `set_api_sysrawrc` can now be used with any API level.
+- `get_ctl_optimize` and `set_ctl_optimize` can now be used with any API level.
 
 ### Removed
 
