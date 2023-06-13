@@ -121,7 +121,7 @@ fn test_filter_attributes() {
 
     // Test for CtlOptimize
     let opt_level = 2;
-    if check_api(4, ScmpVersion::from((2, 5, 0))).unwrap() {
+    if check_version(ScmpVersion::from((2, 5, 0))).unwrap() {
         ctx.set_ctl_optimize(opt_level).unwrap();
         let ret = ctx.get_ctl_optimize().unwrap();
         assert_eq!(ret, opt_level);
