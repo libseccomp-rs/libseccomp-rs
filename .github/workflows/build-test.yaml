@@ -31,7 +31,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        libseccomp-version: [2.4.3, 2.5.1, 2.5.3]
+        libseccomp-version: [2.4.3, 2.5.1, 2.5.3, 2.5.4]
     env:
       LIBSECCOMP_LINK_TYPE: dylib
       LIBSECCOMP_LIB_PATH: /usr/local/libseccomp/lib
@@ -58,7 +58,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        libseccomp-version: [2.4.3, 2.5.1, 2.5.3]
+        libseccomp-version: [2.4.3, 2.5.1, 2.5.3, 2.5.4]
         target:
           - x86_64-unknown-linux-musl
     env:
