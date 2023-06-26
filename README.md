@@ -46,16 +46,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Loads the filter context into the kernel.
     filter.load()?;
 
-    // The dup3 fails by the seccomp rule.
-    assert_eq!(
-        unsafe { libc::dup3(0, 100, libc::O_CLOEXEC) } as i32,
-        -libc::EPERM
-    );
+    // The syscall fails by the seccomp rule.
+    assert_eq!(unsafe { libc::dup3(0, 100, libc::O_CLOEXEC) }, -libc::EPERM);
+    // The errno is the number specified by the seccomp action.
     assert_eq!(std::io::Error::last_os_error().raw_os_error().unwrap(), 10);
 
     Ok(())
 }
-
 ```
 
 ## Requirements
