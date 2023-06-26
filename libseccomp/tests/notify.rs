@@ -137,11 +137,3 @@ fn test_error() {
     assert!(resp.respond(0).is_err());
     assert!(notify_id_valid(0, 0).is_err());
 }
-
-#[test]
-fn resp_flags_from_bits_preserve() {
-    assert_eq!(
-        ScmpNotifRespFlags::from_bits_preserve(u32::MAX).bits(),
-        u32::MAX
-    );
-}

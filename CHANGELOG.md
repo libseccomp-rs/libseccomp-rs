@@ -15,11 +15,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Non-breaking
 - `get_api_sysrawrc` and `set_api_sysrawrc` can now be used with any API level.
 - `get_ctl_optimize` and `set_ctl_optimize` can now be used with any API level.
+- Rust 2021 Edition
 
 #### breaking, caught by compiler
 - `ScmpFilterContext::{add,remove}_arch` return type changed to `Result<()>`.
   If you actually used the returned bool, call `ScmpFilterContext::is_arch_present` first.
 - Rename `ScmpFilterContext::new_filter` to `ScmpFilterContext::new`.
+
+#### silent breaking, not caught by compiler
+- Updated bitflags dependency to `~2.3.3`
 
 ### Removed
 
