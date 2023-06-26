@@ -37,18 +37,11 @@ pub type ScmpFd = RawFd;
 
 bitflags! {
     /// Userspace notification response flags
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     pub struct ScmpNotifRespFlags: u32 {
         /// Tells the kernel to continue executing the system call that triggered the
         /// notification. Must only be used when the notification response's error and value is 0.
         const CONTINUE = SECCOMP_USER_NOTIF_FLAG_CONTINUE;
-    }
-}
-impl ScmpNotifRespFlags {
-    /// Convert from underlying bit representation, preserving all bits (even those not corresponding to a defined flag).
-    // https://github.com/bitflags/bitflags/issues/263
-    #[must_use]
-    pub fn from_bits_preserve(bits: u32) -> Self {
-        Self { bits }
     }
 }
 
@@ -58,9 +51,9 @@ impl ScmpNotifRespFlags {
 /// notification. Must only be used when the notification response's error is 0.
 #[deprecated(
     since = "0.3.0",
-    note = "Use ScmpNotifRespFlags::CONTINUE or ScmpNotifRespFlags::CONTINUE.bits"
+    note = "Use ScmpNotifRespFlags::CONTINUE or ScmpNotifRespFlags::CONTINUE.bits()"
 )]
-pub const NOTIF_FLAG_CONTINUE: u32 = ScmpNotifRespFlags::CONTINUE.bits;
+pub const NOTIF_FLAG_CONTINUE: u32 = ScmpNotifRespFlags::CONTINUE.bits();
 
 impl ScmpFilterContext {
     /// Gets a file descriptor for the userspace notification associated with the
@@ -271,7 +264,7 @@ impl ScmpNotifResp {
             id,
             val,
             error: 0,
-            flags: flags.bits,
+            flags: flags.bits(),
         }
     }
 
@@ -295,7 +288,7 @@ impl ScmpNotifResp {
             id,
             val: 0,
             error,
-            flags: flags.bits,
+            flags: flags.bits(),
         }
     }
 
@@ -317,7 +310,7 @@ impl ScmpNotifResp {
             id,
             val: 0,
             error: 0,
-            flags: ScmpNotifRespFlags::CONTINUE.bitor(flags).bits,
+            flags: ScmpNotifRespFlags::CONTINUE.bitor(flags).bits(),
         }
     }
 
