@@ -449,6 +449,9 @@ impl ScmpFilterContext {
     /// The seccomp filter attributes are tunable values that affect how the library behaves
     /// when generating and loading the seccomp filter into the kernel.
     ///
+    /// > **NOTE**: Usage of this function is discouraged.
+    /// > Use type safe `get_*` functions instead.
+    ///
     /// This function corresponds to
     /// [`seccomp_attr_get`](https://man7.org/linux/man-pages/man3/seccomp_attr_get.3.html).
     ///
@@ -724,6 +727,9 @@ impl ScmpFilterContext {
     ///
     /// The seccomp filter attributes are tunable values that affect how the library behaves
     /// when generating and loading the seccomp filter into the kernel.
+    ///
+    /// > **NOTE**: Usage of this function is discouraged.
+    /// > Use type safe `set_*` functions instead.
     ///
     /// This function corresponds to
     /// [`seccomp_attr_set`](https://man7.org/linux/man-pages/man3/seccomp_attr_set.3.html).
