@@ -156,6 +156,8 @@ pub enum scmp_filter_attr {
     SCMP_FLTATR_CTL_OPTIMIZE = 8,
     /// return the system return codes
     SCMP_FLTATR_API_SYSRAWRC = 9,
+    /// request wait killable semantics
+    SCMP_FLTATR_CTL_WAITKILL = 10,
     _SCMP_FLTATR_MAX,
 }
 
@@ -209,6 +211,8 @@ pub const SCMP_ARCH_X86_64: u32 = 0xc000003e;
 pub const SCMP_ARCH_X32: u32 = 0x4000003e;
 pub const SCMP_ARCH_ARM: u32 = 0x40000028;
 pub const SCMP_ARCH_AARCH64: u32 = 0xc00000b7;
+pub const SCMP_ARCH_LOONGARCH64: u32 = 0xc0000102;
+pub const SCMP_ARCH_M68K: u32 = 0x4;
 pub const SCMP_ARCH_MIPS: u32 = 0x8;
 pub const SCMP_ARCH_MIPS64: u32 = 0x80000008;
 pub const SCMP_ARCH_MIPS64N32: u32 = 0xa0000008;
@@ -223,6 +227,8 @@ pub const SCMP_ARCH_S390X: u32 = 0x80000016;
 pub const SCMP_ARCH_PARISC: u32 = 0xf;
 pub const SCMP_ARCH_PARISC64: u32 = 0x8000000f;
 pub const SCMP_ARCH_RISCV64: u32 = 0xc00000f3;
+pub const SCMP_ARCH_SHEB: u32 = 0x2a;
+pub const SCMP_ARCH_SH: u32 = 0x4000002a;
 
 pub const SCMP_ACT_MASK: u32 = SECCOMP_RET_ACTION_FULL;
 /// Kill the process
@@ -638,6 +644,29 @@ extern "C" {
     /// This function generates seccomp Berkeley Packer Filter (BPF) code and writes
     /// it to the given fd.  Returns zero on success, negative values on failure.
     pub fn seccomp_export_bpf(ctx: const_scmp_filter_ctx, fd: c_int) -> c_int;
+
+    /// Generate seccomp Berkeley Packet Filter (BPF) code and export it to a buffer
+    ///
+    /// - `ctx`: the filter context
+    /// - `buf`: the destination buffer
+    /// - `len`: on input the length of the buffer, on output the number of bytes in the program
+    ///
+    /// This function generates seccomp Berkeley Packer Filter (BPF) code and writes
+    /// it to the given buffer.  Returns zero on success, negative values on failure.
+    pub fn seccomp_export_bpf_mem(
+        ctx: const_scmp_filter_ctx,
+        buf: *mut c_void,
+        len: *mut usize,
+    ) -> c_int;
+
+    ///  Precompute the seccomp filter for future use
+    ///
+    ///  - `ctx`: the filter context
+    ///
+    ///  This function precomputes the seccomp filter and stores it internally for
+    ///  future use, speeding up [`seccomp_load()`] and other functions which require
+    ///  the generated filter.
+    pub fn seccomp_precompute(ctx: const_scmp_filter_ctx) -> c_int;
 }
 
 /// Negative pseudo syscall number returned by some functions in case of an error
