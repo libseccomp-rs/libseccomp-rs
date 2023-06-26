@@ -4,7 +4,7 @@
 [![Latest release on crates.io](https://img.shields.io/crates/v/libseccomp.svg)](https://crates.io/crates/libseccomp)
 [![Documentation on docs.rs](https://docs.rs/libseccomp/badge.svg)](https://docs.rs/libseccomp)
 [![codecov](https://codecov.io/gh/libseccomp-rs/libseccomp-rs/branch/main/graph/badge.svg)](https://codecov.io/gh/libseccomp-rs/libseccomp-rs)
-[![MSRV: 1.46](https://img.shields.io/badge/MSRV-1.46-informational)](https://blog.rust-lang.org/2020/08/27/Rust-1.46.0.html)
+[![MSRV: 1.63](https://img.shields.io/badge/MSRV-1.63-informational)](https://blog.rust-lang.org/2022/08/11/Rust-1.63.0.html)
 
 Rust Language Bindings for the libseccomp Library
 

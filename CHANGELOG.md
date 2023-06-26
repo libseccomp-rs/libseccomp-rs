@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Added
-- Minimum Supported Rust Version (MSRV): 1.46
+- Minimum Supported Rust Version (MSRV): 1.63
 - `futex_waitv` and `set_mempolicy_home_node` syscalls for the `const-syscall` feature
 
 ### Changed
