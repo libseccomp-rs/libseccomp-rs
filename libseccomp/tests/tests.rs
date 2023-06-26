@@ -88,8 +88,7 @@ fn test_filter_attributes() {
         ScmpAction::Errno(libc::EACCES),
         ScmpAction::Trace(10),
     ];
-    // msrv_compat_1_53: array_into_iter_impl
-    for &action in &test_actions {
+    for action in test_actions {
         ctx.set_act_badarch(action).unwrap();
         let ret = ctx.get_act_badarch().unwrap();
         assert_eq!(ret, action);

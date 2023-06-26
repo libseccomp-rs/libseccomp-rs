@@ -7,7 +7,7 @@ on:
     types: [opened, reopened, edited, synchronize]
 
 env:
-  msrv: 1.46
+  msrv: 1.63
 
 jobs:
   validate:
@@ -119,27 +119,6 @@ jobs:
       - uses: actions/checkout@v3
       - name: Install Rust ${{ env.msrv }}
         run: rustup default ${{ env.msrv }}
-      - name: Install upstream libseccomp
-        run: sudo ./scripts/install_libseccomp.sh
-      - name: Build crate with all target and features
-        run: |
-          cargo -vV
-          cargo clean
-          cargo build --all-targets --all-features
-      - name: Run test
-        run: cargo test --all-targets --all-features -- --nocapture --test-threads 1
-
-  msrv_compat:
-    name: MSRV Compat
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        rust: [1.52, 1.53]
-    steps:
-      - uses: actions/checkout@v3
-      - name: Install Rust ${{ matrix.rust }}
-        run: rustup default ${{ matrix.rust }}
       - name: Install upstream libseccomp
         run: sudo ./scripts/install_libseccomp.sh
       - name: Build crate with all target and features
