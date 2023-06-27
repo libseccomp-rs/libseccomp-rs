@@ -332,11 +332,19 @@ fn test_export_functions() {
 
     let mut invalid_fd: File = unsafe { std::fs::File::from_raw_fd(-2) };
 
+    assert!(ctx.export_pfc(&mut stdout()).is_ok());
+    assert!(ctx.export_pfc(&mut invalid_fd).is_err());
+
     assert!(ctx.export_bpf(&mut stdout()).is_ok());
     assert!(ctx.export_bpf(&mut invalid_fd).is_err());
 
-    assert!(ctx.export_pfc(&mut stdout()).is_ok());
-    assert!(ctx.export_pfc(&mut invalid_fd).is_err());
+    #[cfg(libseccomp_v2_6)]
+    {
+        let ctx = ScmpFilterContext::new(ScmpAction::Allow).unwrap();
+        let buf = ctx.export_bpf_mem().unwrap();
+        assert!(buf.len() > 0);
+        assert!(buf.iter().copied().any(|byte| byte > 0));
+    }
 }
 
 #[test]

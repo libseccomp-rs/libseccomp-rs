@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   You can however create and export seccomp-bpf for them.
 - `SeccompError::sysrawrc()` that queries the system's raw error code directly returned
   by `ScmpFilterAttr::ApiSysRawRc`.
+- `ScmpFilterContext::export_bpf_mem`
 
 ### Changed
 
