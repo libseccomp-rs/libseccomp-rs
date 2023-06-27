@@ -1021,7 +1021,7 @@ impl ScmpFilterContext {
     ///
     /// # Errors
     ///
-    /// If this function is called with an invalid filter or  writing to the file fails,
+    /// If this function is called with an invalid filter or writing to the file fails,
     /// an error will be returned.
     ///
     /// # Examples
@@ -1049,7 +1049,7 @@ impl ScmpFilterContext {
     ///
     /// # Errors
     ///
-    /// If this function is called with an invalid filter or  writing to the file fails,
+    /// If this function is called with an invalid filter or writing to the file fails,
     /// an error will be returned.
     ///
     /// # Examples
@@ -1101,6 +1101,49 @@ impl ScmpFilterContext {
     #[must_use]
     pub fn as_ptr(&self) -> scmp_filter_ctx {
         self.ctx.as_ptr()
+    }
+}
+
+/// This `impl`-block requires libseccomp 2.6.0 or newer.
+#[cfg(any(libseccomp_v2_6, all(doc, not(doctest))))]
+impl ScmpFilterContext {
+    /// Outputs BPF(Berkeley Packet Filter)-formatted, kernel-readable dump of a
+    /// filter context's rules to a in-memory buffer.
+    ///
+    /// This function corresponds to
+    /// [`seccomp_export_bpf_mem`](https://man7.org/linux/man-pages/man3/seccomp_export_bpf_mem.3.html).
+    ///
+    /// # Errors
+    ///
+    /// If this function encounters an issue while exporting the filter, an error will be returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use libseccomp::*;
+    /// # use std::io::{stdout};
+    /// let ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
+    /// let buf = ctx.export_bpf_mem()?;
+    /// println!("{buf:?}");
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn export_bpf_mem(&self) -> Result<Vec<u8>> {
+        // We call seccomp_export_bpf_mem with buf specified as a NULL-ptr first
+        // to query the required buffer size.
+        let mut len: usize = 0;
+        cvt(unsafe { seccomp_export_bpf_mem(self.ctx.as_ptr(), std::ptr::null_mut(), &mut len) })?;
+
+        let mut buf: Vec<u8> = vec![0; len];
+        let mut buf_len = buf.len();
+        cvt(unsafe {
+            seccomp_export_bpf_mem(
+                self.ctx.as_ptr(),
+                buf.as_mut_ptr().cast::<libc::c_void>(),
+                &mut buf_len,
+            )
+        })?;
+
+        Ok(buf)
     }
 }
 
