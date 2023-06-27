@@ -95,13 +95,13 @@ impl ScmpFilterContext {
     /// ctx1.merge(ctx2)?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn merge(&mut self, src: Self) -> Result<()> {
+    pub fn merge(&mut self, src: Self) -> Result<&mut Self> {
         cvt(unsafe { seccomp_merge(self.ctx.as_ptr(), src.ctx.as_ptr()) })?;
 
         // The src filter is already released.
         std::mem::forget(src);
 
-        Ok(())
+        Ok(self)
     }
 
     /// Checks if an architecture is present in a filter.
@@ -170,12 +170,12 @@ impl ScmpFilterContext {
     /// ctx.add_arch(ScmpArch::X86)?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn add_arch(&mut self, arch: ScmpArch) -> Result<()> {
+    pub fn add_arch(&mut self, arch: ScmpArch) -> Result<&mut Self> {
         match unsafe { seccomp_arch_add(self.ctx.as_ptr(), arch.to_sys()) } {
             // The libseccomp returns -EEXIST if the specified architecture is already
             // present. Succeed silently in this case, as it's not fatal, and the
             // architecture is present already.
-            0 | MINUS_EEXIST => Ok(()),
+            0 | MINUS_EEXIST => Ok(self),
             errno => Err(SeccompError::from_errno(errno)),
         }
     }
@@ -206,12 +206,12 @@ impl ScmpFilterContext {
     /// ctx.remove_arch(ScmpArch::X86)?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn remove_arch(&mut self, arch: ScmpArch) -> Result<()> {
+    pub fn remove_arch(&mut self, arch: ScmpArch) -> Result<&mut Self> {
         match unsafe { seccomp_arch_remove(self.ctx.as_ptr(), arch.to_sys()) } {
             // Similar to add_arch, -EEXIST is returned if the arch is not present.
             // Succeed silently in that case, this is not fatal and the architecture
             // is not present in the filter after remove_arch
-            0 | MINUS_EEXIST => Ok(()),
+            0 | MINUS_EEXIST => Ok(self),
             errno => Err(SeccompError::from_errno(errno)),
         }
     }
@@ -243,7 +243,11 @@ impl ScmpFilterContext {
     /// ctx.add_rule(ScmpAction::Errno(libc::EPERM), syscall)?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn add_rule<S: Into<ScmpSyscall>>(&mut self, action: ScmpAction, syscall: S) -> Result<()> {
+    pub fn add_rule<S: Into<ScmpSyscall>>(
+        &mut self,
+        action: ScmpAction,
+        syscall: S,
+    ) -> Result<&mut Self> {
         self.add_rule_conditional(action, syscall, &[])
     }
 
@@ -286,7 +290,7 @@ impl ScmpFilterContext {
         action: ScmpAction,
         syscall: S,
         comparators: &[ScmpArgCompare],
-    ) -> Result<()> {
+    ) -> Result<&mut Self> {
         cvt(unsafe {
             seccomp_rule_add_array(
                 self.ctx.as_ptr(),
@@ -295,7 +299,8 @@ impl ScmpFilterContext {
                 comparators.len() as u32,
                 comparators.as_ptr().cast::<scmp_arg_cmp>(),
             )
-        })
+        })?;
+        Ok(self)
     }
 
     /// Adds a single rule for an unconditional action on a syscall.
@@ -331,7 +336,7 @@ impl ScmpFilterContext {
         &mut self,
         action: ScmpAction,
         syscall: S,
-    ) -> Result<()> {
+    ) -> Result<&mut Self> {
         self.add_rule_conditional_exact(action, syscall, &[])
     }
 
@@ -374,7 +379,7 @@ impl ScmpFilterContext {
         action: ScmpAction,
         syscall: S,
         comparators: &[ScmpArgCompare],
-    ) -> Result<()> {
+    ) -> Result<&mut Self> {
         cvt(unsafe {
             seccomp_rule_add_exact_array(
                 self.ctx.as_ptr(),
@@ -383,7 +388,8 @@ impl ScmpFilterContext {
                 comparators.len() as u32,
                 comparators.as_ptr().cast::<scmp_arg_cmp>(),
             )
-        })
+        })?;
+        Ok(self)
     }
 
     /// Loads a filter context into the kernel.
@@ -445,10 +451,11 @@ impl ScmpFilterContext {
         &mut self,
         syscall: S,
         priority: u8,
-    ) -> Result<()> {
+    ) -> Result<&mut Self> {
         cvt(unsafe {
             seccomp_syscall_priority(self.ctx.as_ptr(), syscall.into().to_sys(), priority)
-        })
+        })?;
+        Ok(self)
     }
 
     /// Gets a raw filter attribute value.
@@ -748,8 +755,9 @@ impl ScmpFilterContext {
     ///
     /// If this function is called with an invalid filter or an issue is
     /// encountered setting the attribute, an error will be returned.
-    pub fn set_filter_attr(&mut self, attr: ScmpFilterAttr, value: u32) -> Result<()> {
-        cvt(unsafe { seccomp_attr_set(self.ctx.as_ptr(), attr.to_sys(), value) })
+    pub fn set_filter_attr(&mut self, attr: ScmpFilterAttr, value: u32) -> Result<&mut Self> {
+        cvt(unsafe { seccomp_attr_set(self.ctx.as_ptr(), attr.to_sys(), value) })?;
+        Ok(self)
     }
 
     /// Sets the default action taken when the loaded filter does not match the architecture
@@ -777,7 +785,7 @@ impl ScmpFilterContext {
     /// ctx.set_act_badarch(ScmpAction::KillProcess)?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn set_act_badarch(&mut self, action: ScmpAction) -> Result<()> {
+    pub fn set_act_badarch(&mut self, action: ScmpAction) -> Result<&mut Self> {
         self.set_filter_attr(ScmpFilterAttr::ActBadArch, action.to_sys())
     }
 
@@ -809,13 +817,13 @@ impl ScmpFilterContext {
     /// ctx.set_ctl_nnp(false)?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn set_ctl_nnp(&mut self, state: bool) -> Result<()> {
+    pub fn set_ctl_nnp(&mut self, state: bool) -> Result<&mut Self> {
         self.set_filter_attr(ScmpFilterAttr::CtlNnp, state.into())
     }
 
     /// Deprecated alias for [`ScmpFilterContext::set_ctl_nnp()`].
     #[deprecated(since = "0.2.3", note = "Use ScmpFilterContext::set_ctl_nnp().")]
-    pub fn set_no_new_privs_bit(&mut self, state: bool) -> Result<()> {
+    pub fn set_no_new_privs_bit(&mut self, state: bool) -> Result<&mut Self> {
         self.set_ctl_nnp(state)
     }
 
@@ -852,7 +860,7 @@ impl ScmpFilterContext {
     /// ctx.set_ctl_tsync(true)?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn set_ctl_tsync(&mut self, state: bool) -> Result<()> {
+    pub fn set_ctl_tsync(&mut self, state: bool) -> Result<&mut Self> {
         ensure_supported_api("set_ctl_tsync", 2, ScmpVersion::from((2, 2, 0)))?;
         self.set_filter_attr(ScmpFilterAttr::CtlTsync, state.into())
     }
@@ -887,7 +895,7 @@ impl ScmpFilterContext {
     /// ctx.set_ctl_log(true)?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn set_ctl_log(&mut self, state: bool) -> Result<()> {
+    pub fn set_ctl_log(&mut self, state: bool) -> Result<&mut Self> {
         ensure_supported_api("set_ctl_log", 3, ScmpVersion::from((2, 4, 0)))?;
         self.set_filter_attr(ScmpFilterAttr::CtlLog, state.into())
     }
@@ -923,7 +931,7 @@ impl ScmpFilterContext {
     /// # }
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn set_ctl_ssb(&mut self, state: bool) -> Result<()> {
+    pub fn set_ctl_ssb(&mut self, state: bool) -> Result<&mut Self> {
         ensure_supported_api("set_ctl_ssb", 4, ScmpVersion::from((2, 5, 0)))?;
         self.set_filter_attr(ScmpFilterAttr::CtlSsb, state.into())
     }
@@ -964,7 +972,7 @@ impl ScmpFilterContext {
     /// ctx.set_ctl_optimize(2)?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn set_ctl_optimize(&mut self, level: u32) -> Result<()> {
+    pub fn set_ctl_optimize(&mut self, level: u32) -> Result<&mut Self> {
         self.set_filter_attr(ScmpFilterAttr::CtlOptimize, level)
     }
 
@@ -998,7 +1006,7 @@ impl ScmpFilterContext {
     /// ctx.set_api_sysrawrc(true)?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn set_api_sysrawrc(&mut self, state: bool) -> Result<()> {
+    pub fn set_api_sysrawrc(&mut self, state: bool) -> Result<&mut Self> {
         self.set_filter_attr(ScmpFilterAttr::ApiSysRawRc, state.into())
     }
 

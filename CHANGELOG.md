@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ScmpFilterContext::{add,remove}_arch` return type changed to `Result<()>`.
   If you actually used the returned bool, call `ScmpFilterContext::is_arch_present` first.
 - Rename `ScmpFilterContext::new_filter` to `ScmpFilterContext::new`.
+- `ScmpFilterContext` methods support builder pattern.
 
 #### silent breaking, not caught by compiler
 - Updated bitflags dependency to `~2.3.3`
