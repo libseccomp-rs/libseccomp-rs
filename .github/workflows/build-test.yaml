@@ -43,6 +43,7 @@ jobs:
           install_dir=$(dirname ${{ env.LIBSECCOMP_LIB_PATH }})
           sudo ./scripts/install_libseccomp.sh -v ${{ matrix.libseccomp-version }} -i ${install_dir}
           echo "LD_LIBRARY_PATH=${{ env.LIBSECCOMP_LIB_PATH }}" >> $GITHUB_ENV
+          sudo rm /usr/lib/x86_64-linux-gnu/libseccomp.so*
       - name: Build crate
         run: make debug
       - name: Build crate with all features
