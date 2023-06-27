@@ -6,7 +6,7 @@
 use crate::api::ensure_supported_api;
 use crate::error::{Result, SeccompError};
 use libseccomp_sys::*;
-use std::os::unix::io::AsRawFd;
+use std::os::unix::io::{AsFd, AsRawFd};
 use std::ptr::NonNull;
 
 use crate::*;
@@ -1028,13 +1028,13 @@ impl ScmpFilterContext {
     ///
     /// ```
     /// # use libseccomp::*;
-    /// # use std::io::{stdout};
+    /// # use std::io;
     /// let ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
-    /// ctx.export_pfc(&mut stdout())?;
+    /// ctx.export_pfc(io::stdout())?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn export_pfc<T: AsRawFd>(&self, fd: &mut T) -> Result<()> {
-        cvt(unsafe { seccomp_export_pfc(self.ctx.as_ptr(), fd.as_raw_fd()) })
+    pub fn export_pfc<T: AsFd>(&self, fd: T) -> Result<()> {
+        cvt(unsafe { seccomp_export_pfc(self.ctx.as_ptr(), fd.as_fd().as_raw_fd()) })
     }
 
     /// Outputs BPF(Berkeley Packet Filter)-formatted, kernel-readable dump of a
@@ -1056,13 +1056,13 @@ impl ScmpFilterContext {
     ///
     /// ```
     /// # use libseccomp::*;
-    /// # use std::io::{stdout};
+    /// # use std::io;
     /// let ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
-    /// ctx.export_bpf(&mut stdout())?;
+    /// ctx.export_bpf(io::stdout())?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn export_bpf<T: AsRawFd>(&self, fd: &mut T) -> Result<()> {
-        cvt(unsafe { seccomp_export_bpf(self.ctx.as_ptr(), fd.as_raw_fd()) })
+    pub fn export_bpf<T: AsFd>(&self, fd: T) -> Result<()> {
+        cvt(unsafe { seccomp_export_bpf(self.ctx.as_ptr(), fd.as_fd().as_raw_fd()) })
     }
 
     /// Resets a filter context, removing all its existing state.

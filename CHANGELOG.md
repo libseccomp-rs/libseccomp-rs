@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   If you actually used the returned bool, call `ScmpFilterContext::is_arch_present` first.
 - Rename `ScmpFilterContext::new_filter` to `ScmpFilterContext::new`.
 - `ScmpFilterContext` methods support builder pattern.
+- IO-Safety for `ScmpFilterContext::export_{bpf,pfc}`.
 
 #### silent breaking, not caught by compiler
 - Updated bitflags dependency to `~2.3.3`
