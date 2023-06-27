@@ -8,7 +8,7 @@ repository = "https://github.com/libseccomp-rs/libseccomp-rs"
 keywords = ["bindings", "seccomp", "linux", "containers", "security"]
 categories = ["os", "api-bindings"]
 rust-version = "1.63"
-edition = "2018"
+edition = "2021"
 readme = "../README.md"
 
 [dependencies]
