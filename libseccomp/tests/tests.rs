@@ -240,6 +240,45 @@ fn test_display_syscall() {
 }
 
 #[test]
+fn test_builder_pattern() -> Result<(), Box<dyn std::error::Error>> {
+    let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
+    ctx.add_arch(ScmpArch::Arm)?;
+    ctx.add_arch(ScmpArch::Riscv64)?;
+    ctx.remove_arch(ScmpArch::Native)?;
+
+    ScmpFilterContext::new(ScmpAction::Allow)?
+        .add_arch(ScmpArch::X8664)?
+        .add_arch(ScmpArch::Aarch64)?
+        .remove_arch(ScmpArch::Native)?
+        .merge(ctx)?
+        .add_rule(ScmpAction::Log, ScmpSyscall::from_name("uname")?)?
+        //.add_rule_exact(ScmpAction::Log, ScmpSyscall::from_name("")?)?
+        .add_rule_conditional(
+            ScmpAction::Log,
+            ScmpSyscall::from_name("uname")?,
+            &[scmp_cmp!($arg0 == 0)],
+        )?
+        /*
+        .add_rule_conditional_exact(
+            ScmpAction::Log,
+            ScmpSyscall::from_name("")?,
+            &[scmp_cmp!($arg0 == 0)],
+        )?
+        */
+        .set_syscall_priority(ScmpSyscall::from_name("uname")?, 255)?
+        .set_act_badarch(ScmpAction::Allow)?
+        .set_ctl_nnp(true)?
+        .set_ctl_tsync(false)?
+        .set_ctl_log(false)?
+        .set_ctl_ssb(false)?
+        .set_ctl_optimize(1)?
+        .set_api_sysrawrc(false)?
+        .load()?;
+
+    Ok(())
+}
+
+#[test]
 fn test_arch_functions() {
     let mut ctx = ScmpFilterContext::new(ScmpAction::Allow).unwrap();
     ctx.add_arch(ScmpArch::X86).unwrap();

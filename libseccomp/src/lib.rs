@@ -24,25 +24,30 @@
 //!
 //!     filter.add_arch(ScmpArch::X8664)?;
 //!     filter.add_rule(ScmpAction::Errno(1), syscall)?;
+//!     filter.set_ctl_log(true)?;
+//!     filter.set_syscall_priority(syscall, 100)?;
 //!     filter.load()?;
 //!
 //!     Ok(())
 //! }
 //! ```
-
+//!
+//! The above example can be replaced with builder pattern.
+//!
 //! ```rust
 //! use libseccomp::*;
 //!
 //! fn main() -> Result<(), Box<dyn std::error::Error>> {
-//!     let mut filter = ScmpFilterContext::new(ScmpAction::Allow)?;
-//!     let syscall = ScmpSyscall::from_name("dup3")?;
-//!     let cmp = ScmpArgCompare::new(0, ScmpCompareOp::Equal, 1);
+//!     let syscall = ScmpSyscall::from_name("getuid")?;
 //!
-//!     filter.add_arch(ScmpArch::X8664)?;
-//!     filter.add_rule_conditional(ScmpAction::Errno(libc::EPERM), syscall, &[cmp])?;
-//!     filter.load()?;
+//!     ScmpFilterContext::new(ScmpAction::Allow)?
+//!         .add_arch(ScmpArch::X8664)?
+//!         .add_rule(ScmpAction::Errno(1), syscall)?
+//!         .set_ctl_log(true)?
+//!         .set_syscall_priority(syscall, 100)?
+//!         .load()?;
 //!
-//!     Ok(())
+//!    Ok(())
 //! }
 //! ```
 //!
