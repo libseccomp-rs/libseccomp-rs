@@ -142,9 +142,8 @@ impl ScmpFilterContext {
 
     /// Adds an architecture to the filter.
     ///
-    /// This function returns `Ok(true)` if the architecture was added to the
-    /// filter and `Ok(false)` if the architecture was already present in the
-    /// filter.
+    /// When this functions exits successfully the architecture is (now) present
+    /// in the filter.
     ///
     /// This function corresponds to
     /// [`seccomp_arch_add`](https://man7.org/linux/man-pages/man3/seccomp_arch_add.3.html).
@@ -166,19 +165,20 @@ impl ScmpFilterContext {
     /// ctx.add_arch(ScmpArch::X86)?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn add_arch(&mut self, arch: ScmpArch) -> Result<bool> {
+    pub fn add_arch(&mut self, arch: ScmpArch) -> Result<()> {
         match unsafe { seccomp_arch_add(self.ctx.as_ptr(), arch.to_sys()) } {
-            0 => Ok(true),
-            MINUS_EEXIST => Ok(false),
+            // The libseccomp returns -EEXIST if the specified architecture is already
+            // present. Succeed silently in this case, as it's not fatal, and the
+            // architecture is present already.
+            0 | MINUS_EEXIST => Ok(()),
             errno => Err(SeccompError::from_errno(errno)),
         }
     }
 
     /// Removes an architecture from the filter.
     ///
-    /// This function returns `Ok(true)` if the architecture was removed from
-    /// the filter and `Ok(false)` if the architecture wasn't present in the
-    /// filter.
+    /// When this functions exits successfully the architecture is not present
+    /// in the filter (anymore).
     ///
     /// This function corresponds to
     /// [`seccomp_arch_remove`](https://man7.org/linux/man-pages/man3/seccomp_arch_remove.3.html).
@@ -201,10 +201,12 @@ impl ScmpFilterContext {
     /// ctx.remove_arch(ScmpArch::X86)?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn remove_arch(&mut self, arch: ScmpArch) -> Result<bool> {
+    pub fn remove_arch(&mut self, arch: ScmpArch) -> Result<()> {
         match unsafe { seccomp_arch_remove(self.ctx.as_ptr(), arch.to_sys()) } {
-            0 => Ok(true),
-            MINUS_EEXIST => Ok(false),
+            // Similar to add_arch, -EEXIST is returned if the arch is not present.
+            // Succeed silently in that case, this is not fatal and the architecture
+            // is not present in the filter after remove_arch
+            0 | MINUS_EEXIST => Ok(()),
             errno => Err(SeccompError::from_errno(errno)),
         }
     }

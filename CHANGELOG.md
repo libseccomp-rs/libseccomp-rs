@@ -11,8 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `futex_waitv` and `set_mempolicy_home_node` syscalls for the `const-syscall` feature
 
 ### Changed
+
+#### Non-breaking
 - `get_api_sysrawrc` and `set_api_sysrawrc` can now be used with any API level.
 - `get_ctl_optimize` and `set_ctl_optimize` can now be used with any API level.
+
+#### breaking, caught by compiler
+- `ScmpFilterContext::{add,remove}_arch` return type changed to `Result<()>`.
+  If you actually used the returned bool, call `ScmpFilterContext::is_arch_present` first.
 
 ### Removed
 
