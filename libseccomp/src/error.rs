@@ -60,6 +60,24 @@ impl SeccompErrno {
             ESRCH => "Unable to load the filter due to thread issues",
         }
     }
+
+    fn to_sysrawrc(self) -> i32 {
+        use SeccompErrno::*;
+
+        match self {
+            EACCES => libc::EACCES,
+            ECANCELED => libc::ECANCELED,
+            EDOM => libc::EDOM,
+            EEXIST => libc::EEXIST,
+            EFAULT => libc::EFAULT,
+            EINVAL => libc::EINVAL,
+            ENOENT => libc::ENOENT,
+            ENOMEM => libc::ENOMEM,
+            EOPNOTSUPP => libc::EOPNOTSUPP,
+            ERANGE => libc::ERANGE,
+            ESRCH => libc::ESRCH,
+        }
+    }
 }
 
 impl fmt::Display for SeccompErrno {
@@ -74,6 +92,8 @@ impl fmt::Display for SeccompErrno {
 pub(crate) enum ErrorKind {
     /// An error that represents error code on failure of the libseccomp API.
     Errno(SeccompErrno),
+    /// A system's raw error code
+    SysRawRc(i32),
     /// A parse error occurred while trying to convert a value.
     ParseError,
     /// A lower-level error that is caused by an error from a lower-level module.
@@ -138,12 +158,7 @@ impl SeccompError {
             libc::EOPNOTSUPP => SeccompErrno::EOPNOTSUPP,
             libc::ERANGE => SeccompErrno::ERANGE,
             libc::ESRCH => SeccompErrno::ESRCH,
-            _ => {
-                return Self::with_msg(format!(
-                    "libseccomp-rs error: errno {} not handled.",
-                    raw_errno,
-                ))
-            }
+            _ => return Self::new(ErrorKind::SysRawRc(raw_errno)),
         };
         Self::new(ErrorKind::Errno(seccomp_errno))
     }
@@ -157,9 +172,45 @@ impl SeccompError {
         }
     }
 
+    /// Query the system's raw error code returned when something goes wrong
+    /// in the libc and the kernel.
+    ///
+    /// This function will be useful for users who want to extract the system's
+    /// error code directly returned by [`ScmpFilterAttr::ApiSysRawRc`](`crate::ScmpFilterAttr::ApiSysRawRc`)
+    /// , or get the errno returned by the libseccomp API as a negative integer rather than [`SeccompErrno`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use libseccomp::*;
+    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
+    /// ctx.set_api_sysrawrc(true)?;
+    /// match ctx.export_pfc(&mut -1) {
+    ///     Err(e) => {
+    ///         eprintln!("Error: {e}");
+    ///         if let Some(sys) = e.sysrawrc() {
+    ///             eprintln!("The system's raw error code: {sys}");
+    ///             assert_eq!(sys, -libc::EBADF);
+    ///         }
+    ///     }
+    ///     _ => println!("No error"),
+    /// }
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn sysrawrc(&self) -> Option<i32> {
+        match self.kind {
+            ErrorKind::SysRawRc(rc) => Some(rc),
+            ErrorKind::Errno(errno) => Some(-errno.to_sysrawrc()),
+            _ => None,
+        }
+    }
+
     fn msg(&self) -> Cow<'_, str> {
         match &self.kind {
             ErrorKind::Errno(e) => e.strerror().into(),
+            ErrorKind::SysRawRc(e) => {
+                format!("The system's raw error code({}) was returned", e).into()
+            }
             ErrorKind::Common(s) => s.deref().into(),
             ErrorKind::ParseError => PARSE_ERROR.into(),
             ErrorKind::Source => self.source.as_ref().unwrap().to_string().into(),
@@ -281,10 +332,6 @@ mod tests {
             SeccompError::from_errno(-libc::ESRCH).msg(),
             SeccompErrno::ESRCH.strerror()
         );
-        assert_eq!(
-            SeccompError::from_errno(-libc::EPIPE).msg(),
-            format!("libseccomp-rs error: errno {} not handled.", -libc::EPIPE)
-        );
 
         // Common
         assert_eq!(
@@ -300,6 +347,12 @@ mod tests {
             SeccompError::with_source(Source, null_err).msg(),
             NULL_ERR_MSG
         );
+
+        // SysRawRc
+        assert_eq!(
+            SeccompError::from_errno(-libc::EPIPE).msg(),
+            format!("The system's raw error code({}) was returned", -libc::EPIPE)
+        );
     }
 
     #[test]
@@ -314,6 +367,31 @@ mod tests {
                 .source()
                 .is_some()
         );
+    }
+
+    #[test]
+    fn test_sysrawrc() {
+        let tests = &[
+            // The EBADFD is not handled by SeccompErrno
+            libc::EBADFD,
+            // The following errnos are handled by SeccompErrno
+            libc::EACCES,
+            libc::ECANCELED,
+            libc::EDOM,
+            libc::EEXIST,
+            libc::EFAULT,
+            libc::EINVAL,
+            libc::ENOENT,
+            libc::ENOMEM,
+            libc::EOPNOTSUPP,
+            libc::ERANGE,
+            libc::ESRCH,
+        ];
+
+        for errno in tests {
+            assert_eq!(SeccompError::from_errno(-errno).sysrawrc().unwrap(), -errno);
+        }
+        assert!(SeccompError::with_msg("no errno").sysrawrc().is_none());
     }
 
     #[test]
