@@ -25,6 +25,10 @@ pub enum ScmpArch {
     Arm,
     /// The AARCH64 architecture token
     Aarch64,
+    /// The LoongArch architecture token
+    Loongarch64,
+    /// The Motorola 68000 architecture token
+    M68k,
     /// The MIPS architecture token
     Mips,
     /// The MIPS (64-bit) architecture token
@@ -53,6 +57,10 @@ pub enum ScmpArch {
     Parisc64,
     /// The RISC-V architecture token
     Riscv64,
+    /// The SuperH (big-endian) architecture token
+    Sheb,
+    /// The SuperH (little-endian) architecture token
+    Sh,
 }
 
 impl ScmpArch {
@@ -64,6 +72,8 @@ impl ScmpArch {
             Self::X32 => SCMP_ARCH_X32,
             Self::Arm => SCMP_ARCH_ARM,
             Self::Aarch64 => SCMP_ARCH_AARCH64,
+            Self::Loongarch64 => SCMP_ARCH_LOONGARCH64,
+            Self::M68k => SCMP_ARCH_M68K,
             Self::Mips => SCMP_ARCH_MIPS,
             Self::Mips64 => SCMP_ARCH_MIPS64,
             Self::Mips64N32 => SCMP_ARCH_MIPS64N32,
@@ -78,6 +88,8 @@ impl ScmpArch {
             Self::Parisc => SCMP_ARCH_PARISC,
             Self::Parisc64 => SCMP_ARCH_PARISC64,
             Self::Riscv64 => SCMP_ARCH_RISCV64,
+            Self::Sheb => SCMP_ARCH_SHEB,
+            Self::Sh => SCMP_ARCH_SH,
         }
     }
 
@@ -89,6 +101,8 @@ impl ScmpArch {
             SCMP_ARCH_X32 => Ok(Self::X32),
             SCMP_ARCH_ARM => Ok(Self::Arm),
             SCMP_ARCH_AARCH64 => Ok(Self::Aarch64),
+            SCMP_ARCH_LOONGARCH64 => Ok(Self::Loongarch64),
+            SCMP_ARCH_M68K => Ok(Self::M68k),
             SCMP_ARCH_MIPS => Ok(Self::Mips),
             SCMP_ARCH_MIPS64 => Ok(Self::Mips64),
             SCMP_ARCH_MIPS64N32 => Ok(Self::Mips64N32),
@@ -103,6 +117,8 @@ impl ScmpArch {
             SCMP_ARCH_PARISC => Ok(Self::Parisc),
             SCMP_ARCH_PARISC64 => Ok(Self::Parisc64),
             SCMP_ARCH_RISCV64 => Ok(Self::Riscv64),
+            SCMP_ARCH_SHEB => Ok(Self::Sheb),
+            SCMP_ARCH_SH => Ok(Self::Sh),
             _ => Err(SeccompError::new(ParseError)),
         }
     }
@@ -144,6 +160,8 @@ impl FromStr for ScmpArch {
             "SCMP_ARCH_X32" => Ok(Self::X32),
             "SCMP_ARCH_ARM" => Ok(Self::Arm),
             "SCMP_ARCH_AARCH64" => Ok(Self::Aarch64),
+            "SCMP_ARCH_LOONGARCH64" => Ok(Self::Loongarch64),
+            "SCMP_ARCH_M68K" => Ok(Self::M68k),
             "SCMP_ARCH_MIPS" => Ok(Self::Mips),
             "SCMP_ARCH_MIPS64" => Ok(Self::Mips64),
             "SCMP_ARCH_MIPS64N32" => Ok(Self::Mips64N32),
@@ -158,6 +176,8 @@ impl FromStr for ScmpArch {
             "SCMP_ARCH_PARISC" => Ok(Self::Parisc),
             "SCMP_ARCH_PARISC64" => Ok(Self::Parisc64),
             "SCMP_ARCH_RISCV64" => Ok(Self::Riscv64),
+            "SCMP_ARCH_SHEB" => Ok(Self::Sheb),
+            "SCMP_ARCH_SH" => Ok(Self::Sh),
             _ => Err(SeccompError::new(ParseError)),
         }
     }
@@ -176,6 +196,8 @@ mod tests {
             ("SCMP_ARCH_X32", ScmpArch::X32),
             ("SCMP_ARCH_ARM", ScmpArch::Arm),
             ("SCMP_ARCH_AARCH64", ScmpArch::Aarch64),
+            ("SCMP_ARCH_LOONGARCH64", ScmpArch::Loongarch64),
+            ("SCMP_ARCH_M68K", ScmpArch::M68k),
             ("SCMP_ARCH_MIPS", ScmpArch::Mips),
             ("SCMP_ARCH_MIPS64", ScmpArch::Mips64),
             ("SCMP_ARCH_MIPS64N32", ScmpArch::Mips64N32),
@@ -190,6 +212,8 @@ mod tests {
             ("SCMP_ARCH_PARISC", ScmpArch::Parisc),
             ("SCMP_ARCH_PARISC64", ScmpArch::Parisc64),
             ("SCMP_ARCH_RISCV64", ScmpArch::Riscv64),
+            ("SCMP_ARCH_SHEB", ScmpArch::Sheb),
+            ("SCMP_ARCH_SH", ScmpArch::Sh),
         ];
 
         for data in test_data {
