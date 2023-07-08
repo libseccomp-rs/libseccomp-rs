@@ -61,7 +61,7 @@ fn test_set_api() {
 
 #[test]
 fn test_set_syscall_priority() {
-    let mut ctx = ScmpFilterContext::new_filter(ScmpAction::KillThread).unwrap();
+    let mut ctx = ScmpFilterContext::new(ScmpAction::KillThread).unwrap();
     let syscall = ScmpSyscall::from_name("open").unwrap();
     let priority = 100;
 
@@ -72,7 +72,7 @@ fn test_set_syscall_priority() {
 #[test]
 #[allow(deprecated)]
 fn test_filter_attributes() {
-    let mut ctx = ScmpFilterContext::new_filter(ScmpAction::KillThread).unwrap();
+    let mut ctx = ScmpFilterContext::new(ScmpAction::KillThread).unwrap();
 
     // Test for CtlNnp
     ctx.set_ctl_nnp(false).unwrap();
@@ -152,7 +152,7 @@ fn test_filter_attributes() {
 
 #[test]
 fn test_filter_reset() {
-    let mut ctx = ScmpFilterContext::new_filter(ScmpAction::KillThread).unwrap();
+    let mut ctx = ScmpFilterContext::new(ScmpAction::KillThread).unwrap();
     ctx.reset(ScmpAction::Allow).unwrap();
 
     let action = ctx.get_act_default().unwrap();
@@ -251,7 +251,7 @@ fn test_display_syscall() {
 
 #[test]
 fn test_arch_functions() {
-    let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow).unwrap();
+    let mut ctx = ScmpFilterContext::new(ScmpAction::Allow).unwrap();
     ctx.add_arch(ScmpArch::X86).unwrap();
     let ret = ctx.is_arch_present(ScmpArch::X86).unwrap();
     assert!(ret);
@@ -263,8 +263,8 @@ fn test_arch_functions() {
 
 #[test]
 fn test_merge_filters() {
-    let mut ctx1 = ScmpFilterContext::new_filter(ScmpAction::Allow).unwrap();
-    let mut ctx2 = ScmpFilterContext::new_filter(ScmpAction::Allow).unwrap();
+    let mut ctx1 = ScmpFilterContext::new(ScmpAction::Allow).unwrap();
+    let mut ctx2 = ScmpFilterContext::new(ScmpAction::Allow).unwrap();
     let native_arch = ScmpArch::native();
     let mut prospective_arch = ScmpArch::Aarch64;
 
@@ -287,7 +287,7 @@ fn test_merge_filters() {
 
 #[test]
 fn test_export_functions() {
-    let ctx = ScmpFilterContext::new_filter(ScmpAction::Allow).unwrap();
+    let ctx = ScmpFilterContext::new(ScmpAction::Allow).unwrap();
 
     let mut invalid_fd: File = unsafe { std::fs::File::from_raw_fd(-2) };
 
@@ -300,7 +300,7 @@ fn test_export_functions() {
 
 #[test]
 fn test_rule_add_load() {
-    let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow).unwrap();
+    let mut ctx = ScmpFilterContext::new(ScmpAction::Allow).unwrap();
     ctx.add_arch(ScmpArch::Native).unwrap();
 
     let syscall = ScmpSyscall::from_name("dup3").unwrap();
@@ -314,7 +314,7 @@ fn test_rule_add_load() {
 #[test]
 fn test_rule_add_array_load() {
     let mut cmps: Vec<ScmpArgCompare> = Vec::new();
-    let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow).unwrap();
+    let mut ctx = ScmpFilterContext::new(ScmpAction::Allow).unwrap();
     ctx.add_arch(ScmpArch::Native).unwrap();
 
     let syscall = ScmpSyscall::from_name("process_vm_readv").unwrap();
@@ -342,7 +342,7 @@ fn test_rule_add_array_load() {
 
 #[test]
 fn test_rule_add_exact_load() {
-    let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow).unwrap();
+    let mut ctx = ScmpFilterContext::new(ScmpAction::Allow).unwrap();
     ctx.add_arch(ScmpArch::Native).unwrap();
 
     let syscall = ScmpSyscall::from_name("dup3").unwrap();
@@ -356,7 +356,7 @@ fn test_rule_add_exact_load() {
 #[test]
 fn test_rule_add_exact_array_load() {
     let mut cmps: Vec<ScmpArgCompare> = Vec::new();
-    let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow).unwrap();
+    let mut ctx = ScmpFilterContext::new(ScmpAction::Allow).unwrap();
     ctx.add_arch(ScmpArch::Native).unwrap();
 
     let syscall = ScmpSyscall::from_name("process_vm_readv").unwrap();

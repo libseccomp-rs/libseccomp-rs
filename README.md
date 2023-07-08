@@ -32,7 +32,7 @@ use libseccomp::*;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Creates and returns a new filter context.
-    let mut filter = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    let mut filter = ScmpFilterContext::new(ScmpAction::Allow)?;
 
     // Adds an architecture to the filter.
     filter.add_arch(ScmpArch::X8664)?;
