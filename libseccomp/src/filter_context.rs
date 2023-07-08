@@ -44,15 +44,21 @@ impl ScmpFilterContext {
     ///
     /// ```
     /// # use libseccomp::*;
-    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn new_filter(default_action: ScmpAction) -> Result<Self> {
+    pub fn new(default_action: ScmpAction) -> Result<Self> {
         let ctx_ptr = unsafe { seccomp_init(default_action.to_sys()) };
         let ctx = NonNull::new(ctx_ptr)
             .ok_or_else(|| SeccompError::with_msg("Could not create new filter"))?;
 
         Ok(Self { ctx })
+    }
+
+    /// Deprecated alias for [`ScmpFilterContext::new`].
+    #[deprecated(since = "0.4.0", note = "Use ScmpFilterContext::new instead.")]
+    pub fn new_filter(default_action: ScmpAction) -> Result<Self> {
+        Self::new(default_action)
     }
 
     /// Merges two filters.
@@ -77,8 +83,8 @@ impl ScmpFilterContext {
     ///
     /// ```
     /// # use libseccomp::*;
-    /// let mut ctx1 = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
-    /// let mut ctx2 = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let mut ctx1 = ScmpFilterContext::new(ScmpAction::Allow)?;
+    /// let mut ctx2 = ScmpFilterContext::new(ScmpAction::Allow)?;
     /// if !ctx1.is_arch_present(ScmpArch::X8664)? {
     ///     ctx1.add_arch(ScmpArch::X8664)?;
     ///     ctx1.remove_arch(ScmpArch::Native)?;
@@ -127,7 +133,7 @@ impl ScmpFilterContext {
     ///
     /// ```
     /// # use libseccomp::*;
-    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
     /// ctx.add_arch(ScmpArch::Aarch64)?;
     /// assert!(ctx.is_arch_present(ScmpArch::Aarch64)?);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
@@ -161,7 +167,7 @@ impl ScmpFilterContext {
     ///
     /// ```
     /// # use libseccomp::*;
-    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
     /// ctx.add_arch(ScmpArch::X86)?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
@@ -196,7 +202,7 @@ impl ScmpFilterContext {
     ///
     /// ```
     /// # use libseccomp::*;
-    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
     /// ctx.add_arch(ScmpArch::X86)?;
     /// ctx.remove_arch(ScmpArch::X86)?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
@@ -233,7 +239,7 @@ impl ScmpFilterContext {
     ///
     /// ```
     /// # use libseccomp::*;
-    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
     /// let syscall = ScmpSyscall::from_name("ptrace")?;
     /// ctx.add_rule(ScmpAction::Errno(libc::EPERM), syscall)?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
@@ -267,7 +273,7 @@ impl ScmpFilterContext {
     ///
     /// ```
     /// # use libseccomp::*;
-    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
     /// let syscall = ScmpSyscall::from_name("open")?;
     /// ctx.add_rule_conditional(
     ///     ScmpAction::Errno(libc::EPERM),
@@ -317,7 +323,7 @@ impl ScmpFilterContext {
     ///
     /// ```
     /// # use libseccomp::*;
-    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
     /// let syscall = ScmpSyscall::from_name("dup3")?;
     /// ctx.add_rule_exact(ScmpAction::KillThread, syscall)?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
@@ -355,7 +361,7 @@ impl ScmpFilterContext {
     ///
     /// ```
     /// # use libseccomp::*;
-    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
     /// let syscall = ScmpSyscall::from_name("socket")?;
     /// ctx.add_rule_conditional_exact(
     ///     ScmpAction::Errno(libc::EPERM),
@@ -397,7 +403,7 @@ impl ScmpFilterContext {
     ///
     /// ```
     /// # use libseccomp::*;
-    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
     /// let syscall = ScmpSyscall::from_name("dup3")?;
     /// ctx.add_rule(ScmpAction::KillThread, syscall)?;
     /// ctx.load()?;
@@ -431,7 +437,7 @@ impl ScmpFilterContext {
     ///
     /// ```
     /// # use libseccomp::*;
-    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
     /// let syscall = ScmpSyscall::from_name("open")?;
     /// ctx.set_syscall_priority(syscall, 100)?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
@@ -470,7 +476,7 @@ impl ScmpFilterContext {
     ///
     /// ```
     /// # use libseccomp::*;
-    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
     /// assert_ne!(ctx.get_filter_attr(ScmpFilterAttr::CtlNnp)?, 0);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
@@ -483,7 +489,7 @@ impl ScmpFilterContext {
     }
 
     /// Gets the default action as specified in the call to
-    /// [`new_filter()`](ScmpFilterContext::new_filter) or [`reset()`](ScmpFilterContext::reset).
+    /// [`new()`](ScmpFilterContext::new) or [`reset()`](ScmpFilterContext::reset).
     ///
     /// This function corresponds to
     /// [`seccomp_attr_get`](https://man7.org/linux/man-pages/man3/seccomp_attr_get.3.html).
@@ -497,7 +503,7 @@ impl ScmpFilterContext {
     ///
     /// ```
     /// # use libseccomp::*;
-    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
     /// let action = ctx.get_act_default()?;
     /// assert_eq!(action, ScmpAction::Allow);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
@@ -523,7 +529,7 @@ impl ScmpFilterContext {
     ///
     /// ```
     /// # use libseccomp::*;
-    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
     /// let action = ctx.get_act_badarch()?;
     /// assert_eq!(action, ScmpAction::KillThread);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
@@ -551,7 +557,7 @@ impl ScmpFilterContext {
     ///
     /// ```
     /// # use libseccomp::*;
-    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
     /// ctx.set_ctl_nnp(false)?;
     /// assert!(!ctx.get_ctl_nnp()?);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
@@ -585,7 +591,7 @@ impl ScmpFilterContext {
     ///
     /// ```
     /// # use libseccomp::*;
-    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
     /// ctx.set_ctl_tsync(true)?;
     /// assert!(ctx.get_ctl_tsync()?);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
@@ -614,7 +620,7 @@ impl ScmpFilterContext {
     ///
     /// ```
     /// # use libseccomp::*;
-    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
     /// ctx.set_ctl_log(true)?;
     /// assert!(ctx.get_ctl_log()?);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
@@ -645,7 +651,7 @@ impl ScmpFilterContext {
     ///
     /// ```
     /// # use libseccomp::*;
-    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
     /// # if check_api(4, ScmpVersion::from((2, 5, 0))).unwrap() {
     /// ctx.set_ctl_ssb(false)?;
     /// assert!(!ctx.get_ctl_ssb()?);
@@ -678,7 +684,7 @@ impl ScmpFilterContext {
     ///
     /// ```
     /// # use libseccomp::*;
-    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
     /// # if check_version(ScmpVersion::from((2, 5, 0)))? {
     /// ctx.set_ctl_optimize(2)?;
     /// assert_eq!(ctx.get_ctl_optimize()?, 2);
@@ -711,7 +717,7 @@ impl ScmpFilterContext {
     ///
     /// ```
     /// # use libseccomp::*;
-    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
     /// # if check_version(ScmpVersion::from((2, 5, 0)))? {
     /// ctx.set_api_sysrawrc(true)?;
     /// assert!(ctx.get_api_sysrawrc()?);
@@ -774,7 +780,7 @@ impl ScmpFilterContext {
     ///
     ///  ```
     /// # use libseccomp::*;
-    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
     /// ctx.set_act_badarch(ScmpAction::KillProcess)?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
@@ -806,7 +812,7 @@ impl ScmpFilterContext {
     ///
     /// ```
     /// # use libseccomp::*;
-    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
     /// ctx.set_ctl_nnp(false)?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
@@ -849,7 +855,7 @@ impl ScmpFilterContext {
     ///
     /// ```
     /// # use libseccomp::*;
-    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
     /// ctx.set_ctl_tsync(true)?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
@@ -884,7 +890,7 @@ impl ScmpFilterContext {
     ///
     /// ```
     /// # use libseccomp::*;
-    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
     /// ctx.set_ctl_log(true)?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
@@ -918,7 +924,7 @@ impl ScmpFilterContext {
     ///
     /// ```
     /// # use libseccomp::*;
-    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
     /// # if check_api(4, ScmpVersion::from((2, 5, 0))).unwrap() {
     /// ctx.set_ctl_ssb(false)?;
     /// # }
@@ -961,7 +967,7 @@ impl ScmpFilterContext {
     ///
     /// ```
     /// # use libseccomp::*;
-    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
     /// # if check_version(ScmpVersion::from((2, 5, 0)))? {
     /// ctx.set_ctl_optimize(2)?;
     /// # }
@@ -998,7 +1004,7 @@ impl ScmpFilterContext {
     ///
     /// ```
     /// # use libseccomp::*;
-    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
     /// # if check_version(ScmpVersion::from((2, 5, 0)))? {
     /// ctx.set_api_sysrawrc(true)?;
     /// # }
@@ -1028,7 +1034,7 @@ impl ScmpFilterContext {
     /// ```
     /// # use libseccomp::*;
     /// # use std::io::{stdout};
-    /// let ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
     /// ctx.export_pfc(&mut stdout())?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
@@ -1056,7 +1062,7 @@ impl ScmpFilterContext {
     /// ```
     /// # use libseccomp::*;
     /// # use std::io::{stdout};
-    /// let ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
     /// ctx.export_bpf(&mut stdout())?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
@@ -1082,7 +1088,7 @@ impl ScmpFilterContext {
     ///
     /// ```
     /// # use libseccomp::*;
-    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
     /// ctx.reset(ScmpAction::KillThread)?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
@@ -1121,7 +1127,7 @@ mod tests {
 
     #[test]
     fn test_as_ptr() {
-        let ctx = ScmpFilterContext::new_filter(ScmpAction::Allow).unwrap();
+        let ctx = ScmpFilterContext::new(ScmpAction::Allow).unwrap();
         assert_eq!(ctx.as_ptr(), ctx.ctx.as_ptr());
     }
 }

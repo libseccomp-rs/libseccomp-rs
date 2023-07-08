@@ -19,7 +19,7 @@
 //! use libseccomp::*;
 //!
 //! fn main() -> Result<(), Box<dyn std::error::Error>> {
-//!     let mut filter = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+//!     let mut filter = ScmpFilterContext::new(ScmpAction::Allow)?;
 //!     let syscall = ScmpSyscall::from_name("getuid")?;
 //!
 //!     filter.add_arch(ScmpArch::X8664)?;
@@ -34,7 +34,7 @@
 //! use libseccomp::*;
 //!
 //! fn main() -> Result<(), Box<dyn std::error::Error>> {
-//!     let mut filter = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+//!     let mut filter = ScmpFilterContext::new(ScmpAction::Allow)?;
 //!     let syscall = ScmpSyscall::from_name("dup3")?;
 //!     let cmp = ScmpArgCompare::new(0, ScmpCompareOp::Equal, 1);
 //!

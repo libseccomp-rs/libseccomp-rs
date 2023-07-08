@@ -28,7 +28,7 @@ struct TestData {
 fn test_user_notification() {
     skip_if_not_supported!();
 
-    let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow).unwrap();
+    let mut ctx = ScmpFilterContext::new(ScmpAction::Allow).unwrap();
     let syscall = ScmpSyscall::from_name("dup3").unwrap();
     let arch = ScmpArch::native();
 
@@ -129,7 +129,7 @@ fn test_resp_new() {
 fn test_error() {
     skip_if_not_supported!();
 
-    let ctx = ScmpFilterContext::new_filter(ScmpAction::Allow).unwrap();
+    let ctx = ScmpFilterContext::new(ScmpAction::Allow).unwrap();
     let resp = ScmpNotifResp::new(0, 0, 0, 0);
 
     assert!(ctx.get_notify_fd().is_err());

@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### breaking, caught by compiler
 - `ScmpFilterContext::{add,remove}_arch` return type changed to `Result<()>`.
   If you actually used the returned bool, call `ScmpFilterContext::is_arch_present` first.
+- Rename `ScmpFilterContext::new_filter` to `ScmpFilterContext::new`.
 
 ### Removed
 
