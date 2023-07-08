@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Minimum Supported Rust Version (MSRV): 1.63
 - `futex_waitv` and `set_mempolicy_home_node` syscalls for the `const-syscall` feature
+- Support for `loongarch64`, `m68k`, `sheb` and `sh` architectures. Note that Rust has
+  no support for `SuperH` so you can not use libseccomp-rs on such architectures.
+  You can however create and export seccomp-bpf for them.
 
 ### Changed
 
