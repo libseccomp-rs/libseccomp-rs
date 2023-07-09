@@ -8,7 +8,8 @@
 set -o errexit
 
 # installed libseccomp version by default
-DEFAULT_LIBSECCOMP_VER="2.5.3"
+DEFAULT_LIBSECCOMP_VER="v2.5.4"
+TENTATIVE_HEAD_VER="9.9.9"
 WORK_DIR="$(mktemp -d --tmpdir build-libseccomp.XXXXX)"
 
 function finish() {
@@ -38,17 +39,20 @@ function build_and_install_gperf() {
 
 function build_and_install_libseccomp() {
     libseccomp_version=${opt_ver}
-    libseccomp_url="https://github.com/seccomp/libseccomp"
-    libseccomp_tarball="libseccomp-${libseccomp_version}.tar.gz"
-    libseccomp_tarball_url="${libseccomp_url}/releases/download/v${libseccomp_version}/${libseccomp_tarball}"
+    libseccomp_install_dir=${opt_dir}
+    mkdir -p "${libseccomp_install_dir}"
 
     echo "Build and install libseccomp version ${libseccomp_version}"
-    libseccomp_install_dir=$opt_dir
-    mkdir -p "${libseccomp_install_dir}"
-    curl -sLO "${libseccomp_tarball_url}"
-    tar -xf "${libseccomp_tarball}"
-    pushd "libseccomp-${libseccomp_version}"
-    if [ $opt_musl -eq 1 ]; then
+    git clone --depth=1 "https://github.com/seccomp/libseccomp.git" --branch "${libseccomp_version}" --single-branch
+    pushd libseccomp
+    if [[ ${libseccomp_version} == "main" ]]; then
+        # Specify the tentative version of the libseccomp library because some
+        # functions of the Rust bindings are restricted based on the version.
+        sed -i "/^AC_INIT/ s/0.0.0/$TENTATIVE_HEAD_VER/" configure.ac
+    fi
+
+    ./autogen.sh
+    if [[ ${opt_musl} -eq 1 ]]; then
         # Set FORTIFY_SOURCE=1 because the musl-libc does not have some functions about FORTIFY_SOURCE=2
         cflags="-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=1 -O2"
         ./configure --prefix="${libseccomp_install_dir}" CFLAGS="${cflags}" --enable-static
@@ -75,6 +79,8 @@ OPTIONS:
   -h            : show this help message
   -m            : install libseccomp library for musl-libc [default: GNU-libc]
   -v [VERSION]  : specify the version of installed libseccomp library [default: ${DEFAULT_LIBSECCOMP_VER}]
+                  If you want to install the HEAD of the libseccomp library (the main branch of the repository),
+                  specify "main" and the version will be tentatively ${TENTATIVE_HEAD_VER}.
   -i [DIR]      : specify the directory for installing libseccomp library [default: /usr/local]
 EOF
 }
