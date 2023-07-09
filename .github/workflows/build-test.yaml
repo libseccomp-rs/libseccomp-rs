@@ -93,24 +93,42 @@ jobs:
       fail-fast: false
       matrix:
         target:
-          - i686-unknown-linux-gnu
           - aarch64-unknown-linux-gnu
           - arm-unknown-linux-gnueabihf
+          - i686-unknown-linux-gnu
+          - loongarch64-unknown-linux-gnu
+          #- m68k-unknown-linux-gnu # It is unavailable even in channel 'nightly'.
           - mips-unknown-linux-gnu
           - mips64-unknown-linux-gnuabi64
           - powerpc-unknown-linux-gnu
           - powerpc64-unknown-linux-gnu
           - riscv64gc-unknown-linux-gnu
           - s390x-unknown-linux-gnu
+        include:
+          - target: loongarch64-unknown-linux-gnu
+            nightly: true
+          #- target: m68k-unknown-linux-gnu
+          #  nightly: true
     steps:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Install libseccomp
         run: sudo apt-get install libseccomp-dev
       - name: Install Rust toolchain
-        run: rustup target add ${{ matrix.target }}
+        run: |
+          if [[ "${{ matrix.nightly }}" == true ]]; then
+            rustup +nightly component add rust-src
+            rustup +nightly target add ${{ matrix.target }}
+          else
+            rustup target add ${{ matrix.target }}
+          fi
       - name: Build crate
-        run: cargo build --target ${{ matrix.target }} --all-features
+        run: |
+          if [[ "${{ matrix.nightly }}" == true ]]; then
+            cargo +nightly build -Z build-std --target ${{ matrix.target }} --all-features
+          else
+            cargo build --target ${{ matrix.target }} --all-features
+          fi
 
   msrv:
     name: MSRV
