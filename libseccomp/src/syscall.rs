@@ -20,6 +20,12 @@ cfg_if::cfg_if! {
     } else if #[cfg(target_arch = "arm")] {
         mod arm;
         use arm::SYSCALLS;
+    } else if #[cfg(target_arch = "loongarch64")] {
+        mod loongarch64;
+        use loongarch64::SYSCALLS;
+    } else if #[cfg(target_arch = "m68k")] {
+        mod m68k;
+        use m68k::SYSCALLS;
     } else if #[cfg(target_arch = "mips")] {
         mod mips;
         use mips::SYSCALLS;
