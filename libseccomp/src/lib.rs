@@ -72,7 +72,6 @@ mod compare_op;
 mod filter_attr;
 mod filter_context;
 mod functions;
-#[cfg(any(libseccomp_v2_5, doc))]
 mod notify;
 mod syscall;
 mod version;
@@ -87,7 +86,6 @@ pub use compare_op::ScmpCompareOp;
 pub use filter_attr::ScmpFilterAttr;
 pub use filter_context::ScmpFilterContext;
 pub use functions::*;
-#[cfg(any(libseccomp_v2_5, doc))]
 pub use notify::*;
 pub use syscall::ScmpSyscall;
 pub use version::{check_version, ScmpVersion};

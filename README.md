@@ -57,7 +57,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ## Requirements
 Before using the libseccomp crate, you need to install the libseccomp library for your system.
-The libseccomp library version 2.4 or newer is required.
+The libseccomp library version 2.5.0 or newer is required.
 
 ### Installing the libseccomp library from a package
 

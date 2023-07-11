@@ -23,10 +23,10 @@ fn main() {
     }
 
     if pkg_config::Config::new()
-        .atleast_version("2.5.0")
+        .atleast_version("2.6.0")
         .probe("libseccomp")
         .is_ok()
     {
-        println!("cargo:rustc-cfg=libseccomp_v2_5");
+        println!("cargo:rustc-cfg=libseccomp_v2_6");
     }
 }

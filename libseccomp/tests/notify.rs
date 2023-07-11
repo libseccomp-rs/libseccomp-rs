@@ -1,5 +1,3 @@
-#![cfg(libseccomp_v2_5)]
-
 use libc::{dup3, O_CLOEXEC};
 use libseccomp::*;
 use std::thread;

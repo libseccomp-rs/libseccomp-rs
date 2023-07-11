@@ -5,7 +5,6 @@
 
 use crate::api::ensure_supported_api;
 use crate::error::{Result, SeccompError};
-use crate::version::ensure_supported_version;
 use libseccomp_sys::*;
 use std::os::unix::io::AsRawFd;
 use std::ptr::NonNull;
@@ -685,14 +684,11 @@ impl ScmpFilterContext {
     /// ```
     /// # use libseccomp::*;
     /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
-    /// # if check_version(ScmpVersion::from((2, 5, 0)))? {
     /// ctx.set_ctl_optimize(2)?;
     /// assert_eq!(ctx.get_ctl_optimize()?, 2);
-    /// # }
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn get_ctl_optimize(&self) -> Result<u32> {
-        ensure_supported_version("get_ctl_optimize", ScmpVersion::from((2, 5, 0)))?;
         let ret = self.get_filter_attr(ScmpFilterAttr::CtlOptimize)?;
 
         Ok(ret)
@@ -718,14 +714,11 @@ impl ScmpFilterContext {
     /// ```
     /// # use libseccomp::*;
     /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
-    /// # if check_version(ScmpVersion::from((2, 5, 0)))? {
     /// ctx.set_api_sysrawrc(true)?;
     /// assert!(ctx.get_api_sysrawrc()?);
-    /// # }
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn get_api_sysrawrc(&self) -> Result<bool> {
-        ensure_supported_version("get_api_sysrawrc", ScmpVersion::from((2, 5, 0)))?;
         let ret = self.get_filter_attr(ScmpFilterAttr::ApiSysRawRc)?;
 
         Ok(ret != 0)
@@ -968,13 +961,10 @@ impl ScmpFilterContext {
     /// ```
     /// # use libseccomp::*;
     /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
-    /// # if check_version(ScmpVersion::from((2, 5, 0)))? {
     /// ctx.set_ctl_optimize(2)?;
-    /// # }
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_ctl_optimize(&mut self, level: u32) -> Result<()> {
-        ensure_supported_version("set_ctl_optimize", ScmpVersion::from((2, 5, 0)))?;
         self.set_filter_attr(ScmpFilterAttr::CtlOptimize, level)
     }
 
@@ -1005,13 +995,10 @@ impl ScmpFilterContext {
     /// ```
     /// # use libseccomp::*;
     /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
-    /// # if check_version(ScmpVersion::from((2, 5, 0)))? {
     /// ctx.set_api_sysrawrc(true)?;
-    /// # }
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn set_api_sysrawrc(&mut self, state: bool) -> Result<()> {
-        ensure_supported_version("set_api_sysrawrc", ScmpVersion::from((2, 5, 0)))?;
         self.set_filter_attr(ScmpFilterAttr::ApiSysRawRc, state.into())
     }
 
