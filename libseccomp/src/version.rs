@@ -115,7 +115,6 @@ pub fn check_version(expected: ScmpVersion) -> Result<bool> {
 ///
 /// If the libseccomp version being used is less than the specified version,
 /// an error will be returned.
-// This function will not be used if the libseccomp version is less than 2.5.0.
 pub(crate) fn ensure_supported_version(msg: &str, expected: ScmpVersion) -> Result<()> {
     if check_version(expected)? {
         Ok(())
@@ -154,13 +153,19 @@ mod tests {
             ),
             ScmpVersionTest::new("VerMajor-1", ScmpVersion::from((ver.major - 1, 0, 0)), true),
             ScmpVersionTest::new(
-                "VerMinor-1",
-                ScmpVersion::from((ver.major, ver.minor - 1, 0)),
+                // To avoid a failure at v*.0.*
+                "If VerMinor != 0 then VerMinor-1, otherwise VerMinor=0",
+                ScmpVersion::from((ver.major, if ver.minor != 0 { ver.minor - 1 } else { 0 }, 0)),
                 true,
             ),
             ScmpVersionTest::new(
-                "VerMicro-1",
-                ScmpVersion::from((ver.major, ver.minor, ver.micro - 1)),
+                // To avoid a failure at v*.*.0
+                "If VerMicro != 0 then VerMicro-1, otherwise VerMicro=0",
+                ScmpVersion::from((
+                    ver.major,
+                    ver.minor,
+                    if ver.micro != 0 { ver.micro - 1 } else { 0 },
+                )),
                 true,
             ),
             ScmpVersionTest::new(

@@ -120,24 +120,14 @@ fn test_filter_attributes() {
 
     // Test for CtlOptimize
     let opt_level = 2;
-    if check_version(ScmpVersion::from((2, 5, 0))).unwrap() {
-        ctx.set_ctl_optimize(opt_level).unwrap();
-        let ret = ctx.get_ctl_optimize().unwrap();
-        assert_eq!(ret, opt_level);
-    } else {
-        assert!(ctx.set_ctl_optimize(opt_level).is_err());
-        assert!(ctx.get_ctl_optimize().is_err());
-    }
+    ctx.set_ctl_optimize(opt_level).unwrap();
+    let ret = ctx.get_ctl_optimize().unwrap();
+    assert_eq!(ret, opt_level);
 
     // Test for ApiSysRawRc
-    if check_version(ScmpVersion::from((2, 5, 0))).unwrap() {
-        ctx.set_api_sysrawrc(true).unwrap();
-        let ret = ctx.get_api_sysrawrc().unwrap();
-        assert!(ret);
-    } else {
-        assert!(ctx.set_api_sysrawrc(true).is_err());
-        assert!(ctx.get_api_sysrawrc().is_err());
-    }
+    ctx.set_api_sysrawrc(true).unwrap();
+    let ret = ctx.get_api_sysrawrc().unwrap();
+    assert!(ret);
 
     // Test for CtlTsync
     if check_api(2, ScmpVersion::from((2, 2, 0))).unwrap() {
