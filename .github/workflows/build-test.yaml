@@ -115,12 +115,18 @@ jobs:
   msrv:
     name: MSRV
     runs-on: ubuntu-latest
+    env:
+      LIBSECCOMP_LINK_TYPE: dylib
+      LIBSECCOMP_LIB_PATH: /usr/local/libseccomp/lib
     steps:
       - uses: actions/checkout@v3
       - name: Install Rust ${{ env.msrv }}
         run: rustup default ${{ env.msrv }}
       - name: Install upstream libseccomp
-        run: sudo ./scripts/install_libseccomp.sh
+        run: |
+          install_dir=$(dirname ${{ env.LIBSECCOMP_LIB_PATH }})
+          sudo ./scripts/install_libseccomp.sh -v main -i ${install_dir}
+          echo "LD_LIBRARY_PATH=${{ env.LIBSECCOMP_LIB_PATH }}" >> $GITHUB_ENV
       - name: Build crate with all target and features
         run: |
           cargo -vV
@@ -186,13 +192,18 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CARGO_TERM_COLOR: always
+      LIBSECCOMP_LINK_TYPE: dylib
+      LIBSECCOMP_LIB_PATH: /usr/local/libseccomp/lib
     steps:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
       - name: Install upstream libseccomp
-        run: sudo ./scripts/install_libseccomp.sh
+        run: |
+          install_dir=$(dirname ${{ env.LIBSECCOMP_LIB_PATH }})
+          sudo ./scripts/install_libseccomp.sh -v main -i ${install_dir}
+          echo "LD_LIBRARY_PATH=${{ env.LIBSECCOMP_LIB_PATH }}" >> $GITHUB_ENV
       - name: Generate code coverage
         run: cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info -- --test-threads 1
       - name: Upload coverage to Codecov
