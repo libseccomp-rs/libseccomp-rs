@@ -60,6 +60,18 @@ fn test_set_api() {
 }
 
 #[test]
+fn test_new_filter() {
+    let ctx1 = ScmpFilterContext::new(ScmpAction::KillThread).unwrap();
+    let action = ctx1.get_act_default().unwrap();
+    assert_eq!(action, ScmpAction::KillThread);
+
+    #[allow(deprecated)]
+    let ctx2 = ScmpFilterContext::new_filter(ScmpAction::KillThread).unwrap();
+    let action = ctx2.get_act_default().unwrap();
+    assert_eq!(action, ScmpAction::KillThread);
+}
+
+#[test]
 fn test_set_syscall_priority() {
     let mut ctx = ScmpFilterContext::new(ScmpAction::KillThread).unwrap();
     let syscall = ScmpSyscall::from_name("open").unwrap();
