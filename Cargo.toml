@@ -3,3 +3,4 @@ members = [
     "libseccomp",
     "libseccomp-sys",
 ]
+resolver = "2"
