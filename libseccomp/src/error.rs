@@ -370,6 +370,34 @@ mod tests {
     }
 
     #[test]
+    fn test_with_msg() {
+        assert_eq!(SeccompError::with_msg(TEST_ERR_MSG).msg(), TEST_ERR_MSG);
+        assert!(SeccompError::with_msg(TEST_ERR_MSG).source().is_none());
+    }
+
+    #[test]
+    fn test_with_msg_and_source() {
+        let null_err = CString::new(TEST_NULL_STR).unwrap_err();
+
+        assert_eq!(
+            SeccompError::with_msg_and_source(TEST_ERR_MSG, null_err.clone()).msg(),
+            TEST_ERR_MSG
+        );
+        assert!(SeccompError::with_msg_and_source(TEST_ERR_MSG, null_err)
+            .source()
+            .is_some());
+    }
+
+    #[test]
+    fn test_errno() {
+        assert_eq!(
+            SeccompError::from_errno(-libc::EACCES).errno().unwrap(),
+            SeccompErrno::EACCES
+        );
+        assert!(SeccompError::from_errno(libc::EBADFD).errno().is_none());
+    }
+
+    #[test]
     fn test_sysrawrc() {
         let tests = &[
             // The EBADFD is not handled by SeccompErrno
@@ -406,6 +434,12 @@ mod tests {
     #[test]
     fn test_display() {
         let null_err = CString::new(TEST_NULL_STR).unwrap_err();
+
+        // fmt::Display for SeccompErrno
+        assert_eq!(
+            format!("{}", SeccompErrno::EACCES),
+            SeccompErrno::EACCES.strerror()
+        );
 
         // Errno without source
         assert_eq!(
