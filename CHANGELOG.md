@@ -8,13 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 - Minimum Supported Rust Version (MSRV): 1.63
-- `futex_waitv` and `set_mempolicy_home_node` syscalls for the `const-syscall` feature
+- - `futex_waitv`, `set_mempolicy_home_node`, atmoic_barrier`,
+  `atmoic_cmpxchg_32` and `getpagesize` syscalls for the `const-syscall` feature
 - Support for `loongarch64`, `m68k`, `sheb` and `sh` architectures. Note that Rust has
   no support for `SuperH` so you can not use libseccomp-rs on such architectures.
   You can however create and export seccomp-bpf for them.
 - `SeccompError::sysrawrc()` that queries the system's raw error code directly returned
   by `ScmpFilterAttr::ApiSysRawRc`.
-- `ScmpFilterContext::export_bpf_mem`
+- `const-syscall` support for loongarch64 and m68k
 
 ### Changed
 
@@ -22,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `get_api_sysrawrc` and `set_api_sysrawrc` can now be used with any API level.
 - `get_ctl_optimize` and `set_ctl_optimize` can now be used with any API level.
 - Rust 2021 Edition
+- updated `const-syscall` syscall definitions
 
 #### breaking, caught by compiler
 - `ScmpFilterContext::{add,remove}_arch` return type changed to `Result<()>`.
