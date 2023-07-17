@@ -80,6 +80,7 @@ impl ScmpSyscall {
     /// let syscall = ScmpSyscall::new("chroot");
     /// ```
     #[cfg(feature = "const-syscall")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "const-syscall")))]
     pub const fn new(name: &str) -> Self {
         let mut i = 0;
         let nr = loop {

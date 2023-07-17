@@ -48,5 +48,15 @@ clippy:
 # Clean
 #
 
+doc: doc-libseccomp doc-libseccomp-sys
+
+doc-libseccomp:
+	RUSTDOCFLAGS="--cfg docsrs" \
+	cargo +nightly doc --lib --no-deps --all-features --manifest-path ./libseccomp/Cargo.toml
+
+doc-libseccomp-sys:
+	cargo doc --lib --no-deps --manifest-path ./libseccomp-sys/Cargo.toml
+
+
 clean:
 	cargo clean
