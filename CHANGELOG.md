@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 - Minimum Supported Rust Version (MSRV): 1.63
-- - `futex_waitv`, `set_mempolicy_home_node`, atmoic_barrier`,
+- `futex_waitv`, `set_mempolicy_home_node`, atmoic_barrier`,
   `atmoic_cmpxchg_32` and `getpagesize` syscalls for the `const-syscall` feature
 - Support for `loongarch64`, `m68k`, `sheb` and `sh` architectures. Note that Rust has
   no support for `SuperH` so you can not use libseccomp-rs on such architectures.
@@ -33,7 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - IO-Safety for `ScmpFilterContext::export_{bpf,pfc}`.
 
 #### silent breaking, not caught by compiler
-- Updated bitflags dependency to `~2.3.3`
+- Updated bitflags dependency to `~2.4.0`
 
 ### Removed
 - Drop the libseccomp < 2.5.0 support.
