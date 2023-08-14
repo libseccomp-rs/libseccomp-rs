@@ -57,7 +57,7 @@ impl ScmpAction {
             SCMP_ACT_TRACE_MASK => Ok(Self::Trace(val as u16)),
             SCMP_ACT_LOG => Ok(Self::Log),
             SCMP_ACT_ALLOW => Ok(Self::Allow),
-            _ => Err(SeccompError::new(ParseError)),
+            inv => Err(SeccompError::new(InvalidAction(inv))),
         }
     }
 
@@ -83,15 +83,19 @@ impl ScmpAction {
             "SCMP_ACT_NOTIFY" => Ok(Self::Notify),
             "SCMP_ACT_ERRNO" => match val {
                 Some(v) => Ok(Self::Errno(v)),
-                None => Err(SeccompError::new(ParseError)),
+                None => Err(SeccompError::new(Common(
+                    "Missing an errno value of SCMP_ACT_ERRNO in ScmpAction::from_str".into(),
+                ))),
             },
             "SCMP_ACT_TRACE" => match val {
                 Some(v) => Ok(Self::Trace(v.try_into()?)),
-                None => Err(SeccompError::new(ParseError)),
+                None => Err(SeccompError::new(Common(
+                    "Missing a message value of SCMP_ACT_TRACE in ScmpAction::from_str".into(),
+                ))),
             },
             "SCMP_ACT_LOG" => Ok(Self::Log),
             "SCMP_ACT_ALLOW" => Ok(Self::Allow),
-            _ => Err(SeccompError::new(ParseError)),
+            _ => Err(SeccompError::new(FromStr(action.to_string()))),
         }
     }
 }

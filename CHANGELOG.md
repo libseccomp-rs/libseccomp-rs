@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ScmpFilterContext::precompute`
 - `ScmpFilterContext::get_ctl_waitkill` and `ScmpFilterContext::set_ctl_waitkill`
 - `ScmpFilterAttr:CtlWaitkill`
+- `SeccmopError::raw_ffi_value`
 
 ### Changed
 
@@ -27,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `get_ctl_optimize` and `set_ctl_optimize` can now be used with any API level.
 - Rust 2021 Edition
 - updated `const-syscall` syscall definitions
+- Some error messages
 
 #### breaking, caught by compiler
 - `ScmpFilterContext::{add,remove}_arch` return type changed to `Result<()>`.

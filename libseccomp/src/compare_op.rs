@@ -71,7 +71,7 @@ impl FromStr for ScmpCompareOp {
             "SCMP_CMP_GE" => Ok(Self::GreaterEqual),
             "SCMP_CMP_GT" => Ok(Self::Greater),
             "SCMP_CMP_MASKED_EQ" => Ok(Self::MaskedEqual(u64::default())),
-            _ => Err(SeccompError::new(ParseError)),
+            _ => Err(SeccompError::new(FromStr(cmp_op.to_string()))),
         }
     }
 }

@@ -93,7 +93,7 @@ impl FromStr for ScmpFilterAttr {
             "SCMP_FLTATR_CTL_OPTIMIZE" => Ok(Self::CtlOptimize),
             "SCMP_FLTATR_API_SYSRAWRC" => Ok(Self::ApiSysRawRc),
             "SCMP_FLTATR_CTL_WAITKILL" => Ok(Self::CtlWaitkill),
-            _ => Err(SeccompError::new(ParseError)),
+            _ => Err(SeccompError::new(FromStr(attr.to_string()))),
         }
     }
 }

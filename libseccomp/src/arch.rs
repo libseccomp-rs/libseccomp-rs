@@ -119,7 +119,7 @@ impl ScmpArch {
             SCMP_ARCH_RISCV64 => Ok(Self::Riscv64),
             SCMP_ARCH_SHEB => Ok(Self::Sheb),
             SCMP_ARCH_SH => Ok(Self::Sh),
-            _ => Err(SeccompError::new(ParseError)),
+            _ => Err(SeccompError::new(InvalidArch(arch))),
         }
     }
 
@@ -178,7 +178,7 @@ impl FromStr for ScmpArch {
             "SCMP_ARCH_RISCV64" => Ok(Self::Riscv64),
             "SCMP_ARCH_SHEB" => Ok(Self::Sheb),
             "SCMP_ARCH_SH" => Ok(Self::Sh),
-            _ => Err(SeccompError::new(ParseError)),
+            _ => Err(SeccompError::new(FromStr(arch.to_string()))),
         }
     }
 }
