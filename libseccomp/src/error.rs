@@ -10,9 +10,6 @@ use std::ops::Deref;
 
 pub(crate) type Result<T> = std::result::Result<T, SeccompError>;
 
-// ParseError message
-const PARSE_ERROR: &str = "Parse error by invalid argument";
-
 /// Errnos returned by the libseccomp API.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[non_exhaustive]
@@ -92,10 +89,14 @@ impl fmt::Display for SeccompErrno {
 pub(crate) enum ErrorKind {
     /// An error that represents error code on failure of the libseccomp API.
     Errno(SeccompErrno),
-    /// A system's raw error code
+    /// A system's raw error code.
     SysRawRc(i32),
-    /// A parse error occurred while trying to convert a value.
-    ParseError,
+    /// An invalid Architecture.
+    InvalidArch(u32),
+    /// An invalid Action.
+    InvalidAction(u32),
+    /// An invalid string in from_str.
+    FromStr(String),
     /// A lower-level error that is caused by an error from a lower-level module.
     Source,
     /// A custom error that does not fall under any other error kind.
@@ -206,15 +207,36 @@ impl SeccompError {
         }
     }
 
+    /// Returns the raw ffi value of an unsupported Action/Arch.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use libseccomp::*;
+    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
+    /// if let Err(err) = ctx.get_act_default() {
+    ///     println!("{:#?}", err.raw_ffi_value())
+    /// }
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn raw_ffi_value(&self) -> Option<u32> {
+        match self.kind {
+            ErrorKind::InvalidArch(v) | ErrorKind::InvalidAction(v) => Some(v),
+            _ => None,
+        }
+    }
+
     fn msg(&self) -> Cow<'_, str> {
         match &self.kind {
             ErrorKind::Errno(e) => e.strerror().into(),
             ErrorKind::SysRawRc(e) => {
                 format!("The system's raw error code({}) was returned", e).into()
             }
-            ErrorKind::Common(s) => s.deref().into(),
-            ErrorKind::ParseError => PARSE_ERROR.into(),
+            ErrorKind::InvalidArch(_) => "Parse error by invalid architecture".into(),
+            ErrorKind::InvalidAction(_) => "Parse error by invalid action".into(),
+            ErrorKind::FromStr(s) => format!("Error while parsing '{s}'").into(),
             ErrorKind::Source => self.source.as_ref().unwrap().to_string().into(),
+            ErrorKind::Common(s) => s.deref().into(),
         }
     }
 }
@@ -340,9 +362,6 @@ mod tests {
             TEST_ERR_MSG
         );
 
-        // ParseError
-        assert_eq!(SeccompError::new(ParseError).msg(), PARSE_ERROR);
-
         // Source
         assert_eq!(
             SeccompError::with_source(Source, null_err).msg(),
@@ -353,6 +372,24 @@ mod tests {
         assert_eq!(
             SeccompError::from_errno(-libc::EPIPE).msg(),
             format!("The system's raw error code({}) was returned", -libc::EPIPE)
+        );
+
+        // InvalidArch
+        assert_eq!(
+            SeccompError::new(InvalidArch(123)).msg(),
+            "Parse error by invalid architecture",
+        );
+
+        // InvalidAction
+        assert_eq!(
+            SeccompError::new(InvalidAction(123)).msg(),
+            "Parse error by invalid action",
+        );
+
+        // FromStr
+        assert_eq!(
+            SeccompError::new(FromStr("SCMP".to_string())).msg(),
+            "Error while parsing 'SCMP'",
         );
     }
 
@@ -424,6 +461,23 @@ mod tests {
     }
 
     #[test]
+    fn test_raw_ffi_value() {
+        assert_eq!(
+            SeccompError::new(InvalidArch(123)).raw_ffi_value().unwrap(),
+            123
+        );
+        assert_eq!(
+            SeccompError::new(InvalidAction(123))
+                .raw_ffi_value()
+                .unwrap(),
+            123
+        );
+        assert!(SeccompError::new(Common("".into()))
+            .raw_ffi_value()
+            .is_none());
+    }
+
+    #[test]
     fn test_from() {
         let null_err = CString::new(TEST_NULL_STR).unwrap_err();
         let scmp_err = SeccompError::from(null_err.clone());
@@ -472,17 +526,6 @@ mod tests {
                 SeccompError::with_source(Common(TEST_ERR_MSG.into()), null_err.clone())
             ),
             format!("{} caused by: {}", TEST_ERR_MSG, NULL_ERR_MSG)
-        );
-
-        // Parse without source
-        assert_eq!(format!("{}", SeccompError::new(ParseError)), PARSE_ERROR);
-        // Parse with source
-        assert_eq!(
-            format!(
-                "{}",
-                SeccompError::with_source(ParseError, null_err.clone())
-            ),
-            format!("{} caused by: {}", PARSE_ERROR, NULL_ERR_MSG)
         );
 
         // Source
