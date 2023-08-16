@@ -1145,6 +1145,34 @@ impl ScmpFilterContext {
 
         Ok(buf)
     }
+
+    /// Precompute the seccomp filter for future use
+    ///
+    /// This function precomputes the seccomp filter and stores it internally for
+    /// future use, speeding up [`ScmpFilterContext::load()`] and other functions which require
+    /// the generated filter.
+    ///
+    /// This function corresponds to
+    /// [`seccomp_precompute`](https://man7.org/linux/man-pages/man3/seccomp_precompute.3.html).
+    ///
+    /// # Errors
+    ///
+    /// If precomputing the filter fails, an error will be returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use libseccomp::*;
+    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let syscall = ScmpSyscall::from_name("dup3")?;
+    /// ctx.add_rule(ScmpAction::KillThread, syscall)?;
+    /// ctx.precompute()?;
+    /// ctx.load()?;
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn precompute(&self) -> Result<()> {
+        cvt(unsafe { seccomp_precompute(self.ctx.as_ptr()) })
+    }
 }
 
 impl Drop for ScmpFilterContext {
