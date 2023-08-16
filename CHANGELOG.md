@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `SeccompError::sysrawrc()` that queries the system's raw error code directly returned
   by `ScmpFilterAttr::ApiSysRawRc`.
 - `const-syscall` support for loongarch64 and m68k
+- `ScmpFilterContext::precompute`
 
 ### Changed
 

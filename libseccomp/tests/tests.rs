@@ -327,6 +327,20 @@ fn test_merge_filters() {
 }
 
 #[test]
+#[cfg(libseccomp_v2_6)]
+fn test_precompute() {
+    let mut ctx = ScmpFilterContext::new(ScmpAction::Allow).unwrap();
+    ctx.precompute().unwrap();
+    ctx.add_arch(ScmpArch::Native).unwrap();
+    let syscall = ScmpSyscall::from_name("dup3").unwrap();
+    ctx.add_rule(ScmpAction::Errno(10), syscall).unwrap();
+    ctx.precompute().unwrap();
+    ctx.load().unwrap();
+
+    syscall_assert!(unsafe { libc::dup3(0, 100, libc::O_CLOEXEC) }, -10);
+}
+
+#[test]
 fn test_export_functions() {
     let ctx = ScmpFilterContext::new(ScmpAction::Allow).unwrap();
 
