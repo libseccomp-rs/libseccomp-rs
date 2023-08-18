@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   by `ScmpFilterAttr::ApiSysRawRc`.
 - `const-syscall` support for loongarch64 and m68k
 - `ScmpFilterContext::precompute`
+- `ScmpFilterContext::get_ctl_waitkill` and `ScmpFilterContext::set_ctl_waitkill`
+- `ScmpFilterAttr:CtlWaitkill`
 
 ### Changed
 

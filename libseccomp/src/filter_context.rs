@@ -731,6 +731,39 @@ impl ScmpFilterContext {
         Ok(ret != 0)
     }
 
+    /// Gets the current state of the [`ScmpFilterAttr::CtlWaitkill`] attribute.
+    ///
+    /// This function returns `Ok(true)` if the [`ScmpFilterAttr::CtlWaitkill`] attribute set to on the filter being
+    /// loaded, `Ok(false)` otherwise.
+    /// The [`ScmpFilterAttr::CtlWaitkill`] attribute is only usable when the libseccomp API level 7 or higher
+    /// is supported.
+    ///
+    /// This function corresponds to
+    /// [`seccomp_attr_get`](https://man7.org/linux/man-pages/man3/seccomp_attr_get.3.html).
+    ///
+    /// # Errors
+    ///
+    /// If this function is called with an invalid filter, an issue is encountered
+    /// getting the current state, or the libseccomp API level is less than 7, an error will be returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use libseccomp::*;
+    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
+    /// # if check_api(7, ScmpVersion::from((2, 6, 0))).unwrap() {
+    /// ctx.set_ctl_waitkill(true)?;
+    /// assert!(!ctx.get_ctl_waitkill()?);
+    /// # }
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn get_ctl_waitkill(&self) -> Result<bool> {
+        ensure_supported_api("get_ctl_waitkill", 7, ScmpVersion::from((2, 6, 0)))?;
+        let ret = self.get_filter_attr(ScmpFilterAttr::CtlWaitkill)?;
+
+        Ok(ret != 0)
+    }
+
     /// Sets a raw filter attribute value.
     ///
     /// The seccomp filter attributes are tunable values that affect how the library behaves
@@ -1008,6 +1041,42 @@ impl ScmpFilterContext {
     /// ```
     pub fn set_api_sysrawrc(&mut self, state: bool) -> Result<&mut Self> {
         self.set_filter_attr(ScmpFilterAttr::ApiSysRawRc, state.into())
+    }
+
+    /// Sets the state of the [`ScmpFilterAttr::CtlWaitkill`] attribute which will be applied on filter load.
+    ///
+    /// Settings this to on (`state` == `true`) specify libseccomp should request wait killable semantics when possible.
+    /// The [`ScmpFilterAttr::CtlWaitkill`] attribute is only usable when the libseccomp API level 7 or higher
+    /// is supported.
+    ///
+    /// Defaults to off (`state` == `false`).
+    ///
+    /// This function corresponds to
+    /// [`seccomp_attr_set`](https://man7.org/linux/man-pages/man3/seccomp_attr_set.3.html).
+    ///
+    /// # Arguments
+    ///
+    /// * `state` - A state flag to specify whether the [`ScmpFilterAttr::CtlWaitkill`] attribute should
+    /// be enabled
+    ///
+    /// # Errors
+    ///
+    /// If this function is called with an invalid filter, an issue is encountered
+    /// setting the attribute, or the libseccomp API level is less than 7, an error will be returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use libseccomp::*;
+    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
+    /// # if check_api(7, ScmpVersion::from((2, 6, 0))).unwrap() {
+    /// ctx.set_ctl_waitkill(true)?;
+    /// # }
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn set_ctl_waitkill(&mut self, state: bool) -> Result<&mut Self> {
+        ensure_supported_api("set_ctl_waitkill", 7, ScmpVersion::from((2, 6, 0)))?;
+        self.set_filter_attr(ScmpFilterAttr::CtlWaitkill, state.into())
     }
 
     /// Outputs PFC(Pseudo Filter Code)-formatted, human-readable dump of a filter context's rules to a file.
