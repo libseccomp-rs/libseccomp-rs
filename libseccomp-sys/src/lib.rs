@@ -295,6 +295,8 @@ extern "C" {
     ///   - support for the [`SCMP_ACT_NOTIFY`] action and notify APIs
     /// - 6
     ///   - support the simultaneous use of [`SCMP_FLTATR_CTL_TSYNC`](scmp_filter_attr::SCMP_FLTATR_CTL_TSYNC) and notify APIs
+    /// - 7
+    ///   - support for the [`SCMP_FLTATR_CTL_WAITKILL`](scmp_filter_attr::SCMP_FLTATR_CTL_WAITKILL) filter attribute
     ///
     /// [`seccomp(2)`]: https://man7.org/linux/man-pages/man2/seccomp.2.html
     /// [`prctl(2)`]: https://man7.org/linux/man-pages/man2/prctl.2.html

@@ -43,6 +43,9 @@ pub enum ScmpFilterAttr {
     /// A flag to specify if the libseccomp should pass system error
     /// codes back to the caller instead of the default -ECANCELED.
     ApiSysRawRc,
+    /// A flag to specify if libseccomp should request wait killable
+    /// semantics when possible.
+    CtlWaitkill,
 }
 
 impl ScmpFilterAttr {
@@ -57,6 +60,7 @@ impl ScmpFilterAttr {
             Self::CtlSsb => scmp_filter_attr::SCMP_FLTATR_CTL_SSB,
             Self::CtlOptimize => scmp_filter_attr::SCMP_FLTATR_CTL_OPTIMIZE,
             Self::ApiSysRawRc => scmp_filter_attr::SCMP_FLTATR_API_SYSRAWRC,
+            Self::CtlWaitkill => scmp_filter_attr::SCMP_FLTATR_CTL_WAITKILL,
         }
     }
 }
@@ -88,6 +92,7 @@ impl FromStr for ScmpFilterAttr {
             "SCMP_FLTATR_CTL_SSB" => Ok(Self::CtlSsb),
             "SCMP_FLTATR_CTL_OPTIMIZE" => Ok(Self::CtlOptimize),
             "SCMP_FLTATR_API_SYSRAWRC" => Ok(Self::ApiSysRawRc),
+            "SCMP_FLTATR_CTL_WAITKILL" => Ok(Self::CtlWaitkill),
             _ => Err(SeccompError::new(ParseError)),
         }
     }
@@ -109,6 +114,7 @@ mod tests {
             ("SCMP_FLTATR_CTL_SSB", ScmpFilterAttr::CtlSsb),
             ("SCMP_FLTATR_CTL_OPTIMIZE", ScmpFilterAttr::CtlOptimize),
             ("SCMP_FLTATR_API_SYSRAWRC", ScmpFilterAttr::ApiSysRawRc),
+            ("SCMP_FLTATR_CTL_WAITKILL", ScmpFilterAttr::CtlWaitkill),
         ];
         for data in test_data {
             assert_eq!(

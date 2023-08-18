@@ -150,6 +150,19 @@ fn test_filter_attributes() {
         assert!(ctx.set_ctl_tsync(true).is_err());
         assert!(ctx.get_ctl_tsync().is_err());
     }
+
+    #[cfg(not(github_actions))]
+    {
+        // Test for CtlWaitkill
+        if check_api(7, ScmpVersion::from((2, 6, 0))).unwrap() {
+            ctx.set_ctl_waitkill(true).unwrap();
+            let ret = ctx.get_ctl_waitkill().unwrap();
+            assert!(ret);
+        } else {
+            assert!(ctx.set_ctl_waitkill(true).is_err());
+            assert!(ctx.get_ctl_waitkill().is_err());
+        }
+    }
 }
 
 #[test]
@@ -286,6 +299,13 @@ fn test_builder_pattern() -> Result<(), Box<dyn std::error::Error>> {
         .set_ctl_optimize(1)?
         .set_api_sysrawrc(false)?
         .load()?;
+
+    #[cfg(not(github_actions))]
+    {
+        ScmpFilterContext::new(ScmpAction::Allow)?
+            .set_ctl_waitkill(true)?
+            .load()?;
+    }
 
     Ok(())
 }
