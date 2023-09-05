@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Install upstream libseccomp
         run: sudo ./scripts/install_libseccomp.sh
       - name: Prepare for rustfmt and clippy
@@ -37,7 +37,7 @@ jobs:
       LIBSECCOMP_LIB_PATH: /usr/local/libseccomp/lib
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Install upstream libseccomp
         run: |
           install_dir=$(dirname ${{ env.LIBSECCOMP_LIB_PATH }})
@@ -66,7 +66,7 @@ jobs:
       LIBSECCOMP_LIB_PATH: /usr/local/libseccomp-musl/lib
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Install Rust toolchain
         run: rustup target add ${{ matrix.target }}
       - name: Install musl gcc
@@ -104,7 +104,7 @@ jobs:
           - s390x-unknown-linux-gnu
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Install libseccomp
         run: sudo apt-get install libseccomp-dev
       - name: Install Rust toolchain
@@ -119,7 +119,7 @@ jobs:
       LIBSECCOMP_LINK_TYPE: dylib
       LIBSECCOMP_LIB_PATH: /usr/local/libseccomp/lib
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install Rust ${{ env.msrv }}
         run: rustup default ${{ env.msrv }}
       - name: Install upstream libseccomp
@@ -163,7 +163,7 @@ jobs:
       RUSTDOCFLAGS: -Dwarnings
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Install the nightly toolchain
         run: rustup install nightly
       - name: Generate documentations
@@ -174,7 +174,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Install codespell
         run: pip install codespell
       - name: Run codespell
@@ -185,7 +185,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Verify that the libseccomp crate version is up to date in README
         run: grep -q "$(sed -n 's/^version = \(.*\)/libseccomp = \1/p' libseccomp/Cargo.toml)" README.md
 
@@ -198,7 +198,7 @@ jobs:
       LIBSECCOMP_LIB_PATH: /usr/local/libseccomp/lib
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
       - name: Install upstream libseccomp
