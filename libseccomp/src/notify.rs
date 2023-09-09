@@ -75,6 +75,7 @@ impl ScmpFilterContext {
     /// **Note**: This file descriptor is shared between all threads.
     ///
     /// This function returns a raw file descriptor for the userspace notification.
+    /// The ownership of this file descriptor is not moved and you must not close it.
     ///
     /// This function corresponds to
     /// [`seccomp_notify_fd`](https://man7.org/linux/man-pages/man3/seccomp_notify_fd.3.html).
