@@ -98,8 +98,8 @@ jobs:
           - i686-unknown-linux-gnu
           - loongarch64-unknown-linux-gnu
           #- m68k-unknown-linux-gnu # It is unavailable even in channel 'nightly'.
-          - mips-unknown-linux-gnu
-          - mips64-unknown-linux-gnuabi64
+          #- mips-unknown-linux-gnu # It has been dropped to Tier 3 since 1.72
+          #- mips64-unknown-linux-gnuabi64 # It has been dropped to Tier 3 since 1.72
           - powerpc-unknown-linux-gnu
           - powerpc64-unknown-linux-gnu
           - riscv64gc-unknown-linux-gnu
