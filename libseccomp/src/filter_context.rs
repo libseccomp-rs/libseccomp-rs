@@ -1232,7 +1232,7 @@ impl ScmpFilterContext {
     ///
     /// ```
     /// # use libseccomp::*;
-    /// let mut ctx = ScmpFilterContext::new_filter(ScmpAction::Allow)?;
+    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
     /// let syscall = ScmpSyscall::from_name("dup3")?;
     /// ctx.add_rule(ScmpAction::KillThread, syscall)?;
     /// ctx.precompute()?;
