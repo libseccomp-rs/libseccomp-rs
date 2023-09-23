@@ -127,6 +127,21 @@ jobs:
             cargo build --target ${{ matrix.target }} --all-features
           fi
 
+  asan:
+    name: Address Sanitizer
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install upstream libseccomp
+        uses: ./.github/actions/setup
+      - name: Install Rust toolchain
+        run: rustup +nightly target add x86_64-unknown-linux-gnu
+      - name: Run test with address sanitizer
+        run: cargo +nightly test --target x86_64-unknown-linux-gnu --tests -- --color always --nocapture --test-threads 1
+        env:
+          RUSTFLAGS: -Z sanitizer=address
+
   msrv:
     name: MSRV
     runs-on: ubuntu-latest
