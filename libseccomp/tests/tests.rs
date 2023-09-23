@@ -376,7 +376,7 @@ fn test_export_functions() {
     {
         let ctx = ScmpFilterContext::new(ScmpAction::Allow).unwrap();
         let buf = ctx.export_bpf_mem().unwrap();
-        assert!(buf.len() > 0);
+        assert!(!buf.is_empty());
         assert!(buf.iter().copied().any(|byte| byte > 0));
     }
 }
