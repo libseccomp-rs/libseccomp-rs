@@ -17,7 +17,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Install upstream libseccomp
-        run: sudo ./scripts/install_libseccomp.sh
+        uses: ./.github/actions/setup
       - name: Prepare for rustfmt and clippy
         run: rustup component add rustfmt clippy
       - name: Run rustfmt
@@ -32,17 +32,13 @@ jobs:
       fail-fast: false
       matrix:
         libseccomp-version: [v2.5.0, v2.5.1, v2.5.3, v2.5.4, main]
-    env:
-      LIBSECCOMP_LINK_TYPE: dylib
-      LIBSECCOMP_LIB_PATH: /usr/local/libseccomp/lib
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Install upstream libseccomp
-        run: |
-          install_dir=$(dirname ${{ env.LIBSECCOMP_LIB_PATH }})
-          sudo ./scripts/install_libseccomp.sh -v ${{ matrix.libseccomp-version }} -i ${install_dir}
-          echo "LD_LIBRARY_PATH=${{ env.LIBSECCOMP_LIB_PATH }}" >> $GITHUB_ENV
+        uses: ./.github/actions/setup
+        with:
+          version: ${{ matrix.libseccomp-version }}
       - name: Build crate
         run: make debug
       - name: Build crate with all features
@@ -61,9 +57,6 @@ jobs:
         libseccomp-version: [v2.5.0, v2.5.1, v2.5.3, v2.5.4, main]
         target:
           - x86_64-unknown-linux-musl
-    env:
-      LIBSECCOMP_LINK_TYPE: static
-      LIBSECCOMP_LIB_PATH: /usr/local/libseccomp-musl/lib
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -72,9 +65,10 @@ jobs:
       - name: Install musl gcc
         run: sudo apt-get install musl-tools
       - name: Install upstream libseccomp
-        run: |
-          install_dir=$(dirname ${{ env.LIBSECCOMP_LIB_PATH }})
-          sudo ./scripts/install_libseccomp.sh -m -v ${{ matrix.libseccomp-version }} -i ${install_dir}
+        uses: ./.github/actions/setup
+        with:
+          version: ${{ matrix.libseccomp-version }}
+          link-type: static
       - name: Build crate
         run: cargo build --target ${{ matrix.target }}
       - name: Run test
@@ -133,18 +127,12 @@ jobs:
   msrv:
     name: MSRV
     runs-on: ubuntu-latest
-    env:
-      LIBSECCOMP_LINK_TYPE: dylib
-      LIBSECCOMP_LIB_PATH: /usr/local/libseccomp/lib
     steps:
       - uses: actions/checkout@v4
       - name: Install Rust ${{ env.msrv }}
         run: rustup default ${{ env.msrv }}
       - name: Install upstream libseccomp
-        run: |
-          install_dir=$(dirname ${{ env.LIBSECCOMP_LIB_PATH }})
-          sudo ./scripts/install_libseccomp.sh -v main -i ${install_dir}
-          echo "LD_LIBRARY_PATH=${{ env.LIBSECCOMP_LIB_PATH }}" >> $GITHUB_ENV
+        uses: ./.github/actions/setup
       - name: Build crate with all target and features
         run: |
           cargo -vV
@@ -191,18 +179,13 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CARGO_TERM_COLOR: always
-      LIBSECCOMP_LINK_TYPE: dylib
-      LIBSECCOMP_LIB_PATH: /usr/local/libseccomp/lib
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
       - name: Install upstream libseccomp
-        run: |
-          install_dir=$(dirname ${{ env.LIBSECCOMP_LIB_PATH }})
-          sudo ./scripts/install_libseccomp.sh -v main -i ${install_dir}
-          echo "LD_LIBRARY_PATH=${{ env.LIBSECCOMP_LIB_PATH }}" >> $GITHUB_ENV
+        uses: ./.github/actions/setup
       - name: Generate code coverage
         run: cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info -- --test-threads 1
       - name: Upload coverage to Codecov
