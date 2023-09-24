@@ -5,7 +5,7 @@
 # libseccomp-rs
 #
 
-.PHONY: all build release debug test check fmt clippy clean
+.PHONY: all build release debug test check fmt clippy doc clean
 
 all: build
 
@@ -45,7 +45,7 @@ clippy:
 	cargo clippy --all-targets --all-features -- --deny warnings
 
 #
-# Clean
+# Documentation
 #
 
 doc: doc-libseccomp doc-libseccomp-sys
@@ -57,6 +57,9 @@ doc-libseccomp:
 doc-libseccomp-sys:
 	cargo doc --lib --no-deps --manifest-path ./libseccomp-sys/Cargo.toml
 
+#
+# Clean
+#
 
 clean:
 	cargo clean
