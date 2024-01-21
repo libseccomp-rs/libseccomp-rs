@@ -6,8 +6,9 @@
 use crate::error::{Result, SeccompError};
 use crate::ScmpArch;
 use libseccomp_sys::*;
-use std::ffi::{CStr, CString};
+use std::ffi::CStr;
 use std::fmt;
+use std::os::raw::c_char;
 
 #[cfg(feature = "const-syscall")]
 cfg_if::cfg_if! {
@@ -158,16 +159,7 @@ impl ScmpSyscall {
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn from_name_by_arch(name: &str, arch: ScmpArch) -> Result<Self> {
-        let name_c = CString::new(name)?;
-        let nr = unsafe { seccomp_syscall_resolve_name_arch(arch.to_sys(), name_c.as_ptr()) };
-        if nr == __NR_SCMP_ERROR {
-            return Err(SeccompError::with_msg(format!(
-                "Could not resolve syscall name {}",
-                name
-            )));
-        }
-
-        Ok(Self { nr })
+        Self::from_name_by_impl(seccomp_syscall_resolve_name_arch, name, arch)
     }
 
     /// Resolves a syscall name to `ScmpSyscall`.
@@ -196,8 +188,29 @@ impl ScmpSyscall {
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn from_name_by_arch_rewrite(name: &str, arch: ScmpArch) -> Result<Self> {
-        let name_c = CString::new(name)?;
-        let nr = unsafe { seccomp_syscall_resolve_name_rewrite(arch.to_sys(), name_c.as_ptr()) };
+        Self::from_name_by_impl(seccomp_syscall_resolve_name_rewrite, name, arch)
+    }
+
+    fn from_name_by_impl(
+        resolve_name_func: unsafe extern "C" fn(arch_token: u32, name: *const c_char) -> i32,
+        name: &str,
+        arch: ScmpArch,
+    ) -> Result<Self> {
+        let mut buf = [0_u8; 64];
+        if name.as_bytes().contains(&b'\0') {
+            return Err(SeccompError::with_msg(format!(
+                "Bad syscall name '{name}': Contains nul-byte.",
+            )));
+        }
+        if buf.len() <= name.len() {
+            return Err(SeccompError::with_msg(format!(
+                "Bad syscall name '{name}': Too long.",
+            )));
+        }
+        buf[..name.len()].copy_from_slice(name.as_bytes());
+        debug_assert_eq!(buf[name.len()], b'\0');
+
+        let nr = unsafe { resolve_name_func(arch.to_sys(), buf.as_slice().as_ptr().cast()) };
         if nr == __NR_SCMP_ERROR {
             return Err(SeccompError::with_msg(format!(
                 "Could not resolve syscall name {}",

@@ -226,10 +226,14 @@ fn test_get_syscall_from_name() {
         102,
     );
 
+    const NAME_64: &str = "AaaaFfffAaaaFfffAaaaFfffAaaaFfffAaaaFfffAaaaFfffAaaaFfffAaaaFfff";
+
     assert!(ScmpSyscall::from_name("no_syscall").is_err());
     assert!(ScmpSyscall::from_name("null\0byte").is_err());
+    assert!(ScmpSyscall::from_name(NAME_64).is_err());
     assert!(ScmpSyscall::from_name_by_arch_rewrite("no_syscall", ScmpArch::X32).is_err());
     assert!(ScmpSyscall::from_name_by_arch_rewrite("null\0byte", ScmpArch::X32).is_err());
+    assert!(ScmpSyscall::from_name_by_arch_rewrite(NAME_64, ScmpArch::X32).is_err());
 
     assert_eq!(
         get_syscall_from_name("openat", None).unwrap(),
