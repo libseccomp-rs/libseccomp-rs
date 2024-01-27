@@ -11,6 +11,7 @@ on:
 
 env:
   msrv: 1.46
+  latest_libseccomp: v2.5.5
 
 jobs:
   validate:
@@ -20,7 +21,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Install upstream libseccomp
-        uses: ./.github/actions/setup
+        run: sudo ./scripts/install_libseccomp.sh
       - name: Prepare for rustfmt and clippy
         run: rustup component add rustfmt clippy
       - name: Run rustfmt
@@ -34,7 +35,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        libseccomp-version: [v2.4.3, v2.5.1, v2.5.3, v2.5.4, main]
+        libseccomp-version: [v2.4.3, v2.5.1, v2.5.3, v2.5.4, v2.5.5]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -57,7 +58,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        libseccomp-version: [v2.4.3, v2.5.1, v2.5.3, v2.5.4, main]
+        libseccomp-version: [v2.4.3, v2.5.1, v2.5.3, v2.5.4, v2.5.5]
         target:
           - x86_64-unknown-linux-musl
     steps:
@@ -117,6 +118,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Install upstream libseccomp
         uses: ./.github/actions/setup
+        with:
+          version: ${{ env.latest_libseccomp }}
       - name: Install Rust toolchain
         run: rustup +nightly target add x86_64-unknown-linux-gnu
       - name: Run test with address sanitizer
@@ -133,6 +136,8 @@ jobs:
         run: rustup default ${{ env.msrv }}
       - name: Install upstream libseccomp
         uses: ./.github/actions/setup
+        with:
+          version: ${{ env.latest_libseccomp }}
       - name: Build crate with all target and features
         run: |
           cargo -vV
@@ -153,7 +158,9 @@ jobs:
       - name: Install Rust ${{ matrix.rust }}
         run: rustup default ${{ matrix.rust }}
       - name: Install upstream libseccomp
-        run: sudo ./scripts/install_libseccomp.sh
+        uses: ./.github/actions/setup
+        with:
+          version: ${{ env.latest_libseccomp }}
       - name: Build crate with all target and features
         run: |
           cargo -vV
@@ -207,6 +214,8 @@ jobs:
         uses: taiki-e/install-action@cargo-llvm-cov
       - name: Install upstream libseccomp
         uses: ./.github/actions/setup
+        with:
+          version: ${{ env.latest_libseccomp }}
       - name: Generate code coverage
         run: cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info -- --test-threads 1
       - name: Upload coverage to Codecov
