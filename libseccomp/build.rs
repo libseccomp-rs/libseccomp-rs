@@ -6,10 +6,8 @@
 use std::{env, path, str};
 
 const LIBSECCOMP_LIB_PATH: &str = "LIBSECCOMP_LIB_PATH";
-const GITHUB_ACTIONS: &str = "GITHUB_ACTIONS";
 
 fn main() {
-    println!("cargo:rerun-if-env-changed={}", GITHUB_ACTIONS);
     println!("cargo:rerun-if-env-changed={}", LIBSECCOMP_LIB_PATH);
 
     if let Ok(path) = env::var(LIBSECCOMP_LIB_PATH) {
@@ -30,9 +28,5 @@ fn main() {
         .is_ok()
     {
         println!("cargo:rustc-cfg=libseccomp_v2_6");
-    }
-
-    if env::var(GITHUB_ACTIONS).as_deref() == Ok("true") {
-        println!("cargo:rustc-cfg=github_actions");
     }
 }
