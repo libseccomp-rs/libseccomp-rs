@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ScmpFilterContext::get_ctl_waitkill` and `ScmpFilterContext::set_ctl_waitkill`
 - `ScmpFilterAttr:CtlWaitkill`
 - `SeccmopError::raw_ffi_value`
+- Example code for userspace notification functions.
 
 ### Changed
 
