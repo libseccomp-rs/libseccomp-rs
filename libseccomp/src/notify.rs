@@ -84,6 +84,16 @@ impl ScmpFilterContext {
     ///
     /// If an issue is encountered getting the file descriptor,
     /// an error will be returned.
+    /// # Examples
+    ///
+    /// ```
+    /// # use libseccomp::*;
+    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
+    /// ctx.add_rule(ScmpAction::Notify, ScmpSyscall::from_name("getpid")?)?;
+    /// ctx.load()?;
+    /// let fd = ctx.get_notify_fd()?;
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     pub fn get_notify_fd(&self) -> Result<ScmpFd> {
         notify_supported()?;
 
@@ -167,6 +177,32 @@ impl ScmpNotifReq {
     ///
     /// If an issue is encountered getting a notification request,
     /// an error will be returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use libseccomp::*;
+    /// # use std::process::exit;
+    /// // Get the current process ID
+    /// let parent_pid = std::process::id();
+    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
+    /// ctx.add_rule(ScmpAction::Notify, ScmpSyscall::from_name("getpid")?)?;
+    /// ctx.load()?;
+    /// let fd = ctx.get_notify_fd()?;
+    /// let pid = unsafe { libc::fork() };
+    /// if pid == 0 {
+    ///     // Child process
+    ///
+    ///     let child_pid = std::process::id();
+    ///     // The child PID will be same as the parent PID by the user notification.
+    ///     assert_eq!(child_pid, parent_pid);
+    ///     exit(0);
+    /// }
+    /// let req = ScmpNotifReq::receive(fd)?;
+    /// let resp = ScmpNotifResp::new_val(req.id, parent_pid as i64, ScmpNotifRespFlags::empty());
+    /// resp.respond(fd);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     pub fn receive(fd: ScmpFd) -> Result<Self> {
         notify_supported()?;
 
@@ -243,6 +279,12 @@ impl ScmpNotifResp {
     /// * `val` - Return value for the syscall that created the notification
     /// * `error` - An error code
     /// * `flags` - Userspace notification response flag
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// let resp = ScmpNotifResp::new(req.id, val, error, flags);
+    /// ```
     #[must_use]
     pub fn new(id: u64, val: i64, error: i32, flags: u32) -> Self {
         Self {
@@ -338,6 +380,32 @@ impl ScmpNotifResp {
     ///
     /// If an issue is encountered responding a notification,
     /// an error will be returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use libseccomp::*;
+    /// # use std::process::exit;
+    /// // Get the current process ID
+    /// let parent_pid = std::process::id();
+    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
+    /// ctx.add_rule(ScmpAction::Notify, ScmpSyscall::from_name("getpid")?)?;
+    /// ctx.load()?;
+    /// let fd = ctx.get_notify_fd()?;
+    /// let pid = unsafe { libc::fork() };
+    /// if pid == 0 {
+    ///     // Child process
+    ///
+    ///     let child_pid = std::process::id();
+    ///     // The child PID will be same as the parent PID by the user notification.
+    ///     assert_eq!(child_pid, parent_pid);
+    ///     exit(0);
+    /// }
+    /// let req = ScmpNotifReq::receive(fd)?;
+    /// let resp = ScmpNotifResp::new_val(req.id, parent_pid as i64, ScmpNotifRespFlags::empty());
+    /// resp.respond(fd);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     pub fn respond(&self, fd: ScmpFd) -> Result<()> {
         notify_supported()?;
 
@@ -387,6 +455,45 @@ impl ScmpNotifResp {
 /// # Errors
 ///
 /// If the notification ID is invalid, an error will be returned.
+///
+/// # Examples
+///
+/// ```
+/// # use libseccomp::*;
+/// # use std::{fs::File, io::Read, process::Command, thread};
+/// let notify_fd = thread::spawn(|| -> Result<ScmpFd, error::SeccompError> {
+///     let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
+///     ctx.add_rule(ScmpAction::Notify, ScmpSyscall::from_name("openat")?)?
+///         .load()?;
+///     let notify_fd = ctx.get_notify_fd()?;
+///
+///     /// Example command execution
+///     let _ = Command::new("ls").spawn();
+///     Ok(notify_fd)
+/// })
+/// .join()
+/// .unwrap()?;
+///
+/// let req = ScmpNotifReq::receive(notify_fd)?;
+/// assert_eq!(req.data.arch, ScmpArch::native());
+/// assert_eq!(req.data.syscall, ScmpSyscall::from_name("openat")?);
+///
+/// let mut stat = File::open(&format!("/proc/{}/stat", req.pid))?;
+///
+/// // Checks if a notification is still valid.
+/// notify_id_valid(notify_fd, req.id)?;
+///
+/// let mut stat_data = String::new();
+/// let _ = stat.read_to_string(&mut stat_data)?;
+/// println!("{}", stat_data);
+///
+/// // Checks if a notification is still valid.
+/// notify_id_valid(notify_fd, req.id)?;
+///
+/// let resp = ScmpNotifResp::new_continue(req.id, ScmpNotifRespFlags::empty());
+/// resp.respond(notify_fd)?;
+/// # Ok::<(), Box<dyn std::error::Error>>(())
+/// ```
 pub fn notify_id_valid(fd: ScmpFd, id: u64) -> Result<()> {
     notify_supported()?;
 
