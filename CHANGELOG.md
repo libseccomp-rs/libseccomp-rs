@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ScmpFilterAttr:CtlWaitkill`
 - `SeccmopError::raw_ffi_value`
 - Example code for userspace notification functions.
+- `ScmpFilterContext::get_api_tskip` and `ScmpFilterContext::set_api_tskip`
 
 ### Changed
 
