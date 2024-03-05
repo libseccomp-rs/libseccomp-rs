@@ -160,6 +160,11 @@ fn test_filter_attributes() {
         assert!(ctx.set_ctl_waitkill(true).is_err());
         assert!(ctx.get_ctl_waitkill().is_err());
     }
+
+    // Test for ApiTskip
+    ctx.set_api_tskip(true).unwrap();
+    let ret = ctx.get_api_tskip().unwrap();
+    assert!(ret);
 }
 
 #[test]

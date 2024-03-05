@@ -764,6 +764,34 @@ impl ScmpFilterContext {
         Ok(ret != 0)
     }
 
+    /// Gets the current state of the [`ScmpFilterAttr::ApiTskip`] attribute.
+    ///
+    /// This function returns `Ok(true)` if the [`ScmpFilterAttr::ApiTskip`] attribute set to on the filter being
+    /// loaded, `Ok(false)` otherwise.
+    ///
+    /// This function corresponds to
+    /// [`seccomp_attr_get`](https://man7.org/linux/man-pages/man3/seccomp_attr_get.3.html).
+    ///
+    /// # Errors
+    ///
+    /// If this function is called with an invalid filter or an issue is encountered
+    /// getting the current state, an error will be returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use libseccomp::*;
+    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
+    /// ctx.set_api_tskip(true)?;
+    /// assert!(ctx.get_api_tskip()?);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn get_api_tskip(&self) -> Result<bool> {
+        let ret = self.get_filter_attr(ScmpFilterAttr::ApiTskip)?;
+
+        Ok(ret != 0)
+    }
+
     /// Sets a raw filter attribute value.
     ///
     /// The seccomp filter attributes are tunable values that affect how the library behaves
@@ -1077,6 +1105,38 @@ impl ScmpFilterContext {
     pub fn set_ctl_waitkill(&mut self, state: bool) -> Result<&mut Self> {
         ensure_supported_api("set_ctl_waitkill", 7, ScmpVersion::from((2, 6, 0)))?;
         self.set_filter_attr(ScmpFilterAttr::CtlWaitkill, state.into())
+    }
+
+    /// Sets the state of the [`ScmpFilterAttr::ApiTskip`] attribute which will be applied
+    /// on filter load.
+    ///
+    /// Settings this to on (`state` == `true`) means that the kernel should log all filter
+    /// actions taken except for the [`ScmpAction::Allow`](crate::ScmpAction::Allow) action.
+    ///
+    /// Defaults to off (`state` == `false`).
+    ///
+    /// This function corresponds to
+    /// [`seccomp_attr_set`](https://man7.org/linux/man-pages/man3/seccomp_attr_set.3.html).
+    ///
+    /// # Arguments
+    ///
+    /// * `state` - A state flag to specify whether the [`ScmpFilterAttr::ApiTskip`] attribute should be enabled
+    ///
+    /// # Errors
+    ///
+    /// If this function is called with an invalid filter or an issue is encountered
+    /// setting the attribute, an error will be returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use libseccomp::*;
+    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
+    /// ctx.set_api_tskip(true)?;
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn set_api_tskip(&mut self, state: bool) -> Result<&mut Self> {
+        self.set_filter_attr(ScmpFilterAttr::ApiTskip, state.into())
     }
 
     /// Outputs PFC(Pseudo Filter Code)-formatted, human-readable dump of a filter context's rules to a file.
