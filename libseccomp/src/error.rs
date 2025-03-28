@@ -21,7 +21,7 @@ pub enum SeccompErrno {
     ECANCELED,
     /// Architecture/ABI specific failure.
     EDOM,
-    /// Failure regrading the existence of argument.
+    /// Failure regarding the existence of argument.
     EEXIST,
     /// Internal libseccomp failure.
     EFAULT,
@@ -47,7 +47,7 @@ impl SeccompErrno {
             EACCES => "The library doesn't permit the particular operation",
             ECANCELED => "There was a system failure beyond the control of libseccomp",
             EDOM => "Architecture/ABI specific failure",
-            EEXIST => "Failure regrading the existence of argument",
+            EEXIST => "Failure regarding the existence of argument",
             EFAULT => "Internal libseccomp failure",
             EINVAL => "Invalid input to the libseccomp API",
             ENOENT => "No matching entry found",
