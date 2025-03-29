@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 ### Added
 - Minimum Supported Rust Version (MSRV): 1.63
-- `futex_waitv`, `set_mempolicy_home_node`, atmoic_barrier`,
+- `futex_waitv`, `set_mempolicy_home_node`, `atmoic_barrier`,
   `atmoic_cmpxchg_32` and `getpagesize` syscalls for the `const-syscall` feature
 - Support for `loongarch64`, `m68k`, `sheb` and `sh` architectures. Note that Rust has
   no support for `SuperH` so you can not use libseccomp-rs on such architectures.
@@ -22,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `SeccmopError::raw_ffi_value`
 - Example code for userspace notification functions.
 - `ScmpFilterContext::get_api_tskip` and `ScmpFilterContext::set_api_tskip`
+- Support for `2.5.5` and `2.5.6`
+- Limited support for `2.6.0` (everything except `seccomp_transaction_*`)
 
 ### Changed
 
