@@ -431,7 +431,7 @@ impl ScmpFilterContext {
     ///
     /// * `syscall` - The number of syscall
     /// * `priority` - The priority parameter that is an 8-bit value ranging from 0 to 255;
-    /// a higher value represents a higher priority.
+    ///   a higher value represents a higher priority.
     ///
     /// # Errors
     ///
@@ -941,7 +941,7 @@ impl ScmpFilterContext {
     /// # Arguments
     ///
     /// * `state` - A state flag to specify whether the [`ScmpFilterAttr::CtlLog`] attribute should
-    /// be enabled
+    ///   be enabled
     ///
     /// # Errors
     ///
@@ -975,7 +975,7 @@ impl ScmpFilterContext {
     /// # Arguments
     ///
     /// * `state` - A state flag to specify whether the [`ScmpFilterAttr::CtlSsb`] attribute should
-    /// be enabled
+    ///   be enabled
     ///
     /// # Errors
     ///
@@ -1052,7 +1052,7 @@ impl ScmpFilterContext {
     /// # Arguments
     ///
     /// * `state` - A state flag to specify whether the [`ScmpFilterAttr::ApiSysRawRc`] attribute should
-    /// be enabled
+    ///   be enabled
     ///
     /// # Errors
     ///
@@ -1085,7 +1085,7 @@ impl ScmpFilterContext {
     /// # Arguments
     ///
     /// * `state` - A state flag to specify whether the [`ScmpFilterAttr::CtlWaitkill`] attribute should
-    /// be enabled
+    ///   be enabled
     ///
     /// # Errors
     ///
