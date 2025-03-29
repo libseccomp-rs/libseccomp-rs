@@ -24,5 +24,8 @@ pkg-config = "0.3.19"
 all-features = true
 rustc-args = ["--cfg", "docsrs"]
 
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(libseccomp_v2_6)"] }
+
 [features]
 const-syscall = ["cfg-if"]
