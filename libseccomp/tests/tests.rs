@@ -258,7 +258,7 @@ fn test_syscall_new() {
     }
     assert_eq!(ScmpSyscall::new(""), libseccomp_sys::__NR_SCMP_ERROR);
     assert_eq!(
-        ScmpSyscall::new("unkown_syscall"),
+        ScmpSyscall::new("unknown_syscall"),
         libseccomp_sys::__NR_SCMP_ERROR,
     );
 }
