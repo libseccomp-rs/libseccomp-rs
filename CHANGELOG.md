@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for `2.5.5` and `2.5.6`
 - Limited support for `2.6.0` (everything except `seccomp_transaction_*`)
 - `ScmpSyscall::is_error` and `ScmpSyscall::is_undef`
+- `ScmpSyscall::from_raw_syscall`, `ScmpSyscall::as_raw_syscall` and `RawSyscall`
 
 ### Changed
 
