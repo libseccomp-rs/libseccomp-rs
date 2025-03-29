@@ -50,7 +50,7 @@ impl From<(u32, u32, u32)> for ScmpVersion {
     /// # Arguments
     ///
     /// * `version` - A tuple that represents the version of the libseccomp library.
-    /// The index 0, 1, and 2 represent `major`, `minor`, and `micro` respectively.
+    ///   The index 0, 1, and 2 represent `major`, `minor`, and `micro` respectively.
     fn from(version: (u32, u32, u32)) -> Self {
         Self {
             major: version.0,
@@ -108,7 +108,7 @@ pub fn check_version(expected: ScmpVersion) -> Result<bool> {
 /// # Arguments
 ///
 /// * `msg` - An arbitrary non-empty operation description, used as a part
-/// of the error message returned.
+///   of the error message returned.
 /// * `expected` - The libseccomp version you want to check
 ///
 /// # Errors

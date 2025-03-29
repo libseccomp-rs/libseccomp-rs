@@ -64,8 +64,8 @@ pub fn get_syscall_name_from_arch(arch: ScmpArch, syscall: i32) -> Result<String
 ///
 /// * `name` - The name of a syscall
 /// * `arch` - An architecture token as `Option` type
-/// If arch argument is `None`, the functions returns the number of a syscall
-/// on the kernel's native architecture.
+///   If arch argument is `None`, the functions returns the number of a syscall
+///   on the kernel's native architecture.
 ///
 /// # Errors
 ///

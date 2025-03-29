@@ -102,7 +102,7 @@ pub fn check_api(min_level: u32, expected: ScmpVersion) -> Result<bool> {
 /// # Arguments
 ///
 /// * `msg` - An arbitrary non-empty operation description, used as a part
-/// of the error message returned.
+///   of the error message returned.
 /// * `min_level` - The libseccomp API level you want to check
 /// * `expected` - The libseccomp version you want to check
 ///
