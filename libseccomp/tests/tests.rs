@@ -191,6 +191,16 @@ fn test_syscall_eq_i32() {
 }
 
 #[test]
+fn test_syscall_is_error() {
+    assert!(ScmpSyscall::from(libseccomp_sys::__NR_SCMP_ERROR).is_error());
+}
+
+#[test]
+fn test_syscall_is_undef() {
+    assert!(ScmpSyscall::from(libseccomp_sys::__NR_SCMP_UNDEF).is_undef());
+}
+
+#[test]
 #[allow(deprecated)]
 fn test_get_syscall_name_from_arch() {
     assert_eq!(
