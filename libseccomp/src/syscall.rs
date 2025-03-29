@@ -53,6 +53,9 @@ cfg_if::cfg_if! {
     }
 }
 
+/// A raw syscall as used by the OS.
+pub type RawSyscall = libc::c_int;
+
 /// Represents a syscall number.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct ScmpSyscall {
@@ -295,37 +298,47 @@ impl ScmpSyscall {
     pub fn is_undef(&self) -> bool {
         self.nr == libseccomp_sys::__NR_SCMP_UNDEF
     }
+
+    /// Creates a `ScmpSyscall` from a `RawSyscall`.
+    pub fn from_raw_syscall(raw_syscall: RawSyscall) -> Self {
+        Self::from(raw_syscall)
+    }
+
+    /// Returns the `RawSyscall` of this `ScmpSyscall`.
+    pub fn as_raw_syscall(self) -> RawSyscall {
+        self.nr
+    }
 }
 
-impl From<i32> for ScmpSyscall {
+impl From<RawSyscall> for ScmpSyscall {
     /// Creates a `ScmpSyscall` from the specified syscall number.
     ///
     /// # Arguments
     ///
     /// * `nr` - The number of syscall
-    fn from(nr: i32) -> Self {
+    fn from(nr: RawSyscall) -> Self {
         Self::from_sys(nr)
     }
 }
 
-impl From<ScmpSyscall> for i32 {
+impl From<ScmpSyscall> for RawSyscall {
     /// Gets the syscall number of a syscall.
     ///
     /// # Arguments
     ///
     /// * `syscall` - The syscall
-    fn from(syscall: ScmpSyscall) -> i32 {
+    fn from(syscall: ScmpSyscall) -> RawSyscall {
         syscall.nr
     }
 }
 
-impl PartialEq<i32> for ScmpSyscall {
-    fn eq(&self, other: &i32) -> bool {
+impl PartialEq<RawSyscall> for ScmpSyscall {
+    fn eq(&self, other: &RawSyscall) -> bool {
         self.nr == *other
     }
 }
 
-impl PartialEq<ScmpSyscall> for i32 {
+impl PartialEq<ScmpSyscall> for RawSyscall {
     fn eq(&self, other: &ScmpSyscall) -> bool {
         *self == other.nr
     }

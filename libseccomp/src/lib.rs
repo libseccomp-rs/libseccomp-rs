@@ -92,7 +92,7 @@ pub use filter_attr::ScmpFilterAttr;
 pub use filter_context::ScmpFilterContext;
 pub use functions::*;
 pub use notify::*;
-pub use syscall::ScmpSyscall;
+pub use syscall::{RawSyscall, ScmpSyscall};
 pub use version::{check_version, ScmpVersion};
 
 fn cvt(ret: i32) -> Result<()> {

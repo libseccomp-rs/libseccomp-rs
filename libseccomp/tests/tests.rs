@@ -201,6 +201,12 @@ fn test_syscall_is_undef() {
 }
 
 #[test]
+fn test_syscall_raw_syscall() {
+    let nr: RawSyscall = 4;
+    assert_eq!(ScmpSyscall::from_raw_syscall(nr).as_raw_syscall(), nr);
+}
+
+#[test]
 #[allow(deprecated)]
 fn test_get_syscall_name_from_arch() {
     assert_eq!(
