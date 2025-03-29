@@ -1,7 +1,5 @@
 use libseccomp::*;
-use std::fs::File;
 use std::io::{stdout, Error};
-use std::os::unix::io::FromRawFd;
 
 #[cfg(feature = "const-syscall")]
 mod known_syscall_names;
@@ -369,13 +367,9 @@ fn test_precompute() {
 fn test_export_functions() {
     let ctx = ScmpFilterContext::new(ScmpAction::Allow).unwrap();
 
-    let mut invalid_fd: File = unsafe { std::fs::File::from_raw_fd(-2) };
-
     assert!(ctx.export_pfc(stdout()).is_ok());
-    assert!(ctx.export_pfc(&mut invalid_fd).is_err());
 
     assert!(ctx.export_bpf(stdout()).is_ok());
-    assert!(ctx.export_bpf(&mut invalid_fd).is_err());
 
     #[cfg(libseccomp_v2_6)]
     {

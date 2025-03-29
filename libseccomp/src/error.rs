@@ -184,15 +184,12 @@ impl SeccompError {
     ///
     /// ```
     /// # use libseccomp::*;
-    /// # use std::os::fd::*;
-    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
-    /// ctx.set_api_sysrawrc(true)?;
-    /// match ctx.export_pfc(unsafe { OwnedFd::from_raw_fd(-2) }) {
+    /// match set_api(1000) {
     ///     Err(e) => {
     ///         eprintln!("Error: {e}");
     ///         if let Some(sys) = e.sysrawrc() {
     ///             eprintln!("The system's raw error code: {sys}");
-    ///             assert_eq!(sys, -libc::EBADF);
+    ///             assert_eq!(sys, -libc::EINVAL);
     ///         }
     ///     }
     ///     _ => println!("No error"),
