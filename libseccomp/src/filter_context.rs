@@ -753,7 +753,7 @@ impl ScmpFilterContext {
     /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
     /// # if check_api(7, ScmpVersion::from((2, 6, 0))).unwrap() {
     /// ctx.set_ctl_waitkill(true)?;
-    /// assert!(!ctx.get_ctl_waitkill()?);
+    /// assert!(ctx.get_ctl_waitkill()?);
     /// # }
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
