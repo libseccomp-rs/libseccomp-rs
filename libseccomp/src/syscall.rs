@@ -285,6 +285,16 @@ impl ScmpSyscall {
 
         Ok(name)
     }
+
+    /// Returns `true` if this syscall is `__NR_SCMP_ERROR` (`-1`), otherwise `false`.
+    pub fn is_error(&self) -> bool {
+        self.nr == libseccomp_sys::__NR_SCMP_ERROR
+    }
+
+    /// Returns `true` if this syscall is `__NR_SCMP_UNDEF` (`-2`), otherwise `false`.
+    pub fn is_undef(&self) -> bool {
+        self.nr == libseccomp_sys::__NR_SCMP_UNDEF
+    }
 }
 
 impl From<i32> for ScmpSyscall {
