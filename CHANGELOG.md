@@ -43,7 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### silent breaking, not caught by compiler
 - Changed `check_version` logic not to fail even if the `major` version is greater than the specified version.
-- Updated bitflags dependency to `~2.4.0`
+- Updated bitflags dependency to `2.9.0`
 
 ### Removed
 - Drop the libseccomp < 2.5.0 support.
