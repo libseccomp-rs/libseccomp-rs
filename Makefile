@@ -40,6 +40,7 @@ check: fmt clippy test
 
 fmt:
 	cargo fmt --all -- --check
+	cargo +nightly fmt --all -- --check --config format_code_in_doc_comments=true
 
 clippy:
 	cargo clippy --all-targets --all-features -- --deny warnings
