@@ -47,7 +47,7 @@
 //!         .set_syscall_priority(syscall, 100)?
 //!         .load()?;
 //!
-//!    Ok(())
+//!     Ok(())
 //! }
 //! ```
 //!
