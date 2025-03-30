@@ -661,6 +661,39 @@ extern "C" {
         len: *mut usize,
     ) -> c_int;
 
+    /// Start a new seccomp filter transaction
+    ///
+    /// - `ctx`: the filter context
+    ///
+    /// This function starts a new seccomp filter transaction that the caller can use
+    /// to perform any number of filter modifications which can then be committed
+    /// to the filter using [`seccomp_transaction_commit()`] or rejected using
+    /// [`seccomp_transaction_reject()`]. It is important to note that
+    /// transactions only affect the seccomp filter state while it is being
+    /// managed by libseccomp; seccomp filters which have been loaded into the
+    /// kernel can not be modified, only new seccomp filters can be added on top
+    /// of the existing loaded filter stack. Returns zero on success, negative values on failure.
+    pub fn seccomp_transaction_start(ctx: const_scmp_filter_ctx) -> c_int;
+
+    /// Reject a transaction started by [`seccomp_transaction_start`]
+    ///
+    /// - `ctx`: the filter context
+    ///
+    /// This function rejects the current seccomp filter transaction, discarding all
+    /// the filter modifications made during the transaction. Once rejected, the filter
+    /// context remains unchanged as it was before the transaction started.
+    pub fn seccomp_transaction_reject(ctx: scmp_filter_ctx);
+
+    /// Commit a transaction started by [`seccomp_transaction_start`]
+    ///
+    /// - `ctx`: the filter context
+    ///
+    /// This function commits the current seccomp filter transaction, applying all
+    /// the filter modifications made during the transaction to the filter context.
+    /// Once committed, the changes are finalized and cannot be undone.
+    /// Returns zero on success, negative values on failure.
+    pub fn seccomp_transaction_commit(ctx: scmp_filter_ctx) -> c_int;
+
     ///  Precompute the seccomp filter for future use
     ///
     ///  - `ctx`: the filter context
