@@ -1275,6 +1275,93 @@ impl ScmpFilterContext {
         Ok(buf)
     }
 
+    /// Start a new seccomp filter transaction
+    ///
+    /// This function starts a new seccomp filter transaction that the caller can use
+    /// to perform any number of filter modifications which can then be committed
+    /// to the filter using [`commit_transaction()`](ScmpFilterContext::commit_transaction)
+    /// or rejected using [`reject_transaction()`](ScmpFilterContext::reject_transaction).
+    /// It is important to note that transactions only affect the seccomp filter state
+    /// while it is being managed by libseccomp; seccomp filters which have been loaded into
+    /// the kernel can not be modified, only new seccomp filters can be added on top
+    /// of the existing loaded filter stack.
+    ///
+    /// This function corresponds to
+    /// [`seccomp_transaction_start`](https://man7.org/linux/man-pages/man3/seccomp_transaction_start.3.html).
+    ///
+    /// # Errors
+    ///
+    /// If starting the transaction fails, an error will be returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use libseccomp::*;
+    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
+    /// let syscall = ScmpSyscall::from_name("dup3")?;
+    /// ctx.start_transaction()?;
+    /// ctx.add_rule(ScmpAction::KillThread, syscall)?;
+    /// ctx.commit_transaction()?;
+    /// ctx.load()?;
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn start_transaction(&self) -> Result<()> {
+        cvt(unsafe { seccomp_transaction_start(self.ctx.as_ptr()) })
+    }
+
+    /// Reject a transaction started by [`start_transaction`](ScmpFilterContext::start_transaction)
+    ///
+    /// This function rejects the current seccomp filter transaction, discarding all
+    /// the filter modifications made during the transaction. Once rejected, the filter
+    /// context remains unchanged as it was before the transaction started.
+    ///
+    /// This function corresponds to
+    /// [`seccomp_transaction_reject`](https://man7.org/linux/man-pages/man3/seccomp_transaction_reject.3.html).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use libseccomp::*;
+    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
+    /// let syscall = ScmpSyscall::from_name("dup3")?;
+    /// ctx.start_transaction()?;
+    /// ctx.add_rule(ScmpAction::KillThread, syscall)?;
+    /// ctx.reject_transaction();
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn reject_transaction(&mut self) {
+        unsafe { seccomp_transaction_reject(self.ctx.as_ptr()) }
+    }
+
+    /// Commit a transaction started by [`start_transaction`](ScmpFilterContext::start_transaction)
+    ///
+    /// This function commits the current seccomp filter transaction, applying all
+    /// the filter modifications made during the transaction to the filter context.
+    /// Once committed, the changes are finalized and cannot be undone.
+    ///
+    /// This function corresponds to
+    /// [`seccomp_transaction_commit`](https://man7.org/linux/man-pages/man3/seccomp_transaction_commit.3.html).
+    ///
+    /// # Errors
+    ///
+    /// If committing the transaction fails, an error will be returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use libseccomp::*;
+    /// let mut ctx = ScmpFilterContext::new(ScmpAction::Allow)?;
+    /// let syscall = ScmpSyscall::from_name("dup3")?;
+    /// ctx.start_transaction()?;
+    /// ctx.add_rule(ScmpAction::KillThread, syscall)?;
+    /// ctx.commit_transaction()?;
+    /// ctx.load()?;
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn commit_transaction(&mut self) -> Result<()> {
+        cvt(unsafe { seccomp_transaction_commit(self.ctx.as_ptr()) })
+    }
+
     /// Precompute the seccomp filter for future use
     ///
     /// This function precomputes the seccomp filter and stores it internally for

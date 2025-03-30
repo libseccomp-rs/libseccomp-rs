@@ -367,6 +367,38 @@ fn test_merge_filters() {
 
 #[test]
 #[cfg(libseccomp_v2_6)]
+fn test_transaction() {
+    let mut ctx = ScmpFilterContext::new(ScmpAction::Allow).unwrap();
+
+    ctx.start_transaction().unwrap();
+    let syscall = ScmpSyscall::from_name("dup3").unwrap();
+    ctx.add_rule(ScmpAction::Errno(10), syscall).unwrap();
+    ctx.commit_transaction().unwrap();
+
+    ctx.start_transaction().unwrap();
+    let cmps = &[
+        ScmpArgCompare::new(0, ScmpCompareOp::Equal, 10),
+        ScmpArgCompare::new(2, ScmpCompareOp::Equal, 20),
+    ];
+    let syscall = ScmpSyscall::from_name("process_vm_readv").unwrap();
+    ctx.add_rule_conditional_exact(ScmpAction::Errno(111), syscall, cmps)
+        .unwrap();
+    ctx.reject_transaction();
+
+    ctx.load().unwrap();
+
+    syscall_assert!(unsafe { libc::dup3(0, 100, libc::O_CLOEXEC) }, -10);
+
+    // By having rejected the transaction, the errno isn't set to 111 specified
+    // by the filter. Hence, the syscall returns an original errno, EFAULT.
+    syscall_assert!(
+        unsafe { libc::process_vm_readv(10, std::ptr::null(), 20, std::ptr::null(), 0, 0) },
+        -libc::EFAULT
+    );
+}
+
+#[test]
+#[cfg(libseccomp_v2_6)]
 fn test_precompute() {
     let mut ctx = ScmpFilterContext::new(ScmpAction::Allow).unwrap();
     ctx.precompute().unwrap();

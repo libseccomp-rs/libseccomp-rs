@@ -22,7 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Example code for userspace notification functions.
 - `ScmpFilterContext::get_api_tskip` and `ScmpFilterContext::set_api_tskip`
 - Support for `2.5.5` and `2.5.6`
-- Limited support for `2.6.0` (everything except `seccomp_transaction_*`)
+- Support for `2.6.0`
+- `ScmpFilterContext::*_transaction`
 - `ScmpSyscall::is_error` and `ScmpSyscall::is_undef`
 - `ScmpSyscall::from_raw_syscall`, `ScmpSyscall::as_raw_syscall` and `RawSyscall`
 
