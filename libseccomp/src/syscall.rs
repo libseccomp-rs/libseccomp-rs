@@ -240,7 +240,10 @@ impl ScmpSyscall {
     ///
     /// ```
     /// # use libseccomp::*;
-    /// assert_eq!(ScmpSyscall::from_name("mount")?.get_name()?, String::from("mount"));
+    /// assert_eq!(
+    ///     ScmpSyscall::from_name("mount")?.get_name()?,
+    ///     String::from("mount")
+    /// );
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn get_name(self) -> Result<String> {
