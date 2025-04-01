@@ -10,7 +10,7 @@ on:
     - cron: '00 01 * * *'
 
 env:
-  msrv: 1.63
+  msrv: 1.67
 
 jobs:
   validate:

@@ -7,7 +7,7 @@ description = "Rust Language Bindings for the libseccomp Library"
 repository = "https://github.com/libseccomp-rs/libseccomp-rs"
 keywords = ["bindings", "seccomp", "linux", "containers", "security"]
 categories = ["os", "api-bindings"]
-rust-version = "1.63"
+rust-version = "1.67"
 edition = "2021"
 readme = "../README.md"
 

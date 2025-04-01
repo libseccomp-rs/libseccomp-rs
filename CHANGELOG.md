@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Added
-- Minimum Supported Rust Version (MSRV): 1.63
+- Minimum Supported Rust Version (MSRV): 1.67
 - Updated const-syscall definitions to match libseccomp 2.6.0.
 - Support for `loongarch64`, `m68k`, `sheb` and `sh` architectures. Note that Rust has
   no support for `SuperH` so you can not use libseccomp-rs on such architectures.
