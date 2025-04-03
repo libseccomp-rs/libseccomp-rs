@@ -14,4 +14,4 @@ Therefore most users should not need to interact with this crate directly.
 
 ## Version information
 
-Currently, the libseccomp-sys supports libseccomp version 2.5.3.
+Currently, the libseccomp-sys supports libseccomp version 2.6.0.
