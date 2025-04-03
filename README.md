@@ -4,7 +4,7 @@
 [![Latest release on crates.io](https://img.shields.io/crates/v/libseccomp.svg)](https://crates.io/crates/libseccomp)
 [![Documentation on docs.rs](https://docs.rs/libseccomp/badge.svg)](https://docs.rs/libseccomp)
 [![codecov](https://codecov.io/gh/libseccomp-rs/libseccomp-rs/branch/main/graph/badge.svg)](https://codecov.io/gh/libseccomp-rs/libseccomp-rs)
-[![MSRV: 1.63](https://img.shields.io/badge/MSRV-1.63-informational)](https://blog.rust-lang.org/2022/08/11/Rust-1.63.0.html)
+[![MSRV: 1.67](https://img.shields.io/badge/MSRV-1.67-informational)](https://blog.rust-lang.org/2023/01/26/Rust-1.67.0.html)
 
 Rust Language Bindings for the libseccomp Library
 
@@ -72,7 +72,7 @@ If you want to build the libseccomp library from an official release tarball ins
 you should follow the quick step.
 
 ```sh
-$ LIBSECCOMP_VERSION=2.5.3
+$ LIBSECCOMP_VERSION=2.6.0
 $ wget https://github.com/seccomp/libseccomp/releases/download/v${LIBSECCOMP_VERSION}/libseccomp-${LIBSECCOMP_VERSION}.tar.gz
 $ tar xvf libseccomp-${LIBSECCOMP_VERSION}.tar.gz
 $ cd libseccomp-${LIBSECCOMP_VERSION}
@@ -103,14 +103,14 @@ Now, add the following to your `Cargo.toml` to start building the libseccomp cra
 
 ```toml
 [dependencies]
-libseccomp = "0.3.0"
+libseccomp = "0.4.0"
 ```
 
 ## Minimum Supported Rust Version (MSRV) policy
 
 The 0.3.x line has 1.46 as MSRV.
 
-Starting with 0.4.0, our MSRV will be increased when necessary or appropriate.
+Starting with 0.4.0, our MSRV is increased when necessary or appropriate.
 However, it will never be increased to a version greater than the last stable rust version minus two.
 
 A MSRV change is not considered a breaking change.

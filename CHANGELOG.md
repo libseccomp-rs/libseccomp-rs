@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 ### Added
+
+### Changed
+
+#### Non-breaking
+
+#### breaking, caught by compiler
+
+#### silent breaking, not caught by compiler
+
+### Removed
+
+## 0.4.0 - 2025-04-04
+### Added
 - Minimum Supported Rust Version (MSRV): 1.67
 - Updated const-syscall definitions to match libseccomp 2.6.0.
 - Support for `loongarch64`, `m68k`, `sheb` and `sh` architectures. Note that Rust has
