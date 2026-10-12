@@ -19,6 +19,11 @@ pub enum ScmpCompareOp {
     /// Less than or equal
     LessOrEqual,
     /// Equal
+    ///
+    /// The comparison is done against the full 64-bit syscall argument. Use
+    /// [`MaskedEqual`](ScmpCompareOp::MaskedEqual) with a mask of `0xffff_ffff` for
+    /// arguments the kernel treats as 32-bit, as it ignores their upper 32 bits (see
+    /// [`ScmpArgCompare::new`](crate::ScmpArgCompare::new)).
     Equal,
     /// Greater than or equal
     GreaterEqual,
