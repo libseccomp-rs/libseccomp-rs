@@ -21,6 +21,17 @@ impl ScmpArgCompare {
     /// You can use the [`scmp_cmp!`](crate::scmp_cmp) macro instead of this to create
     /// `ScmpArgCompare` in a more elegant way.
     ///
+    /// Note that the comparison is done against the full 64-bit syscall argument.
+    /// Many syscall arguments are 32-bit types (for example, the `domain` argument
+    /// of `socket(2)`) for which the kernel ignores the upper 32 bits, but a caller
+    /// can set them to arbitrary values. A comparison such as
+    /// `ScmpArgCompare::new(0, ScmpCompareOp::Equal, AF_NETLINK)` will therefore not
+    /// match a call to `socket(2)` with the domain `0x1_0000_0000 | AF_NETLINK`, which
+    /// the kernel treats the same as `AF_NETLINK`, so a rule relying on it to deny the
+    /// syscall can be bypassed. For such arguments use
+    /// [`ScmpCompareOp::MaskedEqual`] with a mask of `0xffff_ffff` instead, for
+    /// example `ScmpArgCompare::new(0, ScmpCompareOp::MaskedEqual(0xffff_ffff), AF_NETLINK)`.
+    ///
     /// # Arguments
     ///
     /// * `arg` - The number of the argument
